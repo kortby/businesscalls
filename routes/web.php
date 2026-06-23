@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\TechnicianController;
 use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Employee;
@@ -15,9 +16,16 @@ Route::inertia('/about', 'About')->name('about');
 Route::inertia('/pricing', 'Pricing')->name('pricing');
 Route::inertia('/contact', 'Contact')->name('contact');
 
+Route::get('technician/login', [TechnicianController::class, 'login'])->name('technician.login');
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
+
     Route::get('dashboard', function () {
         $user = auth()->user();
+        if ($user && $user->employee) {
+            return redirect()->route('technician.dashboard');
+        }
         if ($user && $user->tenant_id) {
             TenantScope::setTenantId($user->tenant_id);
         }

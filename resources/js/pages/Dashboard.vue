@@ -4,6 +4,7 @@ import { Head, usePage, useForm, router } from '@inertiajs/vue3';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import StreakFlame from '@/components/StreakFlame.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import WebCallModal from '@/components/WebCallModal.vue';
 import { useEcho } from '@laravel/echo-vue';
 import { store as storeAvailability, destroy as destroyAvailability } from '@/routes/availabilities';
 import { store as storeBooking, destroy as destroyBooking } from '@/routes/bookings';
@@ -104,6 +105,14 @@ const currentUser = page.props.auth?.user;
 
 // Mascot State: 0=Idle, 1=Searching, 2=Victory, 3=Error
 const mascotState = ref<number>(0);
+
+const isWebCallOpen = ref(false);
+const webCallPhone = ref('');
+
+const startWebCall = (phone: string) => {
+    webCallPhone.value = phone;
+    isWebCallOpen.value = true;
+};
 
 // Local lists for real-time websocket appending
 const liveBookings = ref([...props.bookings]);
@@ -1219,8 +1228,16 @@ const shiftValidation = computed(() => {
                                 </div>
                             </div>
                             
-                            <div class="text-xs font-bold text-foreground mb-1">
-                                Customer: {{ booking.customer_phone }}
+                            <div class="text-xs font-bold text-foreground mb-1 flex items-center justify-between">
+                                <span>Customer: {{ booking.customer_phone }}</span>
+                                <Button 
+                                    size="icon" 
+                                    variant="ghost" 
+                                    class="h-6 w-6 rounded-full hover:bg-indigo-500/10 hover:text-indigo-500 text-muted-foreground hover:text-indigo-600 dark:hover:text-indigo-400"
+                                    @click="startWebCall(booking.customer_phone)"
+                                >
+                                    <Phone class="h-3.5 w-3.5" />
+                                </Button>
                             </div>
                             <div class="text-xs font-medium text-muted-foreground mb-2 italic">
                                 "{{ booking.job_details }}"
@@ -1415,6 +1432,14 @@ const shiftValidation = computed(() => {
                 </form>
             </DialogContent>
         </Dialog>
+
+        <WebCallModal 
+            :is-open="isWebCallOpen" 
+            :phone="webCallPhone" 
+            @close="isWebCallOpen = false"
+            @call_started="() => transitionMascot(1)"
+            @call_ended="() => transitionMascot(0)"
+        />
     </div>
 </template>
 

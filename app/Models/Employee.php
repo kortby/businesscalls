@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('employees')]
-#[Fillable('tenant_id', 'first_name', 'last_name', 'phone', 'skills', 'notification_preference')]
+#[Fillable('tenant_id', 'first_name', 'last_name', 'phone', 'skills', 'notification_preference', 'user_id')]
 #[Casts(['skills' => 'array'])]
 class Employee extends Model
 {
@@ -25,6 +25,14 @@ class Employee extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    /**
+     * Get the user account associated with the employee.
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
