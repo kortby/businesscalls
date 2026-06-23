@@ -4,6 +4,7 @@ import { Head, Link } from '@inertiajs/vue3';
 import { dashboard, login, register, home, about, pricing, contact } from '@/routes';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { Badge } from '@/components/ui/badge';
 import { 
     Phone, 
     Calendar, 

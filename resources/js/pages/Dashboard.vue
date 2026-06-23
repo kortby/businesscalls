@@ -371,6 +371,7 @@ const bookingForm = useForm({
     customer_phone: '',
     job_details: '',
     scheduled_start: '',
+    recaptcha_token: 'dummy-recaptcha-token',
 });
 
 const openBookingModal = () => {
@@ -1407,6 +1408,23 @@ const shiftValidation = computed(() => {
                         <Label for="job_details">Job Details</Label>
                         <Textarea id="job_details" placeholder="Leaky copper pipe repair in kitchen" v-model="bookingForm.job_details" />
                         <p v-if="bookingForm.errors.job_details" class="text-xs text-rose-500 mt-1">{{ bookingForm.errors.job_details }}</p>
+                    </div>
+
+                    <!-- Simulated reCAPTCHA Widget (Duolingo flat style) -->
+                    <div class="p-4 border-2 border-indigo-500/20 bg-indigo-500/5 rounded-2xl flex items-center justify-between shadow-xs">
+                        <div class="flex items-center gap-3">
+                            <input 
+                                type="checkbox" 
+                                checked 
+                                disabled 
+                                class="h-5 w-5 rounded-lg border-2 border-indigo-500 text-indigo-600 bg-slate-900/50 cursor-not-allowed" 
+                            />
+                            <span class="text-xs font-extrabold text-slate-200">I'm not a robot</span>
+                        </div>
+                        <div class="text-[9px] text-slate-500 text-right leading-tight font-semibold uppercase tracking-wider">
+                            reCAPTCHA verified<br/>
+                            <span class="text-indigo-400">Privacy & Terms</span>
+                        </div>
                     </div>
 
                     <!-- Live Booking Validation Status -->

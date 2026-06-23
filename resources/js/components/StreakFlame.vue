@@ -12,38 +12,54 @@ let rInstance: Rive.Rive | null = null;
 let activeInput: Rive.StateMachineInput | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
-onMounted(() => {
+onMounted(async () => {
     if (!canvasRef.value) return;
 
-    // Load Rive WebGL instance (will fall back gracefully if file is not found/404)
-    rInstance = new Rive.Rive({
-        src: '/assets/animations/streak_flame.riv',
-        canvas: canvasRef.value,
-        stateMachines: 'StreakStateMachine',
-        autoplay: true,
-        onLoad: () => {
-            hasRiveLoaded.value = true;
-            rInstance?.resizeDrawingSurfaceToCanvas();
-
-            const inputs = rInstance?.stateMachineInputs('StreakStateMachine');
-            if (inputs) {
-                const active = inputs.find(i => i.name === 'active' || i.name === 'state_trigger' || i.name === 'streak_count');
-                if (active) {
-                    activeInput = active;
-                    activeInput.value = props.streak;
-                }
-            }
-        },
-        onLoadError: () => {
+    const src = '/assets/animations/streak_flame.riv';
+    try {
+        // Perform a quick HEAD check to see if the file exists and is not an HTML error fallback page
+        const response = await fetch(src, { method: 'HEAD' });
+        const contentType = response.headers.get('content-type') || '';
+        
+        if (!response.ok || contentType.includes('text/html')) {
             hasRiveLoaded.value = false;
             LogWarning("Streak flame Rive asset not found. Using custom SVG fallback.");
+            return;
         }
-    });
 
-    resizeObserver = new ResizeObserver(() => {
-        rInstance?.resizeDrawingSurfaceToCanvas();
-    });
-    resizeObserver.observe(canvasRef.value);
+        // Load Rive WebGL instance
+        rInstance = new Rive.Rive({
+            src: src,
+            canvas: canvasRef.value,
+            stateMachines: 'StreakStateMachine',
+            autoplay: true,
+            onLoad: () => {
+                hasRiveLoaded.value = true;
+                rInstance?.resizeDrawingSurfaceToCanvas();
+
+                const inputs = rInstance?.stateMachineInputs('StreakStateMachine');
+                if (inputs) {
+                    const active = inputs.find(i => i.name === 'active' || i.name === 'state_trigger' || i.name === 'streak_count');
+                    if (active) {
+                        activeInput = active;
+                        activeInput.value = props.streak;
+                    }
+                }
+            },
+            onLoadError: () => {
+                hasRiveLoaded.value = false;
+                LogWarning("Streak flame Rive asset not found. Using custom SVG fallback.");
+            }
+        });
+
+        resizeObserver = new ResizeObserver(() => {
+            rInstance?.resizeDrawingSurfaceToCanvas();
+        });
+        resizeObserver.observe(canvasRef.value);
+    } catch (e) {
+        hasRiveLoaded.value = false;
+        LogWarning("Streak flame Rive asset check failed. Using custom SVG fallback.");
+    }
 });
 
 watch(() => props.streak, (newVal) => {

@@ -40,11 +40,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $date = now()->startOfDay();
         $hasBookingsToday = Booking::whereDate('scheduled_start', $date)->exists();
         if (! $hasBookingsToday) {
-            $date->subDay();
+            $date = $date->subDay();
         }
         while (Booking::whereDate('scheduled_start', $date)->exists()) {
             $bookingStreak++;
-            $date->subDay();
+            $date = $date->subDay();
         }
 
         return Inertia::render('Dashboard', [

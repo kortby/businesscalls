@@ -85,6 +85,25 @@ class CallWebhookController extends Controller
         // Bypass TenantScope to execute multi-tenant DB updates in system mode
         TenantScope::setTenantId($tenant->id);
 
+        // VoIP Spam call filter (reject if >= 3 failed/short calls in last 10 mins)
+        if ($customerPhone !== 'Unknown') {
+            $failedCallsCount = CallLog::where('customer_phone', $customerPhone)
+                ->where(function ($query) {
+                    $query->where('status', 'error')
+                        ->orWhere(function ($q) {
+                            $q->where('status', 'ended')->where('duration', '<', 2);
+                        });
+                })
+                ->where('created_at', '>=', now()->subMinutes(10))
+                ->count();
+
+            if ($failedCallsCount >= 3) {
+                Log::warning("VoIP Spam detected: rejecting webhook call for number {$customerPhone} on tenant {$tenant->id}");
+
+                return response()->json(['error' => 'Call rejected due to spam activity.'], 429);
+            }
+        }
+
         switch ($event) {
             case 'call_started':
                 $callLog = CallLog::updateOrCreate(
