@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { 
@@ -17,7 +16,14 @@ import {
 } from '@lucide/vue';
 
 defineOptions({
-    layout: SettingsLayout,
+    layout: {
+        breadcrumbs: [
+            {
+                title: 'AI Prompt settings',
+                href: '/settings/prompt',
+            },
+        ],
+    },
 });
 
 const props = defineProps<{
