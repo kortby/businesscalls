@@ -2,6 +2,7 @@
 import { ref, onMounted, computed, watch } from 'vue';
 import { Head, usePage, useForm, router } from '@inertiajs/vue3';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import StreakFlame from '@/components/StreakFlame.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { useEcho } from '@laravel/echo-vue';
 import { store as storeAvailability, destroy as destroyAvailability } from '@/routes/availabilities';
@@ -91,6 +92,10 @@ const props = defineProps<{
             last_name: string;
         };
     }>;
+    totalCallsCount: number;
+    successfulBookingsCount: number;
+    openJobsTodayCount: number;
+    bookingStreak: number;
 }>();
 
 // Page info for auth checks
@@ -120,9 +125,22 @@ const activeCall = ref<{
 
 // Stats counters (reactive)
 const stats = ref({
-    calls: props.bookings.length + 3, // initial dummy call simulation offset
-    success: props.bookings.filter(b => b.status === 'booked').length,
-    conflicts: 1, // initial dummy configuration validation conflict
+    calls: props.totalCallsCount,
+    success: props.successfulBookingsCount,
+    openJobsToday: props.openJobsTodayCount,
+    conflicts: props.bookings.filter(b => b.status === 'conflict').length || 0,
+});
+
+// Dynamic booking success rate calculation (Psi)
+const successRate = computed(() => {
+    if (stats.value.calls === 0) return 0;
+    return Math.round((stats.value.success / stats.value.calls) * 100);
+});
+
+const streakCount = ref(props.bookingStreak);
+
+watch(() => props.bookingStreak, (newVal) => {
+    streakCount.value = newVal;
 });
 
 // Sound effects or delay mascot state resets
@@ -170,6 +188,16 @@ if (props.tenant) {
             
             // Re-fetch bookings or append booking dynamically
             if (payload.booking) {
+                // Increment openJobsToday if scheduled start is today
+                const start = new Date(payload.booking.scheduled_start);
+                const today = new Date();
+                if (start.toDateString() === today.toDateString()) {
+                    stats.value.openJobsToday++;
+                }
+
+                // Reload booking streak from backend
+                router.reload({ only: ['bookingStreak'] });
+
                 // Ensure duplicate check
                 if (!liveBookings.value.some(b => b.id === payload.booking.id)) {
                     liveBookings.value.unshift(payload.booking);
@@ -193,6 +221,8 @@ if (props.tenant) {
         const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
         const uniqueId = Math.random().toString(36).substring(2, 9);
         
+        stats.value.calls++;
+
         activeCall.value = {
             call_id: payload.callLog.call_id,
             status: payload.callLog.status,
@@ -750,43 +780,73 @@ const shiftValidation = computed(() => {
             </div>
         </div>
 
-        <!-- Stats Grid -->
-        <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Calls Received Card -->
-            <Card class="transition-all hover:shadow-md">
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Total Calls Managed</span>
-                    <Phone class="h-4 w-4 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                    <div class="text-3xl font-bold tracking-tight">{{ stats.calls }}</div>
-                    <p class="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Real-time counter</p>
-                </CardContent>
-            </Card>
+        <!-- Stats Grid (Duolingo Exaggerated Style) -->
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+            <!-- Calls Managed -->
+            <div class="border-4 border-b-8 border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20 dark:border-indigo-800 rounded-3xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-indigo-700 dark:text-indigo-400">Total Calls</span>
+                    <Phone class="h-5 w-5 text-indigo-500" />
+                </div>
+                <div class="mt-4">
+                    <div class="text-4xl font-black text-indigo-950 dark:text-indigo-200">{{ stats.calls }}</div>
+                    <p class="text-[10px] font-bold text-indigo-700/60 dark:text-indigo-400/60 uppercase tracking-widest mt-1">Managed Live</p>
+                </div>
+            </div>
 
-            <!-- Successful Bookings Card -->
-            <Card class="transition-all hover:shadow-md">
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Successful Bookings</span>
-                    <CheckCircle class="h-4 w-4 text-emerald-500" />
-                </CardHeader>
-                <CardContent>
-                    <div class="text-3xl font-bold tracking-tight text-emerald-600 dark:text-emerald-400">{{ stats.success }}</div>
-                    <p class="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Mascot State: Victory</p>
-                </CardContent>
-            </Card>
+            <!-- Successful Bookings -->
+            <div class="border-4 border-b-8 border-emerald-400 bg-emerald-50/50 dark:bg-emerald-950/20 dark:border-emerald-800 rounded-3xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-emerald-700 dark:text-emerald-400">Booked Jobs</span>
+                    <CheckCircle class="h-5 w-5 text-emerald-500" />
+                </div>
+                <div class="mt-4">
+                    <div class="text-4xl font-black text-emerald-950 dark:text-emerald-200">{{ stats.success }}</div>
+                    <p class="text-[10px] font-bold text-emerald-700/60 dark:text-emerald-400/60 uppercase tracking-widest mt-1">Confirmed</p>
+                </div>
+            </div>
 
-            <!-- Overlaps/Conflicts Card -->
-            <Card class="transition-all hover:shadow-md">
-                <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <span class="text-xs font-semibold uppercase tracking-widest text-muted-foreground">Conflicts Blocked</span>
-                    <XCircle class="h-4 w-4 text-rose-500" />
-                </CardHeader>
-                <CardContent>
-                    <div class="text-3xl font-bold tracking-tight text-rose-600 dark:text-rose-400">{{ stats.conflicts }}</div>
-                    <p class="text-[10px] text-muted-foreground uppercase tracking-widest mt-1">Overlap buffers enforced</p>
-                </CardContent>
-            </Card>
+            <!-- Success Rate (Psi) -->
+            <div class="border-4 border-b-8 border-amber-400 bg-amber-50/50 dark:bg-amber-950/20 dark:border-amber-800 rounded-3xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-amber-700 dark:text-amber-400">Success Rate</span>
+                    <Activity class="h-5 w-5 text-amber-500" />
+                </div>
+                <div class="mt-4">
+                    <div class="text-4xl font-black text-amber-950 dark:text-amber-200">{{ successRate }}%</div>
+                    <p class="text-[10px] font-bold text-amber-700/60 dark:text-amber-400/60 uppercase tracking-widest mt-1">Ψ Calculation</p>
+                </div>
+            </div>
+
+            <!-- Open Jobs Today -->
+            <div class="border-4 border-b-8 border-sky-400 bg-sky-50/50 dark:bg-sky-950/20 dark:border-sky-800 rounded-3xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-sky-700 dark:text-sky-400">Jobs Today</span>
+                    <Calendar class="h-5 w-5 text-sky-500" />
+                </div>
+                <div class="mt-4">
+                    <div class="text-4xl font-black text-sky-950 dark:text-sky-200">{{ stats.openJobsToday }}</div>
+                    <p class="text-[10px] font-bold text-sky-700/60 dark:text-sky-400/60 uppercase tracking-widest mt-1">Scheduled</p>
+                </div>
+            </div>
+
+            <!-- Daily Booking Streak -->
+            <div class="border-4 border-b-8 border-orange-400 bg-orange-50/50 dark:bg-orange-950/20 dark:border-orange-800 rounded-3xl p-5 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between z-10">
+                    <span class="text-xs font-black uppercase tracking-wider text-orange-700 dark:text-orange-400">Daily Streak</span>
+                    <Award class="h-5 w-5 text-orange-500" />
+                </div>
+                <div class="flex items-end justify-between mt-2 z-10">
+                    <div>
+                        <div class="text-4xl font-black text-orange-950 dark:text-orange-200">{{ streakCount }}</div>
+                        <p class="text-[10px] font-bold text-orange-700/60 dark:text-orange-400/60 uppercase tracking-widest mt-1">Days Active</p>
+                    </div>
+                    <!-- Streak Flame Animation -->
+                    <div class="shrink-0 -mr-2 -mb-2">
+                        <StreakFlame :streak="streakCount" />
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Main Layout Split -->

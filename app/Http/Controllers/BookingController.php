@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Events\DispatchUpdated;
+use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Employee;
@@ -87,6 +88,8 @@ class BookingController extends Controller
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
         ]);
+
+        SendTechnicianAlertJob::dispatch($booking);
 
         // 4. Trigger mascot search -> victory animation live sequence on the dashboard
         $tenantId = auth()->user()->tenant_id;

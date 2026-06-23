@@ -3,6 +3,7 @@
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Models\Booking;
+use App\Models\CallLog;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
@@ -21,10 +22,31 @@ Route::middleware(['auth', 'verified'])->group(function () {
             TenantScope::setTenantId($user->tenant_id);
         }
 
+        // Calculate Stats
+        $totalCallsCount = CallLog::count();
+        $successfulBookingsCount = Booking::where('status', 'booked')->count();
+        $openJobsTodayCount = Booking::whereDate('scheduled_start', now()->startOfDay())->where('status', 'booked')->count();
+
+        // Calculate daily booking streak
+        $bookingStreak = 0;
+        $date = now()->startOfDay();
+        $hasBookingsToday = Booking::whereDate('scheduled_start', $date)->exists();
+        if (! $hasBookingsToday) {
+            $date->subDay();
+        }
+        while (Booking::whereDate('scheduled_start', $date)->exists()) {
+            $bookingStreak++;
+            $date->subDay();
+        }
+
         return Inertia::render('Dashboard', [
             'tenant' => $user ? Tenant::find($user->tenant_id) : null,
             'employees' => Employee::with(['availabilities', 'bookings'])->get(),
             'bookings' => Booking::with('employee')->latest()->take(10)->get(),
+            'totalCallsCount' => $totalCallsCount,
+            'successfulBookingsCount' => $successfulBookingsCount,
+            'openJobsTodayCount' => $openJobsTodayCount,
+            'bookingStreak' => $bookingStreak,
         ]);
     })->name('dashboard');
 

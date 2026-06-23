@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\DispatchUpdated;
 use App\Http\Controllers\Controller;
+use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Employee;
@@ -181,7 +182,6 @@ class DispatchWebhookController extends Controller
             return response()->json($conflictResult, 422);
         }
 
-        // 7. Successful Booking Creation
         $booking = Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $assignedEmployee->id,
@@ -190,6 +190,8 @@ class DispatchWebhookController extends Controller
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
         ]);
+
+        SendTechnicianAlertJob::dispatch($booking);
 
         $successMessage = "Appointment booked successfully with {$assignedEmployee->first_name} {$assignedEmployee->last_name} at {$requestedTimeCarbon->format('Y-m-d H:i')}.";
 
