@@ -31,4 +31,14 @@ export default defineConfig({
             formVariants: true,
         }),
     ],
+    build: {
+        rollupOptions: {
+            onLog(level, log, handler) {
+                if (log.code === 'INVALID_ANNOTATION') {
+                    return;
+                }
+                handler(level, log);
+            },
+        },
+    },
 });

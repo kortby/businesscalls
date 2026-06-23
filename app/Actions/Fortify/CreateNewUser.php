@@ -4,8 +4,10 @@ namespace App\Actions\Fortify;
 
 use App\Concerns\PasswordValidationRules;
 use App\Concerns\ProfileValidationRules;
+use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Str;
 use Laravel\Fortify\Contracts\CreatesNewUsers;
 
 class CreateNewUser implements CreatesNewUsers
@@ -24,7 +26,20 @@ class CreateNewUser implements CreatesNewUsers
             'password' => $this->passwordRules(),
         ])->validate();
 
+        $tenant = Tenant::create([
+            'name' => $input['name']."'s Organization",
+            'slug' => Str::slug($input['name'].'-'.uniqid()),
+            'plan' => 'Basic',
+            'settings' => [
+                'prompt' => 'You are a professional voice dispatcher.',
+                'phone_mappings' => [],
+                'emergency_parameters' => [],
+            ],
+            'secret_key' => Str::random(32),
+        ]);
+
         return User::create([
+            'tenant_id' => $tenant->id,
             'name' => $input['name'],
             'email' => $input['email'],
             'password' => $input['password'],
