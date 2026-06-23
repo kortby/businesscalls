@@ -61,7 +61,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <div class="relative flex h-full w-full items-center justify-center overflow-hidden rounded-2xl bg-slate-50 p-4 border-4 border-slate-900 shadow-[6px_6px_0px_0px_rgba(0,0,0,1)] dark:bg-slate-800 dark:border-slate-100 dark:shadow-[6px_6px_0px_0px_rgba(255,255,255,1)]">
+    <div class="relative flex h-full w-full items-center justify-center overflow-hidden rounded-xl bg-accent/25 p-4 border shadow-xs">
         <!-- Render canvas targeting WebGL Mascot -->
         <canvas
             ref="canvasRef"
@@ -69,8 +69,10 @@ onBeforeUnmount(() => {
         ></canvas>
         
         <!-- Indicator Badge for visual confirmation if mascot asset is not loaded yet -->
-        <div class="absolute bottom-2 right-2 text-xs font-bold px-2 py-0.5 rounded border-2 border-slate-900 bg-emerald-400 text-slate-950 uppercase shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-            Mascot State: {{ state }}
+        <div class="absolute bottom-2 right-2">
+            <span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20 uppercase tracking-wider">
+                Mascot State: {{ state }}
+            </span>
         </div>
     </div>
 </template>

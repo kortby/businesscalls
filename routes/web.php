@@ -1,5 +1,7 @@
 <?php
 
+use App\Http\Controllers\AvailabilityController;
+use App\Http\Controllers\BookingController;
 use App\Models\Booking;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
@@ -18,10 +20,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         return Inertia::render('Dashboard', [
             'tenant' => $user ? Tenant::find($user->tenant_id) : null,
-            'employees' => Employee::with('availabilities')->get(),
+            'employees' => Employee::with(['availabilities', 'bookings'])->get(),
             'bookings' => Booking::with('employee')->latest()->take(10)->get(),
         ]);
     })->name('dashboard');
+
+    Route::get('availabilities', [AvailabilityController::class, 'index'])->name('availabilities.index');
+    Route::post('availabilities', [AvailabilityController::class, 'store'])->name('availabilities.store');
+    Route::put('availabilities/{availability}', [AvailabilityController::class, 'update'])->name('availabilities.update');
+    Route::delete('availabilities/{availability}', [AvailabilityController::class, 'destroy'])->name('availabilities.destroy');
+
+    Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
+    Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::put('bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
+    Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 });
 
 require __DIR__.'/settings.php';
