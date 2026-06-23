@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
+use App\Http\Controllers\ConversationsController;
 use App\Http\Controllers\TechnicianController;
 use App\Models\Booking;
 use App\Models\CallLog;
@@ -67,6 +68,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
     Route::put('bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
+
+    Route::get('conversations', [ConversationsController::class, 'index'])->name('conversations.index');
+    Route::post('conversations/{conversation}/messages', [ConversationsController::class, 'storeMessage'])->name('conversations.messages.store');
 });
 
 require __DIR__.'/settings.php';

@@ -6,6 +6,7 @@ namespace App\Models;
 use App\Attributes\Casts;
 use App\Concerns\BelongsToTenant;
 use App\Concerns\HasAttributeCasts;
+use App\Concerns\HasConversations;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -43,7 +44,7 @@ use Laravel\Fortify\TwoFactorAuthenticatable;
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
-    use BelongsToTenant, HasAttributeCasts, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+    use BelongsToTenant, HasAttributeCasts, HasConversations, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
      * Get the tenant that owns the user.

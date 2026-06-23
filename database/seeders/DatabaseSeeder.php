@@ -4,7 +4,9 @@ namespace Database\Seeders;
 
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\Conversation;
 use App\Models\Employee;
+use App\Models\Message;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\User;
@@ -229,6 +231,51 @@ class DatabaseSeeder extends Seeder
             'job_details' => 'Commercial freezer refrigerator diagnostic & coolant recharge',
             'status' => 'booked',
             'scheduled_start' => $startOfWeek->copy()->addDays(2)->addHours(9), // Wednesday 09:00
+        ]);
+
+        // 7. Seed conversations and chat messages
+        $conv1 = Conversation::create([
+            'tenant_id' => $tenant->id,
+            'customer_phone' => '+15551234567',
+            'status' => 'open',
+            'subject' => 'Plumbing Emergency Inquiry',
+        ]);
+
+        Message::create([
+            'conversation_id' => $conv1->id,
+            'sender' => 'customer',
+            'body' => 'Hello, I have a leaky water heater. Can I get a technician to come look at it today?',
+        ]);
+
+        Message::create([
+            'conversation_id' => $conv1->id,
+            'sender' => 'agent',
+            'body' => 'Hi! Yes, we can certainly help with that. Our dispatcher has assigned John Doe to your ticket. He should arrive around 1:00 PM today.',
+        ]);
+
+        Message::create([
+            'conversation_id' => $conv1->id,
+            'sender' => 'customer',
+            'body' => 'Perfect, thank you! I will be home.',
+        ]);
+
+        $conv2 = Conversation::create([
+            'tenant_id' => $tenant->id,
+            'customer_phone' => '+15559876543',
+            'status' => 'archived',
+            'subject' => 'HVAC Maintenance Quote',
+        ]);
+
+        Message::create([
+            'conversation_id' => $conv2->id,
+            'sender' => 'customer',
+            'body' => 'Could you give me a price estimate for clean and check on my AC unit?',
+        ]);
+
+        Message::create([
+            'conversation_id' => $conv2->id,
+            'sender' => 'agent',
+            'body' => 'Our basic clean and check is $89. This includes diagnostic testing and cleaning the condenser coils.',
         ]);
 
         // Reset scope at end of seed
