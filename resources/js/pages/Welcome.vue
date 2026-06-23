@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-import { dashboard, login, register } from '@/routes';
+import { dashboard, login, register, home, about, pricing, contact } from '@/routes';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import { 
@@ -51,7 +51,14 @@ const simulateState = (stateNum: number) => {
                 </div>
 
                 <!-- Navigation Links -->
-                <nav class="flex items-center gap-4">
+                <nav class="hidden md:flex items-center gap-6">
+                    <Link :href="home()" class="text-sm font-semibold text-foreground hover:text-foreground">Home</Link>
+                    <Link :href="about()" class="text-sm font-semibold text-muted-foreground hover:text-foreground">About</Link>
+                    <Link :href="pricing()" class="text-sm font-semibold text-muted-foreground hover:text-foreground">Pricing</Link>
+                    <Link :href="contact()" class="text-sm font-semibold text-muted-foreground hover:text-foreground">Contact</Link>
+                </nav>
+
+                <div class="flex items-center gap-4">
                     <Link
                         v-if="$page.props.auth.user"
                         :href="dashboard()"
@@ -73,7 +80,7 @@ const simulateState = (stateNum: number) => {
                             Get Started
                         </Link>
                     </template>
-                </nav>
+                </div>
             </div>
         </header>
 
@@ -221,8 +228,10 @@ const simulateState = (stateNum: number) => {
             <div class="container mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-semibold text-muted-foreground">
                 <p>© 2026 businesscalls Inc. All rights reserved.</p>
                 <div class="flex items-center gap-6">
-                    <a href="https://laravel.com" target="_blank" class="hover:text-foreground transition-colors">Powered by Laravel</a>
-                    <a href="https://rive.app" target="_blank" class="hover:text-foreground transition-colors">Animations by Rive</a>
+                    <Link :href="home()" class="hover:text-foreground">Home</Link>
+                    <Link :href="about()" class="hover:text-foreground">About</Link>
+                    <Link :href="pricing()" class="hover:text-foreground">Pricing</Link>
+                    <Link :href="contact()" class="hover:text-foreground">Contact</Link>
                 </div>
             </div>
         </footer>

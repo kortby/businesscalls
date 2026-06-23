@@ -16,6 +16,10 @@ const sidebarNavItems: NavItem[] = [
         href: editProfile(),
     },
     {
+        title: 'Prompt Editor',
+        href: '/settings/prompt',
+    },
+    {
         title: 'Security',
         href: editSecurity(),
     },

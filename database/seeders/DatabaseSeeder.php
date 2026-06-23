@@ -31,7 +31,9 @@ class DatabaseSeeder extends Seeder
             'slug' => 'apex-contracting',
             'plan' => 'Enterprise',
             'settings' => [
-                'prompt' => 'You are the AI voice dispatcher for Apex Contracting Services. Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.',
+                'prompt' => 'You are the AI voice dispatcher for {{business_name}}. Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Special Instructions: {{custom_instructions}}. Emergency fee is {{emergency_fee}}.',
+                'ai_prompt' => 'Please coordinate emergency bookings and normal technician shift assignments.',
+                'emergency_fee' => '$150',
                 'phone_mappings' => [
                     '+15550192834' => 'plumbing-dispatch',
                     '+15559876543' => 'hvac-dispatch',

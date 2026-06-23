@@ -18,6 +18,14 @@ class Tenant extends Model
     use HasAttributeCasts, HasFactory;
 
     /**
+     * Get a setting by key.
+     */
+    public function getSetting(string $key, mixed $default = null): mixed
+    {
+        return $this->settings[$key] ?? $default;
+    }
+
+    /**
      * Get the employees associated with the tenant.
      */
     public function employees(): HasMany

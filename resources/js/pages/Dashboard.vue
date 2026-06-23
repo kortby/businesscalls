@@ -109,6 +109,15 @@ const liveFeed = ref<Array<{
     message: string;
 }>>([]);
 
+const activeCall = ref<{
+    call_id: string;
+    status: string;
+    customer_phone: string;
+    transcript: string;
+    summary: string;
+    duration: number | null;
+} | null>(null);
+
 // Stats counters (reactive)
 const stats = ref({
     calls: props.bookings.length + 3, // initial dummy call simulation offset
@@ -178,6 +187,76 @@ if (props.tenant) {
             // Let's filter out deleted bookings by inspecting message contents or re-triggering reload
             router.reload({ only: ['bookings'] });
         }
+    });
+
+    useEcho(`tenant.${props.tenant.id}`, 'CallStarted', (payload: any) => {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const uniqueId = Math.random().toString(36).substring(2, 9);
+        
+        activeCall.value = {
+            call_id: payload.callLog.call_id,
+            status: payload.callLog.status,
+            customer_phone: payload.callLog.customer_phone,
+            transcript: payload.callLog.transcript || '',
+            summary: payload.callLog.summary || '',
+            duration: payload.callLog.duration || null,
+        };
+
+        liveFeed.value.unshift({
+            id: uniqueId,
+            timestamp,
+            type: 'searching',
+            message: `[Call Started] Live connection from customer ${payload.callLog.customer_phone}`
+        });
+
+        transitionMascot(1);
+    });
+
+    useEcho(`tenant.${props.tenant.id}`, 'CallEnded', (payload: any) => {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const uniqueId = Math.random().toString(36).substring(2, 9);
+
+        if (activeCall.value && activeCall.value.call_id === payload.callLog.call_id) {
+            activeCall.value.status = payload.callLog.status;
+            activeCall.value.duration = payload.callLog.duration;
+        }
+
+        liveFeed.value.unshift({
+            id: uniqueId,
+            timestamp,
+            type: 'success',
+            message: `[Call Ended] Call complete. Duration: ${payload.callLog.duration} seconds.`
+        });
+
+        transitionMascot(2);
+    });
+
+    useEcho(`tenant.${props.tenant.id}`, 'CallAnalyzed', (payload: any) => {
+        const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const uniqueId = Math.random().toString(36).substring(2, 9);
+
+        if (activeCall.value && activeCall.value.call_id === payload.callLog.call_id) {
+            activeCall.value.transcript = payload.callLog.transcript || '';
+            activeCall.value.summary = payload.callLog.summary || '';
+        } else {
+            activeCall.value = {
+                call_id: payload.callLog.call_id,
+                status: payload.callLog.status,
+                customer_phone: payload.callLog.customer_phone,
+                transcript: payload.callLog.transcript || '',
+                summary: payload.callLog.summary || '',
+                duration: payload.callLog.duration || null,
+            };
+        }
+
+        liveFeed.value.unshift({
+            id: uniqueId,
+            timestamp,
+            type: 'success',
+            message: `[Call Analyzed] Transcript generated for call SID: ${payload.callLog.call_id}`
+        });
+
+        transitionMascot(0);
     });
 }
 
@@ -737,16 +816,55 @@ const shiftValidation = computed(() => {
                                 <DispatcherMascot :state="mascotState" />
                             </div>
                             <div class="w-full md:w-1/2 flex flex-col justify-center gap-3">
-                                <div class="bg-accent/40 border p-4 rounded-xl">
-                                    <h3 class="text-sm font-semibold uppercase text-foreground flex items-center gap-2">
-                                        <Activity class="h-4 w-4 text-primary" /> State Machine Rules
-                                    </h3>
-                                    <ul class="text-xs text-muted-foreground font-medium list-disc pl-4 mt-2 space-y-1">
-                                        <li>State 0: Idle monitoring</li>
-                                        <li>State 1: Real-time scan (incoming API tool Call)</li>
-                                        <li>State 2: Happy validation (booking confirmation)</li>
-                                        <li>State 3: Conflict response (overlaps or out-of-shift)</li>
-                                    </ul>
+                                <!-- Live Telemetry / Transcript Container -->
+                                <div class="bg-accent/40 border border-primary/20 p-4 rounded-xl relative">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <h3 class="text-xs font-black uppercase text-foreground flex items-center gap-1.5">
+                                            <Activity class="h-4 w-4 text-primary animate-pulse" /> Telemetry & Transcript
+                                        </h3>
+                                        <span 
+                                            v-if="activeCall" 
+                                            :class="{
+                                                'bg-yellow-500/10 text-yellow-500 border-yellow-500/20': activeCall.status === 'ongoing',
+                                                'bg-emerald-500/10 text-emerald-500 border-emerald-500/20': activeCall.status === 'ended',
+                                            }"
+                                            class="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[9px] font-black uppercase tracking-wider bg-background"
+                                        >
+                                            {{ activeCall.status }}
+                                        </span>
+                                        <span v-else class="text-[9px] font-black text-slate-500 uppercase tracking-widest">Listening...</span>
+                                    </div>
+
+                                    <div v-if="activeCall" class="space-y-2 text-xs">
+                                        <div class="grid grid-cols-2 gap-2 border-b pb-2 font-semibold">
+                                            <div>
+                                                <span class="text-muted-foreground block text-[9px] uppercase tracking-wider">Phone</span>
+                                                <span class="text-foreground font-bold">{{ activeCall.customer_phone }}</span>
+                                            </div>
+                                            <div>
+                                                <span class="text-muted-foreground block text-[9px] uppercase tracking-wider">Duration</span>
+                                                <span class="text-foreground font-mono">{{ activeCall.duration ? activeCall.duration + 's' : 'Ongoing...' }}</span>
+                                            </div>
+                                        </div>
+
+                                        <div class="space-y-1">
+                                            <span class="text-muted-foreground block text-[9px] uppercase tracking-wider">Speech Transcript</span>
+                                            <div class="max-h-[80px] overflow-y-auto bg-slate-950/40 p-2 rounded-lg font-mono text-[10px] text-slate-300 leading-tight">
+                                                {{ activeCall.transcript || '(Listening for voice agent speech...)' }}
+                                            </div>
+                                        </div>
+
+                                        <div v-if="activeCall.summary" class="space-y-1 border-t pt-2 mt-2">
+                                            <span class="text-muted-foreground block text-[9px] uppercase tracking-wider">AI Log Summary</span>
+                                            <p class="text-[10px] text-muted-foreground leading-tight italic">
+                                                "{{ activeCall.summary }}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div v-else class="py-6 text-center text-xs text-muted-foreground italic">
+                                        System is idle. Telephone lines are clear.
+                                    </div>
                                 </div>
                             </div>
                         </div>

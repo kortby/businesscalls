@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::inertia('/', 'Welcome')->name('home');
+Route::inertia('/about', 'About')->name('about');
+Route::inertia('/pricing', 'Pricing')->name('pricing');
+Route::inertia('/contact', 'Contact')->name('contact');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard', function () {
