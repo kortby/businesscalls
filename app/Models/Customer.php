@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('customers')]
-#[Fillable('tenant_id', 'name', 'phone', 'email', 'notes')]
+#[Fillable('tenant_id', 'name', 'phone', 'email', 'notes', 'language')]
 class Customer extends Model
 {
     use BelongsToTenant, HasAttributeCasts, HasFactory;

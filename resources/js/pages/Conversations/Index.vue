@@ -3,6 +3,7 @@ import { ref, computed, watch, onMounted } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { useEcho } from '@laravel/echo-vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import {
     Card,
     CardHeader,
@@ -51,6 +52,20 @@ const activeConversation = computed(() =>
     liveConversations.value.find(c => c.id === activeConversationId.value) || null
 );
 
+// Mascot State: 0=Idle, 1=Searching, 2=Victory, 3=Error
+const mascotState = ref<number>(0);
+
+const transitionMascot = (newState: number) => {
+    mascotState.value = newState;
+    if (newState === 2 || newState === 3) {
+        setTimeout(() => {
+            if (mascotState.value === newState) {
+                mascotState.value = 0;
+            }
+        }, 6000);
+    }
+};
+
 // Form for sending messages
 const form = useForm({
     body: '',
@@ -63,13 +78,17 @@ const selectConversation = (id: number) => {
 const submitMessage = () => {
     if (!activeConversationId.value || !form.body.trim()) return;
 
+    transitionMascot(1); // Searching/sending
+
     form.post(`/conversations/${activeConversationId.value}/messages`, {
         onSuccess: () => {
-            // Re-fetch or local update is handled by inertia response,
-            // but we reset the input field
             form.reset('body');
             scrollToBottom();
+            transitionMascot(2); // Victory
         },
+        onError: () => {
+            transitionMascot(3); // Error
+        }
     });
 };
 
@@ -102,6 +121,10 @@ onMounted(() => {
     if (props.tenant) {
         useEcho(`tenant.${props.tenant.id}`, 'message.received', (payload: any) => {
             const msg = payload.message;
+            
+            // Instantly update Rive mascot visual triggers (Victory)
+            transitionMascot(2);
+
             const conv = liveConversations.value.find(c => c.id === msg.conversation_id);
             if (conv) {
                 if (!conv.messages.some(m => m.id === msg.id)) {
@@ -155,6 +178,11 @@ const formatDate = (isoString: string) => {
             
             <!-- LEFT THREADS PANEL -->
             <div class="flex flex-col gap-6">
+                <!-- Rive Mascot Integration -->
+                <div class="h-64 shrink-0">
+                    <DispatcherMascot :state="mascotState" />
+                </div>
+
                 <Card class="border-4 border-b-8 border-slate-300 dark:border-slate-800 rounded-3xl overflow-hidden">
                     <CardHeader class="border-b pb-4">
                         <CardTitle class="text-lg font-black uppercase tracking-wider">Active Conversations</CardTitle>

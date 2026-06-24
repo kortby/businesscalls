@@ -21,6 +21,11 @@ return Application::configure(basePath: dirname(__DIR__))
 
         $middleware->validateCsrfTokens(except: [
             'stripe/webhook',
+            'api/webhooks/sms',
+            'api/webhooks/sms/*',
+            'api/webhooks/ivr',
+            'api/webhooks/ivr/*',
+            'api/mcp',
         ]);
 
         $middleware->web(append: [

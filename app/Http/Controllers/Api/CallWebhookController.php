@@ -133,6 +133,22 @@ class CallWebhookController extends Controller
                     ]
                 );
 
+                $ratings = $request->input('survey_scores')
+                    ?? $request->input('call.survey_scores')
+                    ?? $request->input('csat_ratings')
+                    ?? $request->input('call.csat_ratings')
+                    ?? $callData['survey_scores']
+                    ?? $callData['csat_ratings']
+                    ?? [];
+
+                if (is_string($ratings)) {
+                    $ratings = json_decode($ratings, true) ?? [];
+                }
+
+                if (is_array($ratings) && ! empty($ratings)) {
+                    $callLog->calculateCsatScore($ratings);
+                }
+
                 event(new CallEnded($tenant->id, $callLog));
                 break;
 
@@ -154,6 +170,22 @@ class CallWebhookController extends Controller
                         'summary' => $summary,
                     ]
                 );
+
+                $ratings = $request->input('survey_scores')
+                    ?? $request->input('call.survey_scores')
+                    ?? $request->input('csat_ratings')
+                    ?? $request->input('call.csat_ratings')
+                    ?? $callData['survey_scores']
+                    ?? $callData['csat_ratings']
+                    ?? [];
+
+                if (is_string($ratings)) {
+                    $ratings = json_decode($ratings, true) ?? [];
+                }
+
+                if (is_array($ratings) && ! empty($ratings)) {
+                    $callLog->calculateCsatScore($ratings);
+                }
 
                 event(new CallAnalyzed($tenant->id, $callLog));
                 break;

@@ -3,6 +3,8 @@
 namespace App\Providers;
 
 use App\Events\CallAnalyzed;
+use App\Events\CallEnded;
+use App\Jobs\SendFollowUpSmsJob;
 use App\Jobs\SyncCallToCrmJob;
 use App\Models\Tenant;
 use Carbon\CarbonImmutable;
@@ -34,9 +36,15 @@ class AppServiceProvider extends ServiceProvider
         Cashier::useCustomerModel(Tenant::class);
         Cashier::ignoreRoutes();
 
-        // Dispatch CRM sync when a call is analyzed
+        // Dispatch CRM sync and SMS follow-up when a call is analyzed
         Event::listen(CallAnalyzed::class, function (CallAnalyzed $event) {
             SyncCallToCrmJob::dispatch($event->callLog);
+            SendFollowUpSmsJob::dispatch($event->callLog);
+        });
+
+        // Dispatch SMS follow-up when a call ends (handles immediate/fallback triggers)
+        Event::listen(CallEnded::class, function (CallEnded $event) {
+            SendFollowUpSmsJob::dispatch($event->callLog);
         });
     }
 
