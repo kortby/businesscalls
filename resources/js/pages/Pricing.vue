@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
+import { Check } from '@lucide/vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import {
     dashboard,
     login,
@@ -9,8 +11,6 @@ import {
     pricing,
     contact,
 } from '@/routes';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { Check } from '@lucide/vue';
 </script>
 
 <template>

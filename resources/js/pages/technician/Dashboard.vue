@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Head, router, Link } from '@inertiajs/vue3';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
-import PasskeyRegister from '@/components/PasskeyRegister.vue';
 import {
     Wrench,
     Clock,
@@ -19,6 +16,9 @@ import {
     X,
     User,
 } from '@lucide/vue';
+import { ref, computed } from 'vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import PasskeyRegister from '@/components/PasskeyRegister.vue';
 import { Button } from '@/components/ui/button';
 
 interface Booking {
@@ -85,6 +85,7 @@ const triggerConfetti = () => {
         '#a855f7',
         '#ff7849',
     ];
+
     for (let i = 0; i < 80; i++) {
         confettis.value.push({
             id: i,
@@ -96,6 +97,7 @@ const triggerConfetti = () => {
             rotate: Math.random() * 360,
         });
     }
+
     setTimeout(() => {
         confettis.value = [];
     }, 4500);
@@ -110,6 +112,7 @@ const updateStatus = async (
         selectedBooking.value = booking;
         feedback.value = '';
         billingAmount.value = '';
+
         return;
     }
 
@@ -117,8 +120,10 @@ const updateStatus = async (
 
     try {
         const payload: Record<string, any> = { status };
+
         if (status === 'completed') {
             payload.feedback = feedback.value;
+
             if (billingAmount.value) {
                 payload.billing_amount = parseFloat(billingAmount.value);
             }

@@ -1,39 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {
-    store as storeBooking,
-    update as updateBooking,
-    destroy as destroyBooking,
-} from '@/routes/bookings';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Separator } from '@/components/ui/separator';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Calendar,
     Clock,
@@ -47,6 +13,40 @@ import {
     Activity,
     Search,
 } from '@lucide/vue';
+import { ref, computed, watch } from 'vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import {
+    store as storeBooking,
+    update as updateBooking,
+    destroy as destroyBooking,
+} from '@/routes/bookings';
 
 // Define Props from BookingController@index
 const props = defineProps<{
@@ -101,6 +101,7 @@ const filteredBookings = computed(() => {
         const matchesTech =
             filterTechId.value === 'all' ||
             b.employee.id.toString() === filterTechId.value;
+
         return matchesSearch && matchesTech;
     });
 });
@@ -127,9 +128,11 @@ const editForm = useForm({
 
 const openCreateModal = () => {
     createForm.reset();
+
     if (props.employees.length > 0) {
         createForm.employee_id = props.employees[0].id.toString();
     }
+
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -196,6 +199,7 @@ const getDayName = (dayNum: number): string => {
         'Friday',
         'Saturday',
     ];
+
     return days[dayNum] ?? '';
 };
 
@@ -203,6 +207,7 @@ const formatTime12h = (hours: number, minutes: number): string => {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const hr = hours % 12 || 12;
     const min = String(minutes).padStart(2, '0');
+
     return `${hr}:${min} ${ampm}`;
 };
 
@@ -214,6 +219,7 @@ const validateBooking = (
 ) => {
     const empId = parseInt(employeeIdStr);
     const dateVal = scheduledStartStr;
+
     if (!empId || !dateVal) {
         return {
             status: 'idle',
@@ -222,6 +228,7 @@ const validateBooking = (
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return { status: 'idle', message: 'Select a technician.' };
     }
@@ -242,6 +249,7 @@ const validateBooking = (
         const endClean = a.end_time.replace(/:/g, '').substring(0, 4);
         const startVal = parseInt(startClean);
         const endVal = parseInt(endClean);
+
         return timeVal >= startVal && timeVal <= endVal;
     });
 
@@ -260,12 +268,15 @@ const validateBooking = (
         if (b.status !== 'booked' || b.id === excludeBookingId) {
             return false;
         }
+
         const bTime = new Date(b.scheduled_start).getTime();
+
         return Math.abs(currentBookingTime - bTime) <= bufferMs;
     });
 
     if (conflictingBooking) {
         const confTime = new Date(conflictingBooking.scheduled_start);
+
         return {
             status: 'warning',
             message: `Travel buffer conflict! Overlaps with booking at ${formatTime12h(confTime.getHours(), confTime.getMinutes())} (90-minute travel buffer violated).`,
@@ -285,11 +296,13 @@ const selectedEditBookingDate = ref<string>('');
 const createBookingSlots = computed(() => {
     const empId = parseInt(createForm.employee_id);
     const dateStr = selectedCreateBookingDate.value;
+
     if (!empId || !dateStr) {
         return [];
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return [];
     }
@@ -322,6 +335,7 @@ const createBookingSlots = computed(() => {
         const isInsideShift = dayShifts.some((s) => {
             const startClean = s.start_time.replace(/:/g, '').substring(0, 4);
             const endClean = s.end_time.replace(/:/g, '').substring(0, 4);
+
             return (
                 timeVal >= parseInt(startClean) && timeVal <= parseInt(endClean)
             );
@@ -344,7 +358,9 @@ const createBookingSlots = computed(() => {
             if (b.status !== 'booked') {
                 return false;
             }
+
             const bTime = new Date(b.scheduled_start).getTime();
+
             return Math.abs(targetDateTime - bTime) <= bufferMs;
         });
 
@@ -379,11 +395,13 @@ const selectCreateSlotTime = (hourStr: string) => {
 const editBookingSlots = computed(() => {
     const empId = parseInt(editForm.employee_id);
     const dateStr = selectedEditBookingDate.value;
+
     if (!empId || !dateStr) {
         return [];
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return [];
     }
@@ -418,6 +436,7 @@ const editBookingSlots = computed(() => {
         const isInsideShift = dayShifts.some((s) => {
             const startClean = s.start_time.replace(/:/g, '').substring(0, 4);
             const endClean = s.end_time.replace(/:/g, '').substring(0, 4);
+
             return (
                 timeVal >= parseInt(startClean) && timeVal <= parseInt(endClean)
             );
@@ -440,7 +459,9 @@ const editBookingSlots = computed(() => {
             if (b.status !== 'booked' || b.id === excludeBookingId) {
                 return false;
             }
+
             const bTime = new Date(b.scheduled_start).getTime();
+
             return Math.abs(targetDateTime - bTime) <= bufferMs;
         });
 
@@ -478,6 +499,7 @@ watch(
     (newVal) => {
         if (newVal && newVal.includes('T')) {
             const datePart = newVal.split('T')[0];
+
             if (datePart && datePart !== selectedCreateBookingDate.value) {
                 selectedCreateBookingDate.value = datePart;
             }
@@ -490,6 +512,7 @@ watch(
     (newVal) => {
         if (newVal && newVal.includes('T')) {
             const datePart = newVal.split('T')[0];
+
             if (datePart && datePart !== selectedEditBookingDate.value) {
                 selectedEditBookingDate.value = datePart;
             }

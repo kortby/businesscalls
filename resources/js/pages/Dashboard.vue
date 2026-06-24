@@ -1,49 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, computed, watch } from 'vue';
 import { Head, usePage, useForm, router, Link } from '@inertiajs/vue3';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
-import StreakFlame from '@/components/StreakFlame.vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import WebCallModal from '@/components/WebCallModal.vue';
 import { useEcho } from '@laravel/echo-vue';
-import {
-    store as storeAvailability,
-    destroy as destroyAvailability,
-} from '@/routes/availabilities';
-import {
-    store as storeBooking,
-    destroy as destroyBooking,
-} from '@/routes/bookings';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Separator } from '@/components/ui/separator';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import BargeControls from '@/components/BargeControls.vue';
 import {
     Phone,
     CheckCircle,
@@ -58,6 +15,49 @@ import {
     Trash2,
     Shield,
 } from '@lucide/vue';
+import { ref, onMounted, computed, watch } from 'vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import BargeControls from '@/components/BargeControls.vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import StreakFlame from '@/components/StreakFlame.vue';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Separator } from '@/components/ui/separator';
+import WebCallModal from '@/components/WebCallModal.vue';
+import {
+    store as storeAvailability,
+    destroy as destroyAvailability,
+} from '@/routes/availabilities';
+import {
+    store as storeBooking,
+    destroy as destroyBooking,
+} from '@/routes/bookings';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
 
 import type { Tenant } from '@/types';
 
@@ -149,7 +149,10 @@ const stats = ref({
 
 // Dynamic booking success rate calculation (Psi)
 const successRate = computed(() => {
-    if (stats.value.calls === 0) return 0;
+    if (stats.value.calls === 0) {
+return 0;
+}
+
     return Math.round((stats.value.success / stats.value.calls) * 100);
 });
 
@@ -217,6 +220,7 @@ const getDayName = (dayNum: number): string => {
         'Friday',
         'Saturday',
     ];
+
     return days[dayNum] ?? '';
 };
 
@@ -252,6 +256,7 @@ if (props.tenant) {
                 // Increment openJobsToday if scheduled start is today
                 const start = new Date(payload.booking.scheduled_start);
                 const today = new Date();
+
                 if (start.toDateString() === today.toDateString()) {
                     stats.value.openJobsToday++;
                 }
@@ -265,6 +270,7 @@ if (props.tenant) {
                 ) {
                     liveBookings.value.unshift(payload.booking);
                 }
+
                 // Keep max 10
                 if (liveBookings.value.length > 10) {
                     liveBookings.value.pop();
@@ -418,6 +424,7 @@ watch(
 const checkUrlViewParam = () => {
     const params = new URLSearchParams(window.location.search);
     const view = params.get('view');
+
     if (view === 'timeline' || view === 'profiles') {
         activeViewTab.value = view;
     }
@@ -496,9 +503,11 @@ const bookingForm = useForm({
 
 const openBookingModal = () => {
     bookingForm.reset();
+
     if (props.employees.length > 0) {
         bookingForm.employee_id = props.employees[0].id.toString();
     }
+
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth() + 1).padStart(2, '0');
@@ -534,6 +543,7 @@ const activeEmployee = computed(() => {
     if (!activeTechId.value) {
         return null;
     }
+
     return props.employees.find((e) => e.id === activeTechId.value) || null;
 });
 
@@ -544,6 +554,7 @@ watch(
     (newVal) => {
         if (newVal && newVal.includes('T')) {
             const datePart = newVal.split('T')[0];
+
             if (datePart && datePart !== selectedBookingDate.value) {
                 selectedBookingDate.value = datePart;
             }
@@ -554,11 +565,13 @@ watch(
 const bookingSlotsForSelectedDate = computed(() => {
     const empId = parseInt(bookingForm.employee_id);
     const dateStr = selectedBookingDate.value;
+
     if (!empId || !dateStr) {
         return [];
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return [];
     }
@@ -591,6 +604,7 @@ const bookingSlotsForSelectedDate = computed(() => {
         const isInsideShift = dayShifts.some((s) => {
             const startClean = s.start_time.replace(/:/g, '').substring(0, 4);
             const endClean = s.end_time.replace(/:/g, '').substring(0, 4);
+
             return (
                 timeVal >= parseInt(startClean) && timeVal <= parseInt(endClean)
             );
@@ -613,7 +627,9 @@ const bookingSlotsForSelectedDate = computed(() => {
             if (b.status !== 'booked') {
                 return false;
             }
+
             const bTime = new Date(b.scheduled_start).getTime();
+
             return Math.abs(targetDateTime - bTime) <= bufferMs;
         });
 
@@ -665,6 +681,7 @@ const initWeekDates = () => {
     const current = new Date();
     const currentDay = current.getDay(); // 0 (Sun) to 6 (Sat)
     const weekMap: string[] = new Array(7);
+
     for (let i = 0; i < 7; i++) {
         const d = new Date(current);
         d.setDate(current.getDate() - currentDay + i);
@@ -673,6 +690,7 @@ const initWeekDates = () => {
         const dd = String(d.getDate()).padStart(2, '0');
         weekMap[i] = `${yyyy}-${mm}-${dd}`;
     }
+
     currentWeekDates.value = weekMap;
 };
 
@@ -682,15 +700,19 @@ const getShiftForSlot = (employee: any, dayOfWeek: number, hourStr: string) => {
     if (!employee || !employee.availabilities) {
         return null;
     }
+
     const timeVal = parseInt(hourStr.replace(':', ''));
+
     return employee.availabilities.find((a: any) => {
         if (a.day_of_week !== dayOfWeek || !a.is_active) {
             return false;
         }
+
         const startClean = a.start_time.replace(/:/g, '').substring(0, 4);
         const endClean = a.end_time.replace(/:/g, '').substring(0, 4);
         const startVal = parseInt(startClean);
         const endVal = parseInt(endClean);
+
         return timeVal >= startVal && timeVal < endVal;
     });
 };
@@ -699,14 +721,17 @@ const addMinutesToTimeVal = (timeVal: number, mins: number): number => {
     let hr = Math.floor(timeVal / 100);
     let mn = timeVal % 100;
     mn += mins;
+
     while (mn >= 60) {
         hr += 1;
         mn -= 60;
     }
+
     while (mn < 0) {
         hr -= 1;
         mn += 60;
     }
+
     return hr * 100 + mn;
 };
 
@@ -718,6 +743,7 @@ const getBookingForSlot = (
     if (!employee || !employee.bookings) {
         return null;
     }
+
     const dateStr = currentWeekDates.value[dayOfWeek];
     const hourVal = parseInt(hourStr.replace(':', ''));
 
@@ -726,6 +752,7 @@ const getBookingForSlot = (
         if (b.status !== 'booked') {
             return false;
         }
+
         const bDate = new Date(b.scheduled_start);
         const yyyy = bDate.getFullYear();
         const mm = String(bDate.getMonth() + 1).padStart(2, '0');
@@ -735,6 +762,7 @@ const getBookingForSlot = (
         if (bDateStr !== dateStr) {
             return false;
         }
+
         return bDate.getHours() === parseInt(hourStr.split(':')[0]);
     });
 
@@ -747,6 +775,7 @@ const getBookingForSlot = (
         if (b.status !== 'booked') {
             return false;
         }
+
         const bDate = new Date(b.scheduled_start);
         const yyyy = bDate.getFullYear();
         const mm = String(bDate.getMonth() + 1).padStart(2, '0');
@@ -812,12 +841,14 @@ const formatTime12h = (hours: number, minutes: number): string => {
     const ampm = hours >= 12 ? 'PM' : 'AM';
     const hr = hours % 12 || 12;
     const min = String(minutes).padStart(2, '0');
+
     return `${hr}:${min} ${ampm}`;
 };
 
 const bookingValidation = computed(() => {
     const empId = parseInt(bookingForm.employee_id);
     const dateVal = bookingForm.scheduled_start; // "YYYY-MM-DDTHH:MM"
+
     if (!empId || !dateVal) {
         return {
             status: 'idle',
@@ -826,6 +857,7 @@ const bookingValidation = computed(() => {
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return { status: 'idle', message: 'Select a technician.' };
     }
@@ -846,6 +878,7 @@ const bookingValidation = computed(() => {
         const endClean = a.end_time.replace(/:/g, '').substring(0, 4);
         const startVal = parseInt(startClean);
         const endVal = parseInt(endClean);
+
         return timeVal >= startVal && timeVal <= endVal;
     });
 
@@ -864,12 +897,15 @@ const bookingValidation = computed(() => {
         if (b.status !== 'booked') {
             return false;
         }
+
         const bTime = new Date(b.scheduled_start).getTime();
+
         return Math.abs(currentBookingTime - bTime) <= bufferMs;
     });
 
     if (conflictingBooking) {
         const confTime = new Date(conflictingBooking.scheduled_start);
+
         return {
             status: 'warning',
             message: `Travel buffer conflict! Overlaps with booking at ${formatTime12h(confTime.getHours(), confTime.getMinutes())} (90-minute travel buffer violated).`,
@@ -891,6 +927,7 @@ const shiftValidation = computed(() => {
     if (!empId || isNaN(day) || !start || !end) {
         return { status: 'idle', message: 'Enter start and end times.' };
     }
+
     if (start >= end) {
         return {
             status: 'error',
@@ -899,6 +936,7 @@ const shiftValidation = computed(() => {
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return { status: 'idle', message: 'Select a technician.' };
     }
@@ -910,10 +948,12 @@ const shiftValidation = computed(() => {
         if (a.day_of_week !== day || !a.is_active) {
             return false;
         }
+
         const startClean = a.start_time.replace(/:/g, '').substring(0, 4);
         const endClean = a.end_time.replace(/:/g, '').substring(0, 4);
         const aStart = parseInt(startClean);
         const aEnd = parseInt(endClean);
+
         return startVal < aEnd && endVal > aStart;
     });
 

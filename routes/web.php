@@ -27,6 +27,7 @@ Route::get('technician/login', [TechnicianController::class, 'login'])->name('te
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/diagnostics', [AdminController::class, 'diagnostics'])->name('admin.diagnostics');
+    Route::get('admin/loyalty', [AdminController::class, 'loyalty'])->name('admin.loyalty');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

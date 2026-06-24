@@ -1,19 +1,6 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
 import { useEcho } from '@laravel/echo-vue';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
 import {
     MessageSquare,
     Send,
@@ -23,6 +10,19 @@ import {
     Phone,
     User as UserIcon,
 } from '@lucide/vue';
+import { ref, computed, watch, onMounted } from 'vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import AppLayout from '@/layouts/AppLayout.vue';
 
 // Define layout explicitly
 defineOptions({ layout: AppLayout });
@@ -68,6 +68,7 @@ const mascotState = ref<number>(0);
 
 const transitionMascot = (newState: number) => {
     mascotState.value = newState;
+
     if (newState === 2 || newState === 3) {
         setTimeout(() => {
             if (mascotState.value === newState) {
@@ -87,7 +88,9 @@ const selectConversation = (id: number) => {
 };
 
 const submitMessage = () => {
-    if (!activeConversationId.value || !form.body.trim()) return;
+    if (!activeConversationId.value || !form.body.trim()) {
+return;
+}
 
     transitionMascot(1); // Searching/sending
 
@@ -119,6 +122,7 @@ watch(
     () => props.conversations,
     (newVal) => {
         liveConversations.value = [...newVal];
+
         if (
             activeConversationId.value &&
             !newVal.some((c) => c.id === activeConversationId.value) &&
@@ -151,6 +155,7 @@ onMounted(() => {
                 const conv = liveConversations.value.find(
                     (c) => c.id === msg.conversation_id,
                 );
+
                 if (conv) {
                     if (!conv.messages.some((m) => m.id === msg.id)) {
                         conv.messages.push(msg);

@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import { Phone, PhoneOff, Mic, MicOff, Volume2 } from '@lucide/vue';
 import { ref, watch, onBeforeUnmount } from 'vue';
+import { Button } from '@/components/ui/button';
 import {
     Dialog,
     DialogContent,
@@ -7,8 +9,6 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Phone, PhoneOff, Mic, MicOff, Volume2 } from '@lucide/vue';
 
 const props = defineProps<{
     isOpen: boolean;
@@ -51,6 +51,7 @@ const startCall = async () => {
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
+
             throw new Error(
                 errData.error || 'Failed to authorize call session.',
             );
@@ -129,6 +130,7 @@ const endCall = () => {
             console.error(e);
         }
     }
+
     if (retellInstance) {
         try {
             retellInstance.stopCall();
@@ -136,6 +138,7 @@ const endCall = () => {
             console.error(e);
         }
     }
+
     cleanupCall();
     callStatus.value = 'ended';
     emit('call_ended');
@@ -148,9 +151,11 @@ const cleanupCall = () => {
 
 const toggleMute = () => {
     isMuted.value = !isMuted.value;
+
     if (vapiInstance) {
         vapiInstance.setMuted(isMuted.value);
     }
+
     if (retellInstance) {
         // Retell client SDK supports muting standard audio tracks
         retellInstance.isMuted = isMuted.value;
@@ -161,6 +166,7 @@ const handleClose = () => {
     if (callStatus.value === 'connecting' || callStatus.value === 'connected') {
         endCall();
     }
+
     emit('close');
 };
 

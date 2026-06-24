@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Head } from '@inertiajs/vue3';
-import Heading from '@/components/Heading.vue';
 import {
     CreditCard,
     CheckCircle,
     ExternalLink,
     ShieldAlert,
 } from '@lucide/vue';
+import { ref } from 'vue';
+import Heading from '@/components/Heading.vue';
 
 const props = defineProps<{
     tenant: {
@@ -30,6 +30,7 @@ const errorMsg = ref('');
 const handlePortalRedirect = async () => {
     loading.value = true;
     errorMsg.value = '';
+
     try {
         const response = await fetch('/api/billing/portal', {
             method: 'GET',
@@ -39,6 +40,7 @@ const handlePortalRedirect = async () => {
             },
         });
         const data = await response.json();
+
         if (data.url) {
             window.location.href = data.url;
         } else {
@@ -54,6 +56,7 @@ const handlePortalRedirect = async () => {
 const handleCheckout = async (planName: 'pro' | 'enterprise') => {
     loading.value = true;
     errorMsg.value = '';
+
     try {
         const csrfToken =
             (
@@ -72,6 +75,7 @@ const handleCheckout = async (planName: 'pro' | 'enterprise') => {
             body: JSON.stringify({ plan: planName }),
         });
         const data = await response.json();
+
         if (data.url) {
             window.location.href = data.url;
         } else {

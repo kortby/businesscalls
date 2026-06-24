@@ -1,37 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {
-    store as storeAvailability,
-    update as updateAvailability,
-    destroy as destroyAvailability,
-} from '@/routes/availabilities';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
 import {
     Calendar,
     Clock,
@@ -42,6 +10,38 @@ import {
     CheckCircle,
     XCircle,
 } from '@lucide/vue';
+import { ref, computed } from 'vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select';
+import {
+    store as storeAvailability,
+    update as updateAvailability,
+    destroy as destroyAvailability,
+} from '@/routes/availabilities';
 
 // Define Props from AvailabilityController@index
 const props = defineProps<{
@@ -109,9 +109,11 @@ const editForm = useForm({
 
 const openCreateModal = () => {
     createForm.reset();
+
     if (props.employees.length > 0) {
         createForm.employee_id = props.employees[0].id.toString();
     }
+
     isCreateOpen.value = true;
 };
 
@@ -166,6 +168,7 @@ const getDayName = (dayNum: number): string => {
         'Friday',
         'Saturday',
     ];
+
     return days[dayNum] ?? '';
 };
 
@@ -183,6 +186,7 @@ const validateShift = (
     if (!empId || isNaN(day) || !startTime || !endTime) {
         return { status: 'idle', message: 'Enter start and end times.' };
     }
+
     if (startTime >= endTime) {
         return {
             status: 'error',
@@ -191,6 +195,7 @@ const validateShift = (
     }
 
     const employee = props.employees.find((e) => e.id === empId);
+
     if (!employee) {
         return { status: 'idle', message: 'Select a technician.' };
     }
@@ -202,10 +207,12 @@ const validateShift = (
         if (a.day_of_week !== day || !a.is_active || a.id === excludeAvailId) {
             return false;
         }
+
         const startClean = a.start_time.replace(/:/g, '').substring(0, 4);
         const endClean = a.end_time.replace(/:/g, '').substring(0, 4);
         const aStart = parseInt(startClean);
         const aEnd = parseInt(endClean);
+
         return startVal < aEnd && endVal > aStart;
     });
 

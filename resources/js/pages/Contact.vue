@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Mail, Phone, MapPin, Send } from '@lucide/vue';
 import { ref } from 'vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     dashboard,
     login,
@@ -10,10 +14,6 @@ import {
     pricing,
     contact,
 } from '@/routes';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Mail, Phone, MapPin, Send } from '@lucide/vue';
 
 const form = useForm({
     name: '',

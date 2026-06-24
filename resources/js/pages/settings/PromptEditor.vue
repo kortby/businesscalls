@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3';
-import { ref } from 'vue';
-import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import {
     Bot,
     Sparkles,
@@ -14,6 +11,9 @@ import {
     BookOpen,
     Info,
 } from '@lucide/vue';
+import { ref } from 'vue';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 
 defineOptions({
     layout: {

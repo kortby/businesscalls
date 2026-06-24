@@ -1,33 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {
-    store as storeJob,
-    update as updateJob,
-    destroy as destroyJob,
-} from '@/routes/jobs';
-import AppLayout from '@/layouts/AppLayout.vue';
-import Heading from '@/components/Heading.vue';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     Plus,
     Trash2,
@@ -44,6 +16,34 @@ import {
     Search,
     FilterX,
 } from '@lucide/vue';
+import { ref, computed } from 'vue';
+import Heading from '@/components/Heading.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    store as storeJob,
+    update as updateJob,
+    destroy as destroyJob,
+} from '@/routes/jobs';
 
 defineOptions({ layout: AppLayout });
 
@@ -125,10 +125,13 @@ const filteredJobs = computed(() => {
         // Tech filter
         if (techFilter.value) {
             if (techFilter.value === 'unassigned') {
-                if (job.employee_id !== null) return false;
+                if (job.employee_id !== null) {
+return false;
+}
             } else {
-                if (job.employee_id?.toString() !== techFilter.value)
-                    return false;
+                if (job.employee_id?.toString() !== techFilter.value) {
+return false;
+}
             }
         }
 
@@ -137,6 +140,7 @@ const filteredJobs = computed(() => {
             const jobDate = new Date(job.created_at)
                 .toISOString()
                 .split('T')[0];
+
             if (jobDate !== dateFilter.value) {
                 return false;
             }
@@ -183,12 +187,14 @@ const editForm = useForm({
 const addStep = (isEdit = false) => {
     if (isEdit) {
         const val = editNewStepText.value.trim();
+
         if (val) {
             editForm.steps.push(val);
             editNewStepText.value = '';
         }
     } else {
         const val = newStepText.value.trim();
+
         if (val) {
             form.steps.push(val);
             newStepText.value = '';

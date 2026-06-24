@@ -1,13 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import {
-    store as storeEmployee,
-    update as updateEmployee,
-    destroy as destroyEmployee,
-} from '@/routes/employees';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { Plus, Trash2, Edit, Wrench, ShieldAlert } from '@lucide/vue';
+import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
     Card,
     CardHeader,
@@ -15,10 +12,6 @@ import {
     CardDescription,
     CardContent,
 } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Badge } from '@/components/ui/badge';
 import {
     Dialog,
     DialogContent,
@@ -27,6 +20,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import {
     Select,
     SelectContent,
@@ -34,7 +29,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Plus, Trash2, Edit, Wrench, ShieldAlert } from '@lucide/vue';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    store as storeEmployee,
+    update as updateEmployee,
+    destroy as destroyEmployee,
+} from '@/routes/employees';
 
 defineOptions({ layout: AppLayout });
 
@@ -78,7 +78,11 @@ const newSkill = ref('');
 
 const addSkill = (isEdit = false) => {
     const val = newSkill.value.trim().toLowerCase();
-    if (!val) return;
+
+    if (!val) {
+return;
+}
+
     if (isEdit) {
         if (!editForm.skills.includes(val)) {
             editForm.skills.push(val);
@@ -88,6 +92,7 @@ const addSkill = (isEdit = false) => {
             form.skills.push(val);
         }
     }
+
     newSkill.value = '';
 };
 

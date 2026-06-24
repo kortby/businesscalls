@@ -1,18 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Head, Link } from '@inertiajs/vue3';
-import {
-    dashboard,
-    login,
-    register,
-    home,
-    about,
-    pricing,
-    contact,
-} from '@/routes';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import { Badge } from '@/components/ui/badge';
 import {
     Phone,
     Calendar,
@@ -25,12 +12,26 @@ import {
     MessageSquare,
     Play,
 } from '@lucide/vue';
+import { ref } from 'vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import { Badge } from '@/components/ui/badge';
+import {
+    dashboard,
+    login,
+    register,
+    home,
+    about,
+    pricing,
+    contact,
+} from '@/routes';
 
 const mascotState = ref<number>(0);
 const simulatedMessage = ref<string>('Mascot is idle, monitoring channels...');
 
 const simulateState = (stateNum: number) => {
     mascotState.value = stateNum;
+
     if (stateNum === 0) {
         simulatedMessage.value = 'Mascot is idle, monitoring channels...';
     } else if (stateNum === 1) {

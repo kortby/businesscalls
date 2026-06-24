@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link } from '@inertiajs/vue3';
-import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import { Wrench, ArrowRight } from '@lucide/vue';
+import PasskeyVerify from '@/components/PasskeyVerify.vue';
 </script>
 
 <template>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as Rive from '@rive-app/webgl';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
 const props = defineProps<{
     state: number; // 0 = Idle, 1 = Searching, 2 = Victory, 3 = Error
@@ -13,9 +13,12 @@ let stateTriggerInput: Rive.StateMachineInput | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
-    if (!canvasRef.value) return;
+    if (!canvasRef.value) {
+return;
+}
 
     const src = '/assets/animations/dispatcher_mascot.riv';
+
     try {
         // Perform a quick HEAD check to see if the file exists and is not an HTML error fallback page
         const response = await fetch(src, { method: 'HEAD' });
@@ -23,6 +26,7 @@ onMounted(async () => {
 
         if (!response.ok || contentType.includes('text/html')) {
             hasRiveLoaded.value = false;
+
             return;
         }
 
@@ -41,10 +45,12 @@ onMounted(async () => {
                 const inputs = rInstance?.stateMachineInputs(
                     'DispatcherStateMachine',
                 );
+
                 if (inputs) {
                     const trigger = inputs.find(
                         (i) => i.name === 'state_trigger',
                     );
+
                     if (trigger) {
                         stateTriggerInput = trigger;
                         stateTriggerInput.value = props.state;
@@ -80,6 +86,7 @@ onBeforeUnmount(() => {
     if (resizeObserver && canvasRef.value) {
         resizeObserver.unobserve(canvasRef.value);
     }
+
     if (rInstance) {
         rInstance.cleanup();
     }

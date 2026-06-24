@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\McpController;
 use App\Http\Controllers\Api\PronunciationDictionaryController;
 use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\SmsWebhookController;
+use App\Http\Controllers\Api\SpecializedKeywordsController;
 use App\Http\Controllers\Api\WebCallController;
 use App\Http\Middleware\RestrictToTelephonyIps;
 use App\Http\Middleware\ThrottleTenantTelephony;
@@ -31,3 +32,5 @@ Route::post('/settings/dictionary', [PronunciationDictionaryController::class, '
 Route::post('/call-logs/{callLog}/redact', [CallRedactionController::class, 'redact'])->middleware('auth:sanctum');
 Route::post('/web-calls/barge', [WebCallController::class, 'barge'])->middleware('auth:sanctum');
 Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle'])->middleware('auth:sanctum');
+Route::post('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'store'])->middleware('auth:sanctum');
+Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'index'])->middleware('auth:sanctum');

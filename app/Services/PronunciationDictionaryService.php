@@ -38,8 +38,9 @@ class PronunciationDictionaryService
     public function applyOverridesToPayload(Tenant $tenant, array $payload): array
     {
         $dictionary = $this->getPhoneticDictionary($tenant);
+        $specializedKeywords = $tenant->getSetting('specialized_keywords', []);
 
-        if (empty($dictionary)) {
+        if (empty($dictionary) && empty($specializedKeywords)) {
             return $payload;
         }
 
@@ -47,12 +48,13 @@ class PronunciationDictionaryService
             $payload['assistantOverrides'] = [];
         }
 
-        // Configure transcriber settings if we have dictionary terms
-        // This boosts speech-to-text accuracy for these specific jargon/brand names
+        // Configure transcriber settings if we have terms
         $transcriberProvider = $tenant->getSetting('transcriber_provider', 'deepgram');
+        $allKeywords = array_unique(array_merge(array_keys($dictionary), $specializedKeywords));
+
         $payload['assistantOverrides']['transcriber'] = [
             'provider' => $transcriberProvider,
-            'keywords' => array_keys($dictionary),
+            'keywords' => array_values($allKeywords),
         ];
 
         // Format TTS (text-to-speech) phonetic instructions to guide the assistant

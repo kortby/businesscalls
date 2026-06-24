@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 import * as Rive from '@rive-app/webgl';
+import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
 const props = defineProps<{
     streak: number;
@@ -13,9 +13,12 @@ let activeInput: Rive.StateMachineInput | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
-    if (!canvasRef.value) return;
+    if (!canvasRef.value) {
+return;
+}
 
     const src = '/assets/animations/streak_flame.riv';
+
     try {
         // Perform a quick HEAD check to see if the file exists and is not an HTML error fallback page
         const response = await fetch(src, { method: 'HEAD' });
@@ -26,6 +29,7 @@ onMounted(async () => {
             LogWarning(
                 'Streak flame Rive asset not found. Using custom SVG fallback.',
             );
+
             return;
         }
 
@@ -41,6 +45,7 @@ onMounted(async () => {
 
                 const inputs =
                     rInstance?.stateMachineInputs('StreakStateMachine');
+
                 if (inputs) {
                     const active = inputs.find(
                         (i) =>
@@ -48,6 +53,7 @@ onMounted(async () => {
                             i.name === 'state_trigger' ||
                             i.name === 'streak_count',
                     );
+
                     if (active) {
                         activeInput = active;
                         activeInput.value = props.streak;
@@ -87,6 +93,7 @@ onBeforeUnmount(() => {
     if (resizeObserver && canvasRef.value) {
         resizeObserver.unobserve(canvasRef.value);
     }
+
     if (rInstance) {
         rInstance.cleanup();
     }

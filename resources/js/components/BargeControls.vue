@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue';
-import { Button } from '@/components/ui/button';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import {
     Shield,
     Radio,
@@ -10,6 +7,9 @@ import {
     PhoneOff,
     CheckCircle,
 } from '@lucide/vue';
+import { ref, onBeforeUnmount } from 'vue';
+import { Button } from '@/components/ui/button';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
 const props = defineProps<{
     activeCall: {
@@ -59,6 +59,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
 
         if (!response.ok) {
             const errData = await response.json().catch(() => ({}));
+
             throw new Error(errData.error || 'Barge authorization failed.');
         }
 
@@ -71,6 +72,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
             }, 1000);
+
             return;
         }
 
@@ -132,11 +134,13 @@ const stopOverride = () => {
             vapiInstance.stop();
         } catch (e) {}
     }
+
     if (retellInstance) {
         try {
             retellInstance.stopCall();
         } catch (e) {}
     }
+
     cleanupOverride();
 };
 

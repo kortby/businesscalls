@@ -1,32 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
-import {
-    store as storeCustomer,
-    importMethod as importCustomer,
-} from '@/routes/customers';
-import AppLayout from '@/layouts/AppLayout.vue';
-import Heading from '@/components/Heading.vue';
-import {
-    Card,
-    CardHeader,
-    CardTitle,
-    CardDescription,
-    CardContent,
-} from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/components/ui/dialog';
 import {
     Phone,
     Calendar,
@@ -42,6 +15,33 @@ import {
     Mail,
     FileText,
 } from '@lucide/vue';
+import { ref } from 'vue';
+import Heading from '@/components/Heading.vue';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+} from '@/components/ui/card';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import AppLayout from '@/layouts/AppLayout.vue';
+import {
+    store as storeCustomer,
+    importMethod as importCustomer,
+} from '@/routes/customers';
 
 defineOptions({ layout: AppLayout });
 
@@ -81,10 +81,12 @@ const importForm = useForm({
 const openAddModal = (initialData?: { name?: string; phone?: string }) => {
     form.reset();
     form.clearErrors();
+
     if (initialData) {
         form.name = initialData.name || '';
         form.phone = initialData.phone || '';
     }
+
     showAddModal.value = true;
 };
 
@@ -111,18 +113,23 @@ const handleFileChange = (event: Event) => {
     if (files && files.length > 0) {
         const file = files[0];
         const extension = file.name.split('.').pop()?.toLowerCase();
+
         if (
             extension !== 'csv' &&
             file.type !== 'text/csv' &&
             file.type !== 'application/vnd.ms-excel'
         ) {
             fileError.value = 'Please select a valid CSV file (.csv).';
+
             return;
         }
+
         if (file.size > 2 * 1024 * 1024) {
             fileError.value = 'File size exceeds the 2MB limit.';
+
             return;
         }
+
         importForm.csv_file = file;
         selectedFileName.value = file.name;
     }
@@ -131,13 +138,16 @@ const handleFileChange = (event: Event) => {
 const submitImport = () => {
     if (!importForm.csv_file) {
         fileError.value = 'Please select a CSV file first.';
+
         return;
     }
+
     importForm.post(importCustomer.url(), {
         onSuccess: () => {
             showImportModal.value = false;
             importForm.reset();
             selectedFileName.value = null;
+
             if (fileInput.value) {
                 fileInput.value.value = '';
             }

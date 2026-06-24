@@ -44,8 +44,8 @@ import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { getInitials } from '@/composables/useInitials';
 import { toUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
-import { index as bookingsIndex } from '@/routes/bookings';
 import { index as availabilitiesIndex } from '@/routes/availabilities';
+import { index as bookingsIndex } from '@/routes/bookings';
 import type { BreadcrumbItem, NavItem } from '@/types';
 
 type Props = {

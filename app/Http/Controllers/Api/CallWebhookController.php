@@ -11,9 +11,12 @@ use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Services\ComplianceSanitizerService;
+use App\Services\SentimentEvaluationService;
 use App\Services\VoicemailParserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
 class CallWebhookController extends Controller
@@ -315,6 +318,24 @@ class CallWebhookController extends Controller
                 event(new CallAnalyzed($tenant->id, $callLog));
                 break;
 
+            case 'transcript':
+                // Live transcription chunk webhook
+                $transcriptText = $request->input('transcript')
+                    ?? $request->input('message.transcript.text')
+                    ?? $request->input('message.transcript.message')
+                    ?? $request->input('text')
+                    ?? '';
+
+                if (! empty($transcriptText)) {
+                    // 1. Evaluate call sentiment & supervisor auto-escalation
+                    $sentimentService = app(SentimentEvaluationService::class);
+                    $sentimentService->evaluateTurn($callId, $transcriptText, $tenant->id);
+
+                    // 2. Multilingual Voice Hot-Swapping
+                    $this->handleLanguageHotSwap($callId, $transcriptText, $tenant);
+                }
+                break;
+
             default:
                 Log::warning("Unhandled call event: {$event}");
                 break;
@@ -334,5 +355,80 @@ class CallWebhookController extends Controller
         }
 
         return response()->json(['success' => true]);
+    }
+
+    /**
+     * Detect Spanish or French phrases and hot-swap active call language synthesis voice.
+     */
+    protected function handleLanguageHotSwap(string $callId, string $text, Tenant $tenant): void
+    {
+        $text = strtolower($text);
+
+        $detectedLang = 'en';
+        if (preg_match('/\b(hola|como|gracias|buenos|dias|tengo|problema|calefaccion|aire)\b/', $text)) {
+            $detectedLang = 'es';
+        } elseif (preg_match('/\b(bonjour|merci|oui|probleme|chauffage|climatisation|panne|aide)\b/', $text)) {
+            $detectedLang = 'fr';
+        } else {
+            return;
+        }
+
+        // Prevent duplicate updates if already swapped
+        $cacheKey = "call-language-swapped:{$callId}";
+        if (Cache::get($cacheKey) === $detectedLang) {
+            return;
+        }
+
+        Cache::put($cacheKey, $detectedLang, 600);
+
+        Log::info("Language switch detected for Call: {$callId}. Hot-swapping voice system to language: {$detectedLang}");
+
+        $voiceId = 'Rachel'; // ElevenLabs multilingual voice identifier
+        $aiPrompt = '';
+
+        if ($detectedLang === 'es') {
+            $aiPrompt = 'Usted es el despachador de voz de IA de la empresa. Por favor, actúe de manera profesional, amable y eficiente. Use terminología HVAC correcta en español.';
+        } elseif ($detectedLang === 'fr') {
+            $aiPrompt = 'Vous êtes le répartiteur vocal IA de l\'entreprise. Veuillez agir de manière professionnelle, amicale et efficace. Utilisez la terminologie CVC correcte en français.';
+        }
+
+        $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
+        $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
+
+        try {
+            if ($provider === 'vapi') {
+                Http::withToken($apiKey)->patch("https://api.vapi.ai/call/{$callId}", [
+                    'assistantOverrides' => [
+                        'transcriber' => [
+                            'provider' => 'deepgram',
+                            'language' => $detectedLang,
+                        ],
+                        'voice' => [
+                            'provider' => 'elevenlabs',
+                            'voiceId' => $voiceId,
+                            'model' => 'eleven_multilingual_v2',
+                        ],
+                        'model' => [
+                            'messages' => [
+                                [
+                                    'role' => 'system',
+                                    'content' => $aiPrompt,
+                                ],
+                            ],
+                        ],
+                    ],
+                ]);
+            } else {
+                Http::withToken($apiKey)->patch("https://api.retellai.com/v2/calls/{$callId}", [
+                    'assistant_overrides' => [
+                        'voice_id' => $voiceId,
+                        'language' => $detectedLang,
+                        'prompt' => $aiPrompt,
+                    ],
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("Failed to hot-swap telephony language for Call ID: {$callId}: ".$e->getMessage());
+        }
     }
 }

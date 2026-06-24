@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
 import { Head } from '@inertiajs/vue3';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import {
     Activity,
     Server,
@@ -12,6 +10,8 @@ import {
     Zap,
     TrendingUp,
 } from '@lucide/vue';
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
 
 interface AlertPayload {
     tenant_id: number;
@@ -65,8 +65,10 @@ onMounted(() => {
             activeConnections.value + connChange,
         );
         connectionHistory.value.push(activeConnections.value);
-        if (connectionHistory.value.length > 10)
-            connectionHistory.value.shift();
+
+        if (connectionHistory.value.length > 10) {
+connectionHistory.value.shift();
+}
 
         // Queue load changes
         const queueChange = Math.floor(Math.random() * 2) - 0.5;
@@ -75,7 +77,10 @@ onMounted(() => {
             Math.min(20, Math.floor(currentQueueLoad.value + queueChange)),
         );
         queueLoadHistory.value.push(currentQueueLoad.value);
-        if (queueLoadHistory.value.length > 10) queueLoadHistory.value.shift();
+
+        if (queueLoadHistory.value.length > 10) {
+queueLoadHistory.value.shift();
+}
 
         // Latency drift changes
         const latencyChange = Math.random() * 40 - 20;
@@ -83,7 +88,10 @@ onMounted(() => {
             (currentLatencyDrift.value + latencyChange).toFixed(1),
         );
         latencyHistory.value.push(currentLatencyDrift.value);
-        if (latencyHistory.value.length > 10) latencyHistory.value.shift();
+
+        if (latencyHistory.value.length > 10) {
+latencyHistory.value.shift();
+}
 
         // DB latency fluctuation
         currentDbLatency.value = parseFloat(
@@ -110,15 +118,20 @@ const mascotState = computed(() => {
     ) {
         return 3; // Error / Sad
     }
+
     if (currentLatencyDrift.value <= 200 && currentQueueLoad.value === 0) {
         return 2; // Celebratory / Victory
     }
+
     return 0; // Idle
 });
 
 // Helpers to draw quick inline sparkline graphs
 const getSparklinePath = (data: number[], maxVal: number) => {
-    if (data.length === 0) return '';
+    if (data.length === 0) {
+return '';
+}
+
     const width = 180;
     const height = 40;
     const padding = 2;
@@ -126,14 +139,17 @@ const getSparklinePath = (data: number[], maxVal: number) => {
         const x = (idx / (data.length - 1)) * (width - padding * 2) + padding;
         const normalizedVal = maxVal > 0 ? val / maxVal : 0;
         const y = height - normalizedVal * (height - padding * 2) - padding;
+
         return `${x.toFixed(1)},${y.toFixed(1)}`;
     });
+
     return `M ${points.join(' L ')}`;
 };
 
 const formatDate = (dateString: string) => {
     try {
         const date = new Date(dateString);
+
         return date.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
