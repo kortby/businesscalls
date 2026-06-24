@@ -6,6 +6,18 @@ dev:
   telephony_phone_number_id: "dev-phone-sid"
   webhook_url: "https://dev.businesscalls.com/webhook"
 
-invalid:
-  slug: "invalid"
+uat:
+  slug: "uat"
+  voice_assistant_id: "vapi-uat-id"
   telephony_provider: "vapi"
+  telephony_phone_number: "+15550002222"
+  telephony_phone_number_id: "uat-phone-sid"
+  webhook_url: "https://uat.businesscalls.com/webhook"
+
+prod:
+  slug: "prod"
+  voice_assistant_id: "vapi-prod-id"
+  telephony_provider: "vapi"
+  telephony_phone_number: "+15550003333"
+  telephony_phone_number_id: "prod-phone-sid"
+  webhook_url: "https://api.businesscalls.com/webhook"

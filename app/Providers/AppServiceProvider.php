@@ -6,7 +6,9 @@ use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
 use App\Jobs\SendFollowUpSmsJob;
 use App\Jobs\SyncCallToCrmJob;
+use App\Models\Booking;
 use App\Models\Tenant;
+use App\Observers\BookingObserver;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -46,6 +48,9 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CallEnded::class, function (CallEnded $event) {
             SendFollowUpSmsJob::dispatch($event->callLog);
         });
+
+        // Register zero-downtime replication observers
+        Booking::observe(BookingObserver::class);
     }
 
     /**

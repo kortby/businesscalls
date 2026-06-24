@@ -1,0 +1,148 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - release
+
+jobs:
+  quality-gates:
+    name: Quality Gates (Lint, Audit, Test)
+    runs-on: ubuntu-latest
+
+    services:
+      sqlite:
+        image: alpine:latest
+        options: --health-cmd "echo OK" --health-interval 10s
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
+          coverage: none
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Copy .env
+        run: cp .env.example .env
+
+      - name: Install Composer Dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Run Linters & Formatter Checks
+        run: |
+          composer run lint:check
+          npm run format:check
+
+      - name: Laravel Moat Security Scan
+        run: php artisan security:audit
+
+      - name: Run Pest Tests (Isolated SQLite Target)
+        env:
+          DB_CONNECTION: sqlite
+          DB_DATABASE: ":memory:"
+        run: php artisan test --compact
+
+  deploy-uat:
+    name: Deploy to UAT (Staging)
+    needs: quality-gates
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Composer Dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Compile Production Assets
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Promote Configuration to UAT
+        run: php artisan deploy:promote uat --no-interaction
+
+      - name: Graceful Worker and Server Reload
+        run: |
+          echo "Simulating zero-downtime deployment reload..."
+          # Terminate background queue workers gracefully using SIGTERM signals
+          # to let them complete current interruptible jobs safely.
+          kill -15 $(pgrep -f "artisan queue:work") || true
+          php artisan queue:restart --no-interaction
+          
+          # Restart the Laravel Reverb database driver / server
+          php artisan reverb:restart --no-interaction
+
+  deploy-prod:
+    name: Deploy to Production
+    needs: quality-gates
+    if: github.ref == 'refs/heads/release'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.4'
+          extensions: dom, curl, libxml, mbstring, zip, pdo, sqlite, pdo_sqlite
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install Composer Dependencies
+        run: composer install --no-ansi --no-interaction --no-scripts --no-progress --prefer-dist
+
+      - name: Install NPM Dependencies
+        run: npm ci
+
+      - name: Compile Production Assets
+        run: npm run build
+        env:
+          NODE_ENV: production
+
+      - name: Promote Configuration to Production
+        run: php artisan deploy:promote prod --no-interaction
+
+      - name: Graceful Worker and Server Reload (Production)
+        run: |
+          echo "Executing production zero-downtime deployment reload..."
+          # Graceful queue workers termination via SIGTERM
+          kill -15 $(pgrep -f "artisan queue:work") || true
+          php artisan queue:restart --no-interaction
+          
+          # Restart Laravel Reverb server
+          php artisan reverb:restart --no-interaction

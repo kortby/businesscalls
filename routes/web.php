@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\StripeBillingController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
@@ -25,6 +26,7 @@ Route::inertia('/contact', 'Contact')->name('contact');
 Route::get('technician/login', [TechnicianController::class, 'login'])->name('technician.login');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('admin/diagnostics', [AdminController::class, 'diagnostics'])->name('admin.diagnostics');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

@@ -6,6 +6,7 @@ use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
 use App\Events\CallStarted;
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessLatencyDriftJob;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
@@ -317,6 +318,19 @@ class CallWebhookController extends Controller
             default:
                 Log::warning("Unhandled call event: {$event}");
                 break;
+        }
+
+        // Parse and process latency telemetry if present in payload
+        $telemetry = $request->input('performance_metrics')
+            ?? $request->input('latency_telemetry')
+            ?? ($callData['performance_metrics'] ?? null)
+            ?? ($callData['latency_telemetry'] ?? null)
+            ?? $request->input('message.call.performance_metrics')
+            ?? $request->input('message.call.latency_telemetry')
+            ?? null;
+
+        if ($telemetry) {
+            ProcessLatencyDriftJob::dispatch($tenant->id, $callId, $telemetry);
         }
 
         return response()->json(['success' => true]);

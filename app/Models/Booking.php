@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('bookings')]
-#[Fillable('tenant_id', 'employee_id', 'customer_phone', 'job_details', 'status', 'scheduled_start', 'en_route_at', 'on_site_at', 'completed_at', 'travel_time', 'is_test_mode')]
+#[Fillable('tenant_id', 'employee_id', 'customer_phone', 'job_details', 'booking_notes', 'status', 'scheduled_start', 'en_route_at', 'on_site_at', 'completed_at', 'travel_time', 'is_test_mode')]
 #[Casts(['scheduled_start' => 'datetime', 'en_route_at' => 'datetime', 'on_site_at' => 'datetime', 'completed_at' => 'datetime', 'is_test_mode' => 'boolean'])]
 class Booking extends Model
 {
