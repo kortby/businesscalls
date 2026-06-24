@@ -10,6 +10,7 @@ import {
     Wrench,
     Users,
     Briefcase,
+    HelpCircle,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -68,11 +69,11 @@ const mainNavItems: NavItem[] = [
 ];
 
 const footerNavItems: NavItem[] = [
-    // {
-    //     title: 'Repository',
-    //     href: 'https://github.com/laravel/vue-starter-kit',
-    //     icon: FolderGit2,
-    // },
+    {
+        title: 'Documentation',
+        href: '/docs',
+        icon: HelpCircle,
+    },
     // {
     //     title: 'Documentation',
     //     href: 'https://laravel.com/docs/starter-kits#vue',

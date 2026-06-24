@@ -161,6 +161,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
     Route::resource('jobs', ServiceJobController::class);
+    Route::inertia('docs', 'Docs/Index')->name('docs');
 });
 
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
