@@ -10,6 +10,8 @@ use App\Models\Employee;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Services\PdfGeneratorService;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -432,5 +434,79 @@ class AdminController extends Controller
         return Inertia::render('Admin/Leaderboard', [
             'leaderboard' => $leaderboardData,
         ]);
+    }
+
+    /**
+     * Display the playful Mascot Customization Shop.
+     */
+    public function mascotShop(): Response
+    {
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+
+        $avgCsat = (float) (CallLog::whereNotNull('csat_score')->avg('csat_score') ?? 92.5);
+        $basePoints = (int) ($avgCsat * 10);
+        $deducted = $tenant ? (int) $tenant->getSetting('deducted_points', 0) : 0;
+        $totalPoints = max(0, $basePoints - $deducted);
+
+        $activeSkin = $tenant ? $tenant->getSetting('mascot_skin', 'standard') : 'standard';
+        $purchasedSkins = $tenant ? $tenant->getSetting('purchased_mascot_skins', ['standard']) : ['standard'];
+
+        return Inertia::render('Admin/MascotShop', [
+            'totalPoints' => $totalPoints,
+            'activeSkin' => $activeSkin,
+            'purchasedSkins' => $purchasedSkins,
+        ]);
+    }
+
+    /**
+     * Purchase/activate a mascot skin.
+     */
+    public function purchaseMascotSkin(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'skin' => 'required|string',
+            'cost' => 'required|integer',
+        ]);
+
+        $skin = $request->input('skin');
+        $cost = $request->input('cost');
+
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+
+        if ($tenant) {
+            $avgCsat = (float) (CallLog::whereNotNull('csat_score')->avg('csat_score') ?? 92.5);
+            $basePoints = (int) ($avgCsat * 10);
+            $deducted = (int) $tenant->getSetting('deducted_points', 0);
+            $points = max(0, $basePoints - $deducted);
+
+            $purchasedSkins = $tenant->getSetting('purchased_mascot_skins', ['standard']);
+
+            if (in_array($skin, $purchasedSkins)) {
+                $settings = $tenant->settings ?? [];
+                $settings['mascot_skin'] = $skin;
+                $tenant->settings = $settings;
+                $tenant->save();
+
+                return back()->with('success', "Activated {$skin} skin!");
+            }
+
+            if ($points < $cost) {
+                return back()->withErrors(['points' => 'Insufficient points.']);
+            }
+
+            $purchasedSkins[] = $skin;
+            $settings = $tenant->settings ?? [];
+            $settings['purchased_mascot_skins'] = $purchasedSkins;
+            $settings['mascot_skin'] = $skin;
+            $settings['deducted_points'] = $deducted + $cost;
+            $tenant->settings = $settings;
+            $tenant->save();
+
+            return back()->with('success', "Purchased and activated {$skin} skin!");
+        }
+
+        return back();
     }
 }

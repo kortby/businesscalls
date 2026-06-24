@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
 
 #[Table('tenants')]
@@ -17,6 +18,11 @@ use Laravel\Cashier\Billable;
 class Tenant extends Model
 {
     use Billable, HasAttributeCasts, HasFactory;
+
+    public function getConnectionName()
+    {
+        return config('database.master_connection', 'sqlite');
+    }
 
     /**
      * Get a setting by key.
@@ -48,5 +54,13 @@ class Tenant extends Model
     public function users(): HasMany
     {
         return $this->hasMany(User::class);
+    }
+
+    /**
+     * Get the database shard associated with the tenant.
+     */
+    public function tenantShard(): HasOne
+    {
+        return $this->hasOne(TenantShard::class);
     }
 }

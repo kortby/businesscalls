@@ -7,10 +7,12 @@ const props = withDefaults(
         state: number; // 0 = Idle, 1 = Searching, 2 = Victory, 3 = Error
         isSpeaking?: boolean;
         amplitude?: number;
+        skin?: string; // 'standard', 'robot', 'gold'
     }>(),
     {
         isSpeaking: false,
         amplitude: 0,
+        skin: 'standard',
     },
 );
 
@@ -21,7 +23,15 @@ let stateTriggerInput: Rive.StateMachineInput | null = null;
 let speakingInput: Rive.StateMachineInput | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
-onMounted(async () => {
+const cleanupRive = () => {
+    if (rInstance) {
+        rInstance.cleanup();
+        rInstance = null;
+    }
+};
+
+const initRive = async () => {
+    cleanupRive();
     if (!canvasRef.value) {
         return;
     }
@@ -29,28 +39,32 @@ onMounted(async () => {
     const src = '/assets/animations/dispatcher_mascot.riv';
 
     try {
-        // Perform a quick HEAD check to see if the file exists and is not an HTML error fallback page
         const response = await fetch(src, { method: 'HEAD' });
         const contentType = response.headers.get('content-type') || '';
 
         if (!response.ok || contentType.includes('text/html')) {
             hasRiveLoaded.value = false;
-
             return;
         }
 
-        // Load Rive WebGL instance
+        // Map skin name to Rive artboard name
+        let artboardName = undefined;
+        if (props.skin === 'robot') {
+            artboardName = 'RobotDispatcher';
+        } else if (props.skin === 'gold') {
+            artboardName = 'GoldenDispatcher';
+        }
+
         rInstance = new Rive.Rive({
             src: src,
             canvas: canvasRef.value,
+            artboard: artboardName,
             stateMachines: 'DispatcherStateMachine',
             autoplay: true,
             onLoad: () => {
                 hasRiveLoaded.value = true;
-                // Adjust vector drawing surface initially
                 rInstance?.resizeDrawingSurfaceToCanvas();
 
-                // Locate and fetch the State Machine Inputs
                 const inputs = rInstance?.stateMachineInputs(
                     'DispatcherStateMachine',
                 );
@@ -84,18 +98,28 @@ onMounted(async () => {
                 hasRiveLoaded.value = false;
             },
         });
+    } catch (e) {
+        hasRiveLoaded.value = false;
+    }
+};
 
-        // ResizeObserver ensures vector line fidelity is recalculated on retina screens
+onMounted(() => {
+    initRive();
+    if (canvasRef.value) {
         resizeObserver = new ResizeObserver(() => {
             rInstance?.resizeDrawingSurfaceToCanvas();
         });
         resizeObserver.observe(canvasRef.value);
-    } catch (e) {
-        hasRiveLoaded.value = false;
     }
 });
 
-// Watch the state prop to trigger appropriate Rive transitions automatically
+watch(
+    () => props.skin,
+    () => {
+        initRive();
+    },
+);
+
 watch(
     () => props.state,
     (newVal) => {
@@ -105,7 +129,6 @@ watch(
     },
 );
 
-// Watch the isSpeaking prop to animate speech on Rive mascot
 watch(
     () => props.isSpeaking,
     (newVal) => {
@@ -119,10 +142,7 @@ onBeforeUnmount(() => {
     if (resizeObserver && canvasRef.value) {
         resizeObserver.unobserve(canvasRef.value);
     }
-
-    if (rInstance) {
-        rInstance.cleanup();
-    }
+    cleanupRive();
 });
 </script>
 
@@ -165,18 +185,53 @@ onBeforeUnmount(() => {
                 style="animation-duration: 2s"
             >
                 <!-- Body background (Round body, Duolingo bird or cute owl shape) -->
-                <!-- Base body color: light emerald (Duolingo style green/teal) -->
+                <!-- Base body color, stroke and tummy based on active skin -->
                 <path
+                    v-if="skin === 'robot'"
+                    d="M 50 15 C 28 15, 20 30, 20 60 C 20 80, 32 85, 50 85 C 68 85, 80 80, 80 60 C 80 30, 72 15, 50 15 Z"
+                    fill="#64748B"
+                    stroke="#334155"
+                    stroke-width="3"
+                />
+                <path
+                    v-else-if="skin === 'gold'"
+                    d="M 50 15 C 28 15, 20 30, 20 60 C 20 80, 32 85, 50 85 C 68 85, 80 80, 80 60 C 80 30, 72 15, 50 15 Z"
+                    fill="#F59E0B"
+                    stroke="#B45309"
+                    stroke-width="3"
+                />
+                <path
+                    v-else
                     d="M 50 15 C 28 15, 20 30, 20 60 C 20 80, 32 85, 50 85 C 68 85, 80 80, 80 60 C 80 30, 72 15, 50 15 Z"
                     fill="#10B981"
                     stroke="#047857"
                     stroke-width="3"
                 />
 
-                <!-- Tummy panel (lighter green/white) -->
+                <!-- Tummy panel -->
                 <path
+                    v-if="skin === 'robot'"
+                    d="M 50 45 C 36 45, 32 55, 32 68 C 32 78, 40 82, 50 82 C 60 82, 68 78, 68 68 C 68 55, 64 45, 50 45 Z"
+                    fill="#F1F5F9"
+                />
+                <path
+                    v-else-if="skin === 'gold'"
+                    d="M 50 45 C 36 45, 32 55, 32 68 C 32 78, 40 82, 50 82 C 60 82, 68 78, 68 68 C 68 55, 64 45, 50 45 Z"
+                    fill="#FEF3C7"
+                />
+                <path
+                    v-else
                     d="M 50 45 C 36 45, 32 55, 32 68 C 32 78, 40 82, 50 82 C 60 82, 68 78, 68 68 C 68 55, 64 45, 50 45 Z"
                     fill="#D1FAE5"
+                />
+
+                <!-- Golden Crown (only for gold skin) -->
+                <path
+                    v-if="skin === 'gold'"
+                    d="M 38 12 L 44 20 L 50 12 L 56 20 L 62 12 L 59 24 L 41 24 Z"
+                    fill="#FBBF24"
+                    stroke="#D97706"
+                    stroke-width="1.5"
                 />
 
                 <!-- Eyes & Face Features based on state -->
@@ -194,10 +249,21 @@ onBeforeUnmount(() => {
                             cy="42"
                             r="9"
                             fill="white"
-                            stroke="#047857"
+                            :stroke="
+                                skin === 'robot'
+                                    ? '#334155'
+                                    : skin === 'gold'
+                                      ? '#B45309'
+                                      : '#047857'
+                            "
                             stroke-width="2.5"
                         />
-                        <circle cx="39" cy="42" r="4.5" fill="#111827" />
+                        <circle
+                            cx="39"
+                            cy="42"
+                            r="4.5"
+                            :fill="skin === 'robot' ? '#06B6D4' : '#111827'"
+                        />
                         <circle cx="41" cy="40" r="1.8" fill="white" />
                     </g>
 
@@ -213,10 +279,21 @@ onBeforeUnmount(() => {
                             cy="42"
                             r="9"
                             fill="white"
-                            stroke="#047857"
+                            :stroke="
+                                skin === 'robot'
+                                    ? '#334155'
+                                    : skin === 'gold'
+                                      ? '#B45309'
+                                      : '#047857'
+                            "
                             stroke-width="2.5"
                         />
-                        <circle cx="61" cy="42" r="4.5" fill="#111827" />
+                        <circle
+                            cx="61"
+                            cy="42"
+                            r="4.5"
+                            :fill="skin === 'robot' ? '#06B6D4' : '#111827'"
+                        />
                         <circle cx="63" cy="40" r="1.8" fill="white" />
                     </g>
 
@@ -247,7 +324,7 @@ onBeforeUnmount(() => {
                     />
                 </g>
 
-                <!-- State 1: Scanning (Looking side-to-side, with searching lenses) -->
+                <!-- State 1: Scanning -->
                 <g v-if="state === 1">
                     <!-- Tech Glasses/Visor background -->
                     <rect
@@ -256,20 +333,19 @@ onBeforeUnmount(() => {
                         width="50"
                         height="16"
                         rx="8"
-                        fill="#F59E0B"
-                        stroke="#D97706"
+                        :fill="skin === 'robot' ? '#06B6D4' : '#F59E0B'"
+                        :stroke="skin === 'robot' ? '#0891B2' : '#D97706'"
                         stroke-width="2.5"
                     />
 
-                    <!-- Scanning Eye Indicators (looking left/right/animating) -->
+                    <!-- Scanning Eye Indicators -->
                     <g class="animate-pulse">
                         <circle cx="38" cy="42" r="5" fill="#FFFBEB" />
-                        <!-- Pupil looking left-right -->
                         <circle
                             cx="36"
                             cy="42"
                             r="2.5"
-                            fill="#D97706"
+                            :fill="skin === 'robot' ? '#0891B2' : '#D97706'"
                             class="animate-bounce"
                         />
 
@@ -278,7 +354,7 @@ onBeforeUnmount(() => {
                             cx="60"
                             cy="42"
                             r="2.5"
-                            fill="#D97706"
+                            :fill="skin === 'robot' ? '#0891B2' : '#D97706'"
                             class="animate-bounce"
                         />
                     </g>
@@ -287,10 +363,9 @@ onBeforeUnmount(() => {
                     <polygon points="50,54 47,59 53,59" fill="#111827" />
                 </g>
 
-                <!-- State 2: Victory (Super happy, blushing cheeks, confetti) -->
+                <!-- State 2: Victory -->
                 <g v-if="state === 2">
                     <!-- Curved happy eyes -->
-                    <!-- Left Eye: arch -->
                     <path
                         d="M 30 44 Q 38 34 46 44"
                         fill="none"
@@ -298,7 +373,6 @@ onBeforeUnmount(() => {
                         stroke-width="4.5"
                         stroke-linecap="round"
                     />
-                    <!-- Right Eye: arch -->
                     <path
                         d="M 54 44 Q 62 34 70 44"
                         fill="none"
@@ -337,7 +411,7 @@ onBeforeUnmount(() => {
                     />
                 </g>
 
-                <!-- State 3: Error/Conflict (Dizzy/Crossed eyes, sad beak) -->
+                <!-- State 3: Error/Conflict -->
                 <g v-if="state === 3">
                     <!-- Left Eye Cross -->
                     <line
@@ -396,13 +470,13 @@ onBeforeUnmount(() => {
                     />
                 </g>
 
-                <!-- Headset overlay (Common to all states, styled for dispatcher theme) -->
+                <!-- Headset overlay -->
                 <g>
                     <!-- Headset Arch -->
                     <path
                         d="M 23 48 C 23 25, 77 25, 77 48"
                         fill="none"
-                        stroke="#374151"
+                        :stroke="skin === 'robot' ? '#475569' : '#374151'"
                         stroke-width="5"
                         stroke-linecap="round"
                     />
@@ -414,11 +488,16 @@ onBeforeUnmount(() => {
                         width="8"
                         height="16"
                         rx="4"
-                        fill="#1F2937"
+                        :fill="skin === 'robot' ? '#0F172A' : '#1F2937'"
                         stroke="#111827"
                         stroke-width="1.5"
                     />
-                    <circle cx="19" cy="52" r="2" fill="#D1D5DB" />
+                    <circle
+                        cx="19"
+                        cy="52"
+                        r="2"
+                        :fill="skin === 'robot' ? '#22D3EE' : '#D1D5DB'"
+                    />
 
                     <!-- Right Earcup -->
                     <rect
@@ -427,17 +506,22 @@ onBeforeUnmount(() => {
                         width="8"
                         height="16"
                         rx="4"
-                        fill="#1F2937"
+                        :fill="skin === 'robot' ? '#0F172A' : '#1F2937'"
                         stroke="#111827"
                         stroke-width="1.5"
                     />
-                    <circle cx="81" cy="52" r="2" fill="#D1D5DB" />
+                    <circle
+                        cx="81"
+                        cy="52"
+                        r="2"
+                        :fill="skin === 'robot' ? '#22D3EE' : '#D1D5DB'"
+                    />
 
-                    <!-- Headset Microphone Arm (Attaches to left earcup, points to mouth) -->
+                    <!-- Headset Microphone Arm -->
                     <path
                         d="M 21 54 Q 30 66 43 62"
                         fill="none"
-                        stroke="#1F2937"
+                        :stroke="skin === 'robot' ? '#0F172A' : '#1F2937'"
                         stroke-width="2.5"
                         stroke-linecap="round"
                     />
@@ -493,13 +577,46 @@ onBeforeUnmount(() => {
             </p>
         </div>
 
-        <!-- Indicator Badge for visual confirmation if mascot asset is not loaded yet -->
+        <!-- Indicator Badge -->
         <div class="absolute right-2 bottom-2">
             <span
                 class="inline-flex items-center rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-semibold tracking-wider text-emerald-600 uppercase dark:text-emerald-400"
             >
-                Mascot State: {{ state }}
+                Mascot: {{ skin }} ({{ state }})
             </span>
         </div>
     </div>
 </template>
+
+<style scoped>
+@keyframes float-slow {
+    0%,
+    100% {
+        transform: translateY(0px) scale(1);
+    }
+    50% {
+        transform: translateY(-15px) scale(1.05);
+    }
+}
+@keyframes float-delayed {
+    0%,
+    100% {
+        transform: translateY(0px) scale(1.05);
+    }
+    50% {
+        transform: translateY(15px) scale(1);
+    }
+}
+.animate-float-slow {
+    animation: float-slow 8s ease-in-out infinite;
+}
+.animate-float-delayed {
+    animation: float-delayed 10s ease-in-out infinite;
+}
+.animate-spin-slow {
+    animation: spin 8s linear infinite;
+}
+.animate-pulse-slow {
+    animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+</style>

@@ -36,6 +36,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/achievements', [AdminController::class, 'achievements'])->name('admin.achievements');
     Route::get('admin/dispatch-map', [AdminController::class, 'dispatchMap'])->name('admin.dispatch-map');
     Route::get('admin/leaderboard', [AdminController::class, 'leaderboard'])->name('admin.leaderboard');
+    Route::get('admin/mascot-shop', [AdminController::class, 'mascotShop'])->name('admin.mascot-shop');
+    Route::post('admin/mascot-shop/purchase', [AdminController::class, 'purchaseMascotSkin'])->name('admin.mascot-shop.purchase');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

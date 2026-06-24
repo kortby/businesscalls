@@ -36,6 +36,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Dynamically register master connection config
+        $defaultConn = config('database.default');
+        $defaultConfig = config("database.connections.{$defaultConn}");
+        config()->set('database.connections.master', $defaultConfig);
+        config()->set('database.master_connection', $defaultConn);
+
         $this->configureDefaults();
 
         // Configure Cashier
