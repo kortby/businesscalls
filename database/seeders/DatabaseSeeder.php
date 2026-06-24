@@ -5,9 +5,11 @@ namespace Database\Seeders;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Conversation;
+use App\Models\Customer;
 use App\Models\Employee;
 use App\Models\Message;
 use App\Models\Scopes\TenantScope;
+use App\Models\ServiceJob;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -276,6 +278,91 @@ class DatabaseSeeder extends Seeder
             'conversation_id' => $conv2->id,
             'sender' => 'agent',
             'body' => 'Our basic clean and check is $89. This includes diagnostic testing and cleaning the condenser coils.',
+        ]);
+
+        // 8. Seed customers and service jobs
+        $custSponge = Customer::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'SpongeBob SquarePants',
+            'phone' => '+15551234567',
+            'email' => 'sponge@bikinibottom.com',
+            'notes' => 'Loves Krabby Patties',
+        ]);
+
+        $custPatrick = Customer::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Patrick Star',
+            'phone' => '+15559876543',
+            'email' => 'patrick@bikinibottom.com',
+            'notes' => 'Lives under a rock',
+        ]);
+
+        $custSandy = Customer::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Sandy Cheeks',
+            'phone' => '+15557890123',
+            'email' => 'sandy@bikinibottom.com',
+            'notes' => 'Always wears helmet',
+        ]);
+
+        $custKrabs = Customer::create([
+            'tenant_id' => $tenant->id,
+            'name' => 'Eugene Krabs',
+            'phone' => '+15556789012',
+            'email' => 'krabs@bikinibottom.com',
+            'notes' => 'Owns Krusty Krab',
+        ]);
+
+        ServiceJob::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $custSponge->id,
+            'employee_id' => $plumber->id,
+            'title' => 'Fix spatula handle',
+            'description' => 'Spatula handle snapped in half. Require high-temperature adhesive welding.',
+            'status' => 'completed',
+            'steps' => [
+                'Inspected the spatula alignment.',
+                'Applied industrial-grade adhesive.',
+                'Cured under heat lamp for 15 minutes.',
+                'Verified spatula structural strength.',
+            ],
+        ]);
+
+        ServiceJob::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $custPatrick->id,
+            'employee_id' => null,
+            'title' => 'Locate lost TV remote',
+            'description' => 'Customer states TV remote is missing under sand house.',
+            'status' => 'pending',
+            'steps' => [],
+        ]);
+
+        ServiceJob::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $custSandy->id,
+            'employee_id' => $hvac->id,
+            'title' => 'Calibrate dome pressure valve',
+            'description' => 'Air lock helmet pressure seal is venting. Need to adjust pressure regulator.',
+            'status' => 'in_progress',
+            'steps' => [
+                'Scaffolded the pressure dome.',
+                'Located air release valve bypass leakage.',
+            ],
+        ]);
+
+        ServiceJob::create([
+            'tenant_id' => $tenant->id,
+            'customer_id' => $custKrabs->id,
+            'employee_id' => $plumber->id,
+            'title' => 'Replace Krusty Krab main drain line',
+            'description' => 'Kitchen grease build-up causing back-ups in the restrooms.',
+            'status' => 'completed',
+            'steps' => [
+                'Arrived on-site and evaluated main cleanout.',
+                'Hydro-jetted line up to city sewer connection.',
+                'Verified clear flow with snake camera.',
+            ],
         ]);
 
         // Reset scope at end of seed

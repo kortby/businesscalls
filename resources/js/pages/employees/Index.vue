@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
+import { store as storeEmployee, update as updateEmployee, destroy as destroyEmployee } from '@/routes/employees';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Heading from '@/components/Heading.vue';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -89,7 +90,7 @@ const removeSkill = (index: number, isEdit = false) => {
 };
 
 const submitAdd = () => {
-    form.post(route('employees.store'), {
+    form.post(storeEmployee.url(), {
         onSuccess: () => {
             showAddModal.value = false;
             form.reset();
@@ -108,7 +109,7 @@ const openEditModal = (employee: any) => {
 };
 
 const submitUpdate = () => {
-    editForm.put(route('employees.update', editingEmployee.value.id), {
+    editForm.put(updateEmployee.url(editingEmployee.value.id), {
         onSuccess: () => {
             showEditModal.value = false;
             editingEmployee.value = null;
@@ -118,7 +119,7 @@ const submitUpdate = () => {
 
 const deleteEmployee = (id: number) => {
     if (confirm('Are you sure you want to remove this technician? This action is tracked in compliance logs.')) {
-        router.delete(route('employees.destroy', id));
+        router.delete(destroyEmployee.url(id));
     }
 };
 </script>

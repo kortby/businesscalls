@@ -6,6 +6,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ConversationsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\ServiceJobController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TechnicianController;
 use App\Models\Booking;
@@ -83,6 +84,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
     Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
+    Route::resource('jobs', ServiceJobController::class);
 });
 
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');

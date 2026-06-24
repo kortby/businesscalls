@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue';
 import { Head, useForm } from '@inertiajs/vue3';
+import { store as storeCustomer, importMethod as importCustomer } from '@/routes/customers';
 import AppLayout from '@/layouts/AppLayout.vue';
 import Heading from '@/components/Heading.vue';
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
@@ -79,7 +80,7 @@ const openAddModal = (initialData?: { name?: string; phone?: string }) => {
 };
 
 const submitAdd = () => {
-    form.post(route('customers.store'), {
+    form.post(storeCustomer.url(), {
         onSuccess: () => {
             showAddModal.value = false;
             form.reset();
@@ -119,7 +120,7 @@ const submitImport = () => {
         fileError.value = 'Please select a CSV file first.';
         return;
     }
-    importForm.post(route('customers.import'), {
+    importForm.post(importCustomer.url(), {
         onSuccess: () => {
             showImportModal.value = false;
             importForm.reset();
