@@ -17,6 +17,12 @@ trait BelongsToTenant
             if (! $model->tenant_id && $tenantId = TenantScope::getTenantId()) {
                 $model->tenant_id = $tenantId;
             }
+
+            if (in_array($model->getTable(), ['bookings', 'call_logs', 'invoices'])) {
+                if ($model->is_test_mode === null) {
+                    $model->is_test_mode = TenantScope::isTestMode();
+                }
+            }
         });
     }
 }

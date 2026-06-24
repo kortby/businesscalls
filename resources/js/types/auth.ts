@@ -1,3 +1,13 @@
+export type Tenant = {
+    id: number;
+    slug: string;
+    name: string;
+    plan: string;
+    settings: Record<string, any>;
+    secret_key: string;
+    is_test_mode: boolean;
+};
+
 export type User = {
     id: number;
     name: string;
@@ -7,6 +17,7 @@ export type User = {
     two_factor_enabled?: boolean;
     created_at: string;
     updated_at: string;
+    tenant?: Tenant | null;
     [key: string]: unknown;
 };
 

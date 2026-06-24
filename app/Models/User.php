@@ -34,17 +34,26 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  */
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'tenant_id'])]
+#[Fillable(['name', 'email', 'password', 'tenant_id', 'is_supervisor'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 #[Casts([
     'email_verified_at' => 'datetime',
     'password' => 'hashed',
     'two_factor_confirmed_at' => 'datetime',
+    'is_supervisor' => 'boolean',
 ])]
 class User extends Authenticatable implements PasskeyUser
 {
     /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasAttributeCasts, HasConversations, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
+
+    /**
+     * Determine if the user has supervisor permissions.
+     */
+    public function isSupervisor(): bool
+    {
+        return (bool) ($this->is_supervisor ?? false);
+    }
 
     /**
      * Get the tenant that owns the user.

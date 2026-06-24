@@ -14,7 +14,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { MessageSquare, Send, Check, Archive, Clock, Phone, User as UserIcon } from '@lucide/vue';
+import {
+    MessageSquare,
+    Send,
+    Check,
+    Archive,
+    Clock,
+    Phone,
+    User as UserIcon,
+} from '@lucide/vue';
 
 // Define layout explicitly
 defineOptions({ layout: AppLayout });
@@ -45,11 +53,14 @@ const props = defineProps<{
 
 const liveConversations = ref([...props.conversations]);
 const activeConversationId = ref<number | null>(
-    props.conversations.length > 0 ? props.conversations[0].id : null
+    props.conversations.length > 0 ? props.conversations[0].id : null,
 );
 
-const activeConversation = computed(() => 
-    liveConversations.value.find(c => c.id === activeConversationId.value) || null
+const activeConversation = computed(
+    () =>
+        liveConversations.value.find(
+            (c) => c.id === activeConversationId.value,
+        ) || null,
 );
 
 // Mascot State: 0=Idle, 1=Searching, 2=Victory, 3=Error
@@ -88,7 +99,7 @@ const submitMessage = () => {
         },
         onError: () => {
             transitionMascot(3); // Error
-        }
+        },
     });
 };
 
@@ -97,18 +108,27 @@ const messageContainer = ref<HTMLDivElement | null>(null);
 const scrollToBottom = () => {
     setTimeout(() => {
         if (messageContainer.value) {
-            messageContainer.value.scrollTop = messageContainer.value.scrollHeight;
+            messageContainer.value.scrollTop =
+                messageContainer.value.scrollHeight;
         }
     }, 50);
 };
 
 // Sync liveConversations when props update from the server
-watch(() => props.conversations, (newVal) => {
-    liveConversations.value = [...newVal];
-    if (activeConversationId.value && !newVal.some(c => c.id === activeConversationId.value) && newVal.length > 0) {
-        activeConversationId.value = newVal[0].id;
-    }
-}, { deep: true });
+watch(
+    () => props.conversations,
+    (newVal) => {
+        liveConversations.value = [...newVal];
+        if (
+            activeConversationId.value &&
+            !newVal.some((c) => c.id === activeConversationId.value) &&
+            newVal.length > 0
+        ) {
+            activeConversationId.value = newVal[0].id;
+        }
+    },
+    { deep: true },
+);
 
 watch(activeConversationId, () => {
     scrollToBottom();
@@ -119,63 +139,85 @@ onMounted(() => {
     scrollToBottom();
 
     if (props.tenant) {
-        useEcho(`tenant.${props.tenant.id}`, 'message.received', (payload: any) => {
-            const msg = payload.message;
-            
-            // Instantly update Rive mascot visual triggers (Victory)
-            transitionMascot(2);
+        useEcho(
+            `tenant.${props.tenant.id}`,
+            'message.received',
+            (payload: any) => {
+                const msg = payload.message;
 
-            const conv = liveConversations.value.find(c => c.id === msg.conversation_id);
-            if (conv) {
-                if (!conv.messages.some(m => m.id === msg.id)) {
-                    conv.messages.push(msg);
-                }
-                
-                // Sort conversation to the top
-                liveConversations.value = [
-                    conv,
-                    ...liveConversations.value.filter(c => c.id !== conv.id)
-                ];
+                // Instantly update Rive mascot visual triggers (Victory)
+                transitionMascot(2);
 
-                if (activeConversationId.value === conv.id) {
-                    scrollToBottom();
+                const conv = liveConversations.value.find(
+                    (c) => c.id === msg.conversation_id,
+                );
+                if (conv) {
+                    if (!conv.messages.some((m) => m.id === msg.id)) {
+                        conv.messages.push(msg);
+                    }
+
+                    // Sort conversation to the top
+                    liveConversations.value = [
+                        conv,
+                        ...liveConversations.value.filter(
+                            (c) => c.id !== conv.id,
+                        ),
+                    ];
+
+                    if (activeConversationId.value === conv.id) {
+                        scrollToBottom();
+                    }
                 }
-            }
-        });
+            },
+        );
     }
 });
 
 const formatTime = (isoString: string) => {
-    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return new Date(isoString).toLocaleTimeString([], {
+        hour: '2-digit',
+        minute: '2-digit',
+    });
 };
 
 const formatDate = (isoString: string) => {
-    return new Date(isoString).toLocaleDateString([], { month: 'short', day: 'numeric' });
+    return new Date(isoString).toLocaleDateString([], {
+        month: 'short',
+        day: 'numeric',
+    });
 };
 </script>
 
 <template>
     <Head title="Omni-Channel Customer Conversations" />
 
-    <div class="bg-background text-foreground p-6 min-h-screen">
+    <div class="min-h-screen bg-background p-6 text-foreground">
         <!-- Top Page Header -->
         <div class="mb-8 flex items-center justify-between border-b pb-6">
             <div class="flex items-center gap-4">
-                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-indigo-500 text-white shadow-xs border-b-4 border-indigo-700">
+                <div
+                    class="flex h-12 w-12 items-center justify-center rounded-2xl border-b-4 border-indigo-700 bg-indigo-500 text-white shadow-xs"
+                >
                     <MessageSquare class="h-6 w-6" />
                 </div>
                 <div>
-                    <h1 class="text-3xl font-black tracking-tight text-foreground uppercase">Omni-Channel Customer Chat</h1>
-                    <p class="text-xs text-muted-foreground font-semibold uppercase tracking-widest mt-1">
-                        Live SMS & Web messaging for {{ tenant?.name ?? 'businesscalls' }}
+                    <h1
+                        class="text-3xl font-black tracking-tight text-foreground uppercase"
+                    >
+                        Omni-Channel Customer Chat
+                    </h1>
+                    <p
+                        class="mt-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
+                    >
+                        Live SMS & Web messaging for
+                        {{ tenant?.name ?? 'businesscalls' }}
                     </p>
                 </div>
             </div>
         </div>
 
         <!-- Layout Grid: Left Sidebar Threads List & Right Chat Panel -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
+        <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
             <!-- LEFT THREADS PANEL -->
             <div class="flex flex-col gap-6">
                 <!-- Rive Mascot Integration -->
@@ -183,15 +225,25 @@ const formatDate = (isoString: string) => {
                     <DispatcherMascot :state="mascotState" />
                 </div>
 
-                <Card class="border-4 border-b-8 border-slate-300 dark:border-slate-800 rounded-3xl overflow-hidden">
+                <Card
+                    class="overflow-hidden rounded-3xl border-4 border-b-8 border-slate-300 dark:border-slate-800"
+                >
                     <CardHeader class="border-b pb-4">
-                        <CardTitle class="text-lg font-black uppercase tracking-wider">Active Conversations</CardTitle>
-                        <CardDescription class="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">
+                        <CardTitle
+                            class="text-lg font-black tracking-wider uppercase"
+                            >Active Conversations</CardTitle
+                        >
+                        <CardDescription
+                            class="text-[10px] font-bold tracking-widest text-muted-foreground uppercase"
+                        >
                             Sorted dynamically by recency
                         </CardDescription>
                     </CardHeader>
-                    <CardContent class="p-0 max-h-[550px] overflow-y-auto pr-1">
-                        <div v-if="liveConversations.length === 0" class="p-8 text-center text-xs text-muted-foreground italic font-semibold">
+                    <CardContent class="max-h-[550px] overflow-y-auto p-0 pr-1">
+                        <div
+                            v-if="liveConversations.length === 0"
+                            class="p-8 text-center text-xs font-semibold text-muted-foreground italic"
+                        >
                             No active conversations found.
                         </div>
                         <div v-else class="divide-y divide-border">
@@ -200,46 +252,77 @@ const formatDate = (isoString: string) => {
                                 :key="conv.id"
                                 @click="selectConversation(conv.id)"
                                 :class="[
-                                    activeConversationId === conv.id 
-                                        ? 'bg-indigo-500/10 dark:bg-indigo-500/5 border-l-8 border-l-indigo-500 border-y border-y-indigo-500/20' 
-                                        : 'hover:bg-accent/40'
+                                    activeConversationId === conv.id
+                                        ? 'border-y border-l-8 border-y-indigo-500/20 border-l-indigo-500 bg-indigo-500/10 dark:bg-indigo-500/5'
+                                        : 'hover:bg-accent/40',
                                 ]"
-                                class="w-full text-left p-4 transition-all flex items-start gap-3 border-l-4 border-l-transparent"
+                                class="flex w-full items-start gap-3 border-l-4 border-l-transparent p-4 text-left transition-all"
                             >
-                                <div class="h-10 w-10 rounded-xl bg-slate-100 dark:bg-slate-900 border-2 flex items-center justify-center text-slate-600 dark:text-slate-400 font-bold shrink-0">
+                                <div
+                                    class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 bg-slate-100 font-bold text-slate-600 dark:bg-slate-900 dark:text-slate-400"
+                                >
                                     {{ conv.customer_phone.slice(-4) }}
                                 </div>
-                                <div class="flex-1 min-w-0">
-                                    <div class="flex justify-between items-center mb-1">
-                                        <span class="text-xs font-black text-foreground truncate block">
+                                <div class="min-w-0 flex-1">
+                                    <div
+                                        class="mb-1 flex items-center justify-between"
+                                    >
+                                        <span
+                                            class="block truncate text-xs font-black text-foreground"
+                                        >
                                             {{ conv.customer_phone }}
                                         </span>
-                                        <span class="text-[9px] font-bold text-muted-foreground font-mono">
-                                            {{ conv.messages.length > 0 ? formatTime(conv.messages[conv.messages.length - 1].created_at) : '' }}
+                                        <span
+                                            class="font-mono text-[9px] font-bold text-muted-foreground"
+                                        >
+                                            {{
+                                                conv.messages.length > 0
+                                                    ? formatTime(
+                                                          conv.messages[
+                                                              conv.messages
+                                                                  .length - 1
+                                                          ].created_at,
+                                                      )
+                                                    : ''
+                                            }}
                                         </span>
                                     </div>
-                                    <p class="text-[11px] text-muted-foreground font-semibold uppercase tracking-wider truncate mb-1">
+                                    <p
+                                        class="mb-1 truncate text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
+                                    >
                                         {{ conv.subject ?? 'General Inquiry' }}
                                     </p>
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 truncate italic">
-                                        {{ conv.messages.length > 0 ? conv.messages[conv.messages.length - 1].body : '(No messages)' }}
+                                    <p
+                                        class="truncate text-xs text-slate-500 italic dark:text-slate-400"
+                                    >
+                                        {{
+                                            conv.messages.length > 0
+                                                ? conv.messages[
+                                                      conv.messages.length - 1
+                                                  ].body
+                                                : '(No messages)'
+                                        }}
                                     </p>
-                                    <div class="flex gap-1.5 mt-2">
-                                        <Badge 
-                                            :variant="conv.status === 'open' ? 'default' : 'secondary'"
-                                            class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded"
+                                    <div class="mt-2 flex gap-1.5">
+                                        <Badge
+                                            :variant="
+                                                conv.status === 'open'
+                                                    ? 'default'
+                                                    : 'secondary'
+                                            "
+                                            class="rounded px-1.5 py-0.5 text-[8px] font-black uppercase"
                                             :class="[
-                                                conv.status === 'open' 
-                                                    ? 'bg-emerald-500/10 text-emerald-600 border-emerald-500/20 hover:bg-emerald-500/10' 
-                                                    : 'bg-slate-500/10 text-slate-600 border-slate-500/20 hover:bg-slate-500/10'
+                                                conv.status === 'open'
+                                                    ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-600 hover:bg-emerald-500/10'
+                                                    : 'border-slate-500/20 bg-slate-500/10 text-slate-600 hover:bg-slate-500/10',
                                             ]"
                                         >
                                             {{ conv.status }}
                                         </Badge>
-                                        <Badge 
-                                            v-if="conv.user" 
-                                            variant="outline" 
-                                            class="text-[8px] font-bold border-indigo-500/20 text-indigo-500 px-1.5 py-0.5"
+                                        <Badge
+                                            v-if="conv.user"
+                                            variant="outline"
+                                            class="border-indigo-500/20 px-1.5 py-0.5 text-[8px] font-bold text-indigo-500"
                                         >
                                             Assignee: {{ conv.user.name }}
                                         </Badge>
@@ -252,57 +335,102 @@ const formatDate = (isoString: string) => {
             </div>
 
             <!-- RIGHT CHAT PANEL -->
-            <div class="lg:col-span-2 flex flex-col gap-6">
-                <Card v-if="activeConversation" class="border-4 border-b-8 border-indigo-400 dark:border-indigo-950 rounded-3xl overflow-hidden flex flex-col h-[600px]">
+            <div class="flex flex-col gap-6 lg:col-span-2">
+                <Card
+                    v-if="activeConversation"
+                    class="flex h-[600px] flex-col overflow-hidden rounded-3xl border-4 border-b-8 border-indigo-400 dark:border-indigo-950"
+                >
                     <!-- Active Conversation Header -->
-                    <CardHeader class="border-b pb-4 bg-indigo-500/5 flex flex-row items-center justify-between">
+                    <CardHeader
+                        class="flex flex-row items-center justify-between border-b bg-indigo-500/5 pb-4"
+                    >
                         <div class="flex items-center gap-3">
-                            <div class="h-10 w-10 rounded-xl bg-indigo-500 text-white flex items-center justify-center font-bold">
+                            <div
+                                class="flex h-10 w-10 items-center justify-center rounded-xl bg-indigo-500 font-bold text-white"
+                            >
                                 <Phone class="h-5 w-5" />
                             </div>
                             <div>
-                                <CardTitle class="text-sm font-black text-foreground">{{ activeConversation.customer_phone }}</CardTitle>
-                                <CardDescription class="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest flex items-center gap-1.5 mt-0.5">
-                                    <Clock class="h-3 w-3" /> Last Active: {{ formatDate(activeConversation.updated_at) }} at {{ formatTime(activeConversation.updated_at) }}
+                                <CardTitle
+                                    class="text-sm font-black text-foreground"
+                                    >{{
+                                        activeConversation.customer_phone
+                                    }}</CardTitle
+                                >
+                                <CardDescription
+                                    class="mt-0.5 flex items-center gap-1.5 text-[10px] font-semibold tracking-widest text-muted-foreground uppercase"
+                                >
+                                    <Clock class="h-3 w-3" /> Last Active:
+                                    {{
+                                        formatDate(
+                                            activeConversation.updated_at,
+                                        )
+                                    }}
+                                    at
+                                    {{
+                                        formatTime(
+                                            activeConversation.updated_at,
+                                        )
+                                    }}
                                 </CardDescription>
                             </div>
                         </div>
                         <div class="flex items-center gap-2">
-                            <span class="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-black bg-emerald-500/10 text-emerald-600 border-emerald-500/20 uppercase tracking-wider">
+                            <span
+                                class="inline-flex items-center rounded-md border border-emerald-500/20 bg-emerald-500/10 px-2.5 py-0.5 text-xs font-black tracking-wider text-emerald-600 uppercase"
+                            >
                                 Live Connection
                             </span>
                         </div>
                     </CardHeader>
 
                     <!-- Message History Area -->
-                    <div 
-                        ref="messageContainer" 
-                        class="flex-1 overflow-y-auto p-6 space-y-4 bg-slate-50/50 dark:bg-slate-950/20"
+                    <div
+                        ref="messageContainer"
+                        class="flex-1 space-y-4 overflow-y-auto bg-slate-50/50 p-6 dark:bg-slate-950/20"
                     >
-                        <div v-if="activeConversation.messages.length === 0" class="text-center py-12 text-xs text-muted-foreground font-semibold italic">
-                            No chat history with this customer. Write a message below to initiate the thread.
+                        <div
+                            v-if="activeConversation.messages.length === 0"
+                            class="py-12 text-center text-xs font-semibold text-muted-foreground italic"
+                        >
+                            No chat history with this customer. Write a message
+                            below to initiate the thread.
                         </div>
-                        <div 
-                            v-for="msg in activeConversation.messages" 
+                        <div
+                            v-for="msg in activeConversation.messages"
                             :key="msg.id"
                             :class="[
-                                msg.sender === 'agent' ? 'justify-end' : 'justify-start'
+                                msg.sender === 'agent'
+                                    ? 'justify-end'
+                                    : 'justify-start',
                             ]"
                             class="flex"
                         >
-                            <div 
+                            <div
                                 :class="[
-                                    msg.sender === 'agent' 
-                                        ? 'bg-indigo-500 text-white rounded-t-2xl rounded-l-2xl border-indigo-600' 
-                                        : 'bg-white dark:bg-slate-900 text-foreground rounded-t-2xl rounded-r-2xl border-slate-200 dark:border-slate-800'
+                                    msg.sender === 'agent'
+                                        ? 'rounded-t-2xl rounded-l-2xl border-indigo-600 bg-indigo-500 text-white'
+                                        : 'rounded-t-2xl rounded-r-2xl border-slate-200 bg-white text-foreground dark:border-slate-800 dark:bg-slate-900',
                                 ]"
-                                class="max-w-[70%] p-3.5 border-2 border-b-4 shadow-sm rounded-lg relative"
+                                class="relative max-w-[70%] rounded-lg border-2 border-b-4 p-3.5 shadow-sm"
                             >
-                                <span class="block text-[8px] font-bold uppercase tracking-wider mb-1 opacity-70">
-                                    {{ msg.sender === 'agent' ? 'You' : 'Customer' }}
+                                <span
+                                    class="mb-1 block text-[8px] font-bold tracking-wider uppercase opacity-70"
+                                >
+                                    {{
+                                        msg.sender === 'agent'
+                                            ? 'You'
+                                            : 'Customer'
+                                    }}
                                 </span>
-                                <p class="text-xs font-semibold leading-relaxed">{{ msg.body }}</p>
-                                <span class="block text-[7.5px] font-mono text-right mt-1 opacity-60">
+                                <p
+                                    class="text-xs leading-relaxed font-semibold"
+                                >
+                                    {{ msg.body }}
+                                </p>
+                                <span
+                                    class="mt-1 block text-right font-mono text-[7.5px] opacity-60"
+                                >
                                     {{ formatTime(msg.created_at) }}
                                 </span>
                             </div>
@@ -310,19 +438,22 @@ const formatDate = (isoString: string) => {
                     </div>
 
                     <!-- Chat Input Panel (Duolingo Style Exaggerated) -->
-                    <div class="p-4 border-t bg-background">
-                        <form @submit.prevent="submitMessage" class="flex gap-3">
-                            <Input 
+                    <div class="border-t bg-background p-4">
+                        <form
+                            @submit.prevent="submitMessage"
+                            class="flex gap-3"
+                        >
+                            <Input
                                 v-model="form.body"
-                                placeholder="Type an SMS response message..." 
-                                class="flex-1 border-2 border-slate-300 dark:border-slate-800 focus:border-indigo-500 rounded-xl h-11 text-xs font-semibold shadow-xs"
+                                placeholder="Type an SMS response message..."
+                                class="h-11 flex-1 rounded-xl border-2 border-slate-300 text-xs font-semibold shadow-xs focus:border-indigo-500 dark:border-slate-800"
                                 :disabled="form.processing"
                             />
-                            <Button 
-                                type="submit" 
+                            <Button
+                                type="submit"
                                 size="icon"
                                 :disabled="form.processing || !form.body.trim()"
-                                class="h-11 w-11 rounded-xl bg-indigo-500 hover:bg-indigo-600 text-white border-b-4 border-indigo-700 active:border-b-0 active:translate-y-[4px] transition-all flex items-center justify-center"
+                                class="flex h-11 w-11 items-center justify-center rounded-xl border-b-4 border-indigo-700 bg-indigo-500 text-white transition-all hover:bg-indigo-600 active:translate-y-[4px] active:border-b-0"
                             >
                                 <Send class="h-4 w-4" />
                             </Button>
@@ -330,19 +461,30 @@ const formatDate = (isoString: string) => {
                     </div>
                 </Card>
 
-                <Card v-else class="border-4 border-b-8 border-slate-300 dark:border-slate-800 rounded-3xl flex items-center justify-center h-[600px] text-center p-8">
+                <Card
+                    v-else
+                    class="flex h-[600px] items-center justify-center rounded-3xl border-4 border-b-8 border-slate-300 p-8 text-center dark:border-slate-800"
+                >
                     <div>
-                        <div class="h-16 w-16 bg-slate-100 dark:bg-slate-900 border-2 rounded-2xl flex items-center justify-center mx-auto text-slate-400 mb-4">
+                        <div
+                            class="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl border-2 bg-slate-100 text-slate-400 dark:bg-slate-900"
+                        >
                             <MessageSquare class="h-8 w-8" />
                         </div>
-                        <h3 class="text-sm font-black uppercase text-foreground">No Thread Selected</h3>
-                        <p class="text-xs text-muted-foreground mt-2 max-w-[280px]">
-                            Select a customer conversation from the list to view chat logs and send real-time SMS updates.
+                        <h3
+                            class="text-sm font-black text-foreground uppercase"
+                        >
+                            No Thread Selected
+                        </h3>
+                        <p
+                            class="mt-2 max-w-[280px] text-xs text-muted-foreground"
+                        >
+                            Select a customer conversation from the list to view
+                            chat logs and send real-time SMS updates.
                         </p>
                     </div>
                 </Card>
             </div>
-
         </div>
     </div>
 </template>

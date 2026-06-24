@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Attributes\Casts;
 use App\Concerns\BelongsToTenant;
 use App\Concerns\HasAttributeCasts;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -21,7 +22,9 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'total_amount',
     'status',
     'pdf_path',
+    'is_test_mode',
 ])]
+#[Casts(['is_test_mode' => 'boolean'])]
 class Invoice extends Model
 {
     use BelongsToTenant, HasAttributeCasts, HasFactory;

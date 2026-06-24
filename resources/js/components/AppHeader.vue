@@ -1,6 +1,14 @@
 <script setup lang="ts">
-import { Link, usePage } from '@inertiajs/vue3';
-import { BookOpen, Folder, LayoutGrid, Menu, Search, Calendar, Clock } from '@lucide/vue';
+import { Link, usePage, router } from '@inertiajs/vue3';
+import {
+    BookOpen,
+    Folder,
+    LayoutGrid,
+    Menu,
+    Search,
+    Calendar,
+    Clock,
+} from '@lucide/vue';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
@@ -85,6 +93,19 @@ const rightNavItems: NavItem[] = [
     //     icon: BookOpen,
     // },
 ];
+
+const toggleSandboxMode = () => {
+    router.post(
+        '/api/settings/toggle-sandbox',
+        {},
+        {
+            preserveState: false,
+            onSuccess: () => {
+                window.location.reload();
+            },
+        },
+    );
+};
 </script>
 
 <template>
@@ -201,6 +222,33 @@ const rightNavItems: NavItem[] = [
                 </div>
 
                 <div class="ml-auto flex items-center space-x-2">
+                    <!-- Sandbox Toggle -->
+                    <div v-if="auth?.user?.tenant" class="mr-2">
+                        <button
+                            @click="toggleSandboxMode"
+                            class="relative inline-flex cursor-pointer items-center rounded-full border-3 px-4 py-1.5 text-xs font-black tracking-wider uppercase shadow-md transition-all duration-300"
+                            :class="
+                                auth.user.tenant.is_test_mode
+                                    ? 'border-amber-600 bg-amber-500 text-black shadow-[0_0_12px_rgba(245,158,11,0.4)] hover:bg-amber-400'
+                                    : 'border-emerald-700 bg-emerald-600 text-white shadow-[0_0_12px_rgba(16,185,129,0.3)] hover:bg-emerald-500'
+                            "
+                        >
+                            <span
+                                class="mr-1.5 inline-block h-2.5 w-2.5 animate-pulse rounded-full"
+                                :class="
+                                    auth.user.tenant.is_test_mode
+                                        ? 'bg-black'
+                                        : 'bg-white'
+                                "
+                            ></span>
+                            {{
+                                auth.user.tenant.is_test_mode
+                                    ? 'Test Mode'
+                                    : 'Live Mode'
+                            }}
+                        </button>
+                    </div>
+
                     <div class="relative flex items-center space-x-1">
                         <Button
                             variant="ghost"

@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Services\ComplianceSanitizerService;
 use App\Services\VoicemailParserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -222,6 +223,10 @@ class CallWebhookController extends Controller
                 if (is_array($summary)) {
                     $summary = json_encode($summary);
                 }
+
+                $sanitizer = app(ComplianceSanitizerService::class);
+                $transcript = $sanitizer->sanitize($transcript);
+                $summary = $sanitizer->sanitize($summary);
 
                 $rawReason = $callData['disconnection_reason'] ?? $callData['endReason'] ?? $callData['end_reason'] ?? $request->input('message.call.endReason') ?? $request->input('endReason') ?? null;
                 $callEndReason = null;

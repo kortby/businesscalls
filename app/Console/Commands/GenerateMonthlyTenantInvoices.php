@@ -89,6 +89,7 @@ class GenerateMonthlyTenantInvoices extends Command
                     'usage_amount' => round($usageAmount, 2),
                     'total_amount' => round($totalAmount, 2),
                     'status' => 'pending',
+                    'is_test_mode' => (bool) $tenant->is_test_mode,
                 ]
             );
 

@@ -44,6 +44,10 @@ class StripeBillingController extends Controller
         // Apply Tenant database context
         TenantScope::setTenantId($tenant->id);
 
+        if ($tenant->is_test_mode) {
+            return response()->json(['url' => route('dashboard').'?mock_portal=true']);
+        }
+
         if (! $tenant->stripe_id) {
             $tenant->createAsStripeCustomer();
         }
@@ -78,6 +82,27 @@ class StripeBillingController extends Controller
             : env('STRIPE_PRO_PRICE_ID', 'price_pro');
 
         TenantScope::setTenantId($tenant->id);
+
+        if ($tenant->is_test_mode) {
+            // Mock subscription upgrade instantly in test mode!
+            $tenant->plan = $plan;
+            $tenant->save();
+
+            AuditLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'checkout_initiated_test',
+                'ip_address' => $request->ip(),
+                'browser_agent' => $request->userAgent(),
+                'payload' => [
+                    'plan' => $plan,
+                    'price_id' => $priceId,
+                    'test_mode' => true,
+                ],
+            ]);
+
+            return response()->json(['url' => route('dashboard').'?checkout=success&test_mode=true']);
+        }
 
         if (! $tenant->stripe_id) {
             $tenant->createAsStripeCustomer();

@@ -142,6 +142,11 @@
 </head>
 <body>
     <div class="invoice-card">
+        @if(isset($invoice) && $invoice->is_test_mode)
+            <div style="background-color: #fee2e2; color: #991b1b; border: 2px solid #f87171; border-radius: 12px; padding: 10px; font-weight: 800; text-align: center; margin-bottom: 20px; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px;">
+                *** TEST MODE / SANDBOX INVOICE ***
+            </div>
+        @endif
         <div class="header">
             <div class="logo">BusinessCalls</div>
             <div>

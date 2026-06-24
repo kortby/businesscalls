@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Message;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Services\ComplianceSanitizerService;
 use App\Services\LlmService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -81,6 +82,7 @@ class SmsWebhookController extends Controller
         ]);
 
         // Save incoming customer message
+        $body = app(ComplianceSanitizerService::class)->sanitize($body);
         $customerMessage = Message::create([
             'conversation_id' => $conversation->id,
             'sender' => 'customer',
@@ -109,6 +111,7 @@ class SmsWebhookController extends Controller
 
         // 6. Generate reply from LLM service
         $replyText = $llmService->generateResponse($compiledPrompt, $messageHistory);
+        $replyText = app(ComplianceSanitizerService::class)->sanitize($replyText);
 
         // Save outgoing agent message
         $agentMessage = Message::create([

@@ -2,6 +2,7 @@
 
 namespace App\Models\Scopes;
 
+use App\Models\Tenant;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
@@ -15,6 +16,11 @@ class TenantScope implements Scope
     protected static ?int $tenantId = null;
 
     /**
+     * Cached test mode state.
+     */
+    protected static ?bool $isTestMode = null;
+
+    /**
      * Flag to prevent recursion during auth resolution.
      */
     protected static bool $resolving = false;
@@ -26,7 +32,30 @@ class TenantScope implements Scope
     {
         if ($tenantId = static::getTenantId()) {
             $builder->where($model->getTable().'.tenant_id', $tenantId);
+
+            if (in_array($model->getTable(), ['bookings', 'call_logs', 'invoices'])) {
+                $builder->where($model->getTable().'.is_test_mode', static::isTestMode());
+            }
         }
+    }
+
+    /**
+     * Check if the active tenant is in test mode.
+     */
+    public static function isTestMode(): bool
+    {
+        if (static::$isTestMode !== null) {
+            return static::$isTestMode;
+        }
+
+        if ($tenantId = static::getTenantId()) {
+            $tenant = Tenant::find($tenantId);
+            static::$isTestMode = $tenant ? (bool) $tenant->is_test_mode : true;
+
+            return static::$isTestMode;
+        }
+
+        return true;
     }
 
     /**
@@ -35,6 +64,7 @@ class TenantScope implements Scope
     public static function setTenantId(?int $tenantId): void
     {
         static::$tenantId = $tenantId;
+        static::$isTestMode = null;
         if ($tenantId !== null && request()->hasSession()) {
             session(['tenant_id' => $tenantId]);
         }

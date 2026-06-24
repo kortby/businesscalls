@@ -36,6 +36,69 @@ Route::middleware(['auth', 'verified'])->group(function () {
             TenantScope::setTenantId($user->tenant_id);
         }
 
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+        if ($tenant && $tenant->is_test_mode) {
+            $employees = [
+                [
+                    'id' => 9991,
+                    'first_name' => 'Alice (Simulated)',
+                    'last_name' => 'Smith',
+                    'phone' => '555-0199',
+                    'skills' => ['hvac', 'electrical'],
+                    'availabilities' => [
+                        ['id' => 99901, 'day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '17:00', 'is_active' => true],
+                        ['id' => 99902, 'day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '17:00', 'is_active' => true],
+                    ],
+                    'bookings' => [
+                        ['id' => 99911, 'customer_phone' => '555-0101', 'job_details' => 'AC Maintenance Service', 'status' => 'booked', 'scheduled_start' => now()->startOfDay()->addHours(9)->toDateTimeString()],
+                    ],
+                ],
+                [
+                    'id' => 9992,
+                    'first_name' => 'Bob (Simulated)',
+                    'last_name' => 'Jones',
+                    'phone' => '555-0299',
+                    'skills' => ['plumbing'],
+                    'availabilities' => [
+                        ['id' => 99903, 'day_of_week' => 3, 'start_time' => '09:00', 'end_time' => '18:00', 'is_active' => true],
+                    ],
+                    'bookings' => [
+                        ['id' => 99922, 'customer_phone' => '555-0102', 'job_details' => 'Leaky Pipe Repair', 'status' => 'booked', 'scheduled_start' => now()->startOfDay()->addHours(13)->toDateTimeString()],
+                    ],
+                ],
+            ];
+
+            $bookingsList = [
+                [
+                    'id' => 99911,
+                    'customer_phone' => '555-0101',
+                    'job_details' => 'AC Maintenance Service',
+                    'status' => 'booked',
+                    'scheduled_start' => now()->startOfDay()->addHours(9)->toDateTimeString(),
+                    'employee' => ['first_name' => 'Alice (Simulated)', 'last_name' => 'Smith'],
+                ],
+                [
+                    'id' => 99922,
+                    'customer_phone' => '555-0102',
+                    'job_details' => 'Leaky Pipe Repair',
+                    'status' => 'booked',
+                    'scheduled_start' => now()->startOfDay()->addHours(13)->toDateTimeString(),
+                    'employee' => ['first_name' => 'Bob (Simulated)', 'last_name' => 'Jones'],
+                ],
+            ];
+
+            return Inertia::render('Dashboard', [
+                'tenant' => $tenant,
+                'employees' => $employees,
+                'bookings' => $bookingsList,
+                'totalCallsCount' => 2,
+                'successfulBookingsCount' => 2,
+                'openJobsTodayCount' => 2,
+                'bookingStreak' => 5,
+                'averageCqs' => 0.95,
+            ]);
+        }
+
         // Calculate Stats
         $totalCallsCount = CallLog::count();
         $successfulBookingsCount = Booking::where('status', 'booked')->count();
@@ -55,7 +118,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         return Inertia::render('Dashboard', [
-            'tenant' => $user ? Tenant::find($user->tenant_id) : null,
+            'tenant' => $tenant,
             'employees' => Employee::with(['availabilities', 'bookings'])->get(),
             'bookings' => Booking::with('employee')->latest()->take(10)->get(),
             'totalCallsCount' => $totalCallsCount,

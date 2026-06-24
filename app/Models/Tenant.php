@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Laravel\Cashier\Billable;
 
 #[Table('tenants')]
-#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at')]
-#[Casts(['settings' => 'array'])]
+#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'is_test_mode')]
+#[Casts(['settings' => 'array', 'is_test_mode' => 'boolean'])]
 class Tenant extends Model
 {
     use Billable, HasAttributeCasts, HasFactory;

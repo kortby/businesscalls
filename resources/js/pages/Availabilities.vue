@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
-import { store as storeAvailability, update as updateAvailability, destroy as destroyAvailability } from '@/routes/availabilities';
-import { 
-    Card, 
-    CardHeader, 
-    CardTitle, 
-    CardDescription, 
-    CardContent 
+import {
+    store as storeAvailability,
+    update as updateAvailability,
+    destroy as destroyAvailability,
+} from '@/routes/availabilities';
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -28,15 +32,15 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { 
-    Calendar, 
-    Clock, 
-    User as UserIcon, 
-    Plus, 
-    Trash2, 
+import {
+    Calendar,
+    Clock,
+    User as UserIcon,
+    Plus,
+    Trash2,
     Edit2,
     CheckCircle,
-    XCircle
+    XCircle,
 } from '@lucide/vue';
 
 // Define Props from AvailabilityController@index
@@ -73,8 +77,11 @@ const props = defineProps<{
 const filterTechId = ref<string>('all');
 
 const filteredAvailabilities = computed(() => {
-    return props.availabilities.filter(a => {
-        return filterTechId.value === 'all' || a.employee.id.toString() === filterTechId.value;
+    return props.availabilities.filter((a) => {
+        return (
+            filterTechId.value === 'all' ||
+            a.employee.id.toString() === filterTechId.value
+        );
     });
 });
 
@@ -110,7 +117,7 @@ const openCreateModal = () => {
 
 const openEditModal = (avail: any) => {
     selectedAvailability.value = avail;
-    
+
     // Format times "HH:MM:SS" -> "HH:MM"
     const cleanStart = avail.start_time.substring(0, 5);
     const cleanEnd = avail.end_time.substring(0, 5);
@@ -120,7 +127,7 @@ const openEditModal = (avail: any) => {
     editForm.start_time = cleanStart;
     editForm.end_time = cleanEnd;
     editForm.is_active = avail.is_active;
-    
+
     isEditOpen.value = true;
 };
 
@@ -129,7 +136,7 @@ const submitCreate = () => {
         onSuccess: () => {
             isCreateOpen.value = false;
             createForm.reset();
-        }
+        },
     });
 };
 
@@ -138,7 +145,7 @@ const submitEdit = () => {
         onSuccess: () => {
             isEditOpen.value = false;
             editForm.reset();
-        }
+        },
     });
 };
 
@@ -150,31 +157,48 @@ const deleteShift = (id: number) => {
 
 // --- Helpers ---
 const getDayName = (dayNum: number): string => {
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const days = [
+        'Sunday',
+        'Monday',
+        'Tuesday',
+        'Wednesday',
+        'Thursday',
+        'Friday',
+        'Saturday',
+    ];
     return days[dayNum] ?? '';
 };
 
 // --- Live Validations ---
-const validateShift = (employeeIdStr: string, dayOfWeekStr: string, startTime: string, endTime: string, excludeAvailId: number | null) => {
+const validateShift = (
+    employeeIdStr: string,
+    dayOfWeekStr: string,
+    startTime: string,
+    endTime: string,
+    excludeAvailId: number | null,
+) => {
     const empId = parseInt(employeeIdStr);
     const day = parseInt(dayOfWeekStr);
-    
+
     if (!empId || isNaN(day) || !startTime || !endTime) {
         return { status: 'idle', message: 'Enter start and end times.' };
     }
     if (startTime >= endTime) {
-        return { status: 'error', message: 'End time must be after start time.' };
+        return {
+            status: 'error',
+            message: 'End time must be after start time.',
+        };
     }
-    
-    const employee = props.employees.find(e => e.id === empId);
+
+    const employee = props.employees.find((e) => e.id === empId);
     if (!employee) {
         return { status: 'idle', message: 'Select a technician.' };
     }
-    
+
     const startVal = parseInt(startTime.replace(':', ''));
     const endVal = parseInt(endTime.replace(':', ''));
-    
-    const conflictingShift = (employee.availabilities || []).find(a => {
+
+    const conflictingShift = (employee.availabilities || []).find((a) => {
         if (a.day_of_week !== day || !a.is_active || a.id === excludeAvailId) {
             return false;
         }
@@ -184,49 +208,71 @@ const validateShift = (employeeIdStr: string, dayOfWeekStr: string, startTime: s
         const aEnd = parseInt(endClean);
         return startVal < aEnd && endVal > aStart;
     });
-    
+
     if (conflictingShift) {
         return {
             status: 'error',
-            message: `This shift overlaps with an existing shift (${conflictingShift.start_time.substring(0,5)} - ${conflictingShift.end_time.substring(0,5)}) on ${getDayName(day)}.`
+            message: `This shift overlaps with an existing shift (${conflictingShift.start_time.substring(0, 5)} - ${conflictingShift.end_time.substring(0, 5)}) on ${getDayName(day)}.`,
         };
     }
-    
+
     return {
         status: 'success',
-        message: 'Shift time is open and has no conflicts.'
+        message: 'Shift time is open and has no conflicts.',
     };
 };
 
 const createValidation = computed(() => {
-    return validateShift(createForm.employee_id, createForm.day_of_week, createForm.start_time, createForm.end_time, null);
+    return validateShift(
+        createForm.employee_id,
+        createForm.day_of_week,
+        createForm.start_time,
+        createForm.end_time,
+        null,
+    );
 });
 
 const editValidation = computed(() => {
-    return validateShift(editForm.employee_id, editForm.day_of_week, editForm.start_time, editForm.end_time, selectedAvailability.value?.id || null);
+    return validateShift(
+        editForm.employee_id,
+        editForm.day_of_week,
+        editForm.start_time,
+        editForm.end_time,
+        selectedAvailability.value?.id || null,
+    );
 });
 </script>
 
 <template>
     <Head title="Shifts & Availabilities" />
 
-    <div class="bg-background text-foreground p-6 min-h-screen">
+    <div class="min-h-screen bg-background p-6 text-foreground">
         <!-- Header -->
-        <div class="mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b pb-6">
+        <div
+            class="mb-8 flex flex-col items-start justify-between gap-4 border-b pb-6 sm:flex-row sm:items-center"
+        >
             <div>
-                <h1 class="text-3xl font-bold tracking-tight text-foreground">Technician Weekly Shifts</h1>
-                <p class="text-xs text-muted-foreground mt-1 uppercase tracking-wider">
-                    Register and manage work shift availability hours for technicians
+                <h1 class="text-3xl font-bold tracking-tight text-foreground">
+                    Technician Weekly Shifts
+                </h1>
+                <p
+                    class="mt-1 text-xs tracking-wider text-muted-foreground uppercase"
+                >
+                    Register and manage work shift availability hours for
+                    technicians
                 </p>
             </div>
-            
-            <Button @click="openCreateModal" class="font-bold flex items-center gap-1.5 shadow-sm">
+
+            <Button
+                @click="openCreateModal"
+                class="flex items-center gap-1.5 font-bold shadow-sm"
+            >
                 <Plus class="h-4 w-4" /> Add Availability Shift
             </Button>
         </div>
 
         <!-- Filters Bar -->
-        <div class="flex flex-col sm:flex-row gap-4 mb-6 items-center">
+        <div class="mb-6 flex flex-col items-center gap-4 sm:flex-row">
             <div class="w-full sm:max-w-xs">
                 <Select v-model="filterTechId">
                     <SelectTrigger>
@@ -234,7 +280,11 @@ const editValidation = computed(() => {
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem value="all">All Technicians</SelectItem>
-                        <SelectItem v-for="emp in employees" :key="emp.id" :value="emp.id.toString()">
+                        <SelectItem
+                            v-for="emp in employees"
+                            :key="emp.id"
+                            :value="emp.id.toString()"
+                        >
                             {{ emp.first_name }} {{ emp.last_name }}
                         </SelectItem>
                     </SelectContent>
@@ -244,66 +294,107 @@ const editValidation = computed(() => {
 
         <!-- Availabilities Log -->
         <Card class="shadow-sm">
-            <CardHeader class="pb-3 border-b">
-                <CardTitle class="text-lg font-bold uppercase tracking-wider flex items-center gap-2">
-                    <Clock class="h-5 w-5 text-muted-foreground" /> Registered Work Hours
+            <CardHeader class="border-b pb-3">
+                <CardTitle
+                    class="flex items-center gap-2 text-lg font-bold tracking-wider uppercase"
+                >
+                    <Clock class="h-5 w-5 text-muted-foreground" /> Registered
+                    Work Hours
                 </CardTitle>
-                <CardDescription class="text-[10px] font-medium uppercase tracking-widest text-muted-foreground">
+                <CardDescription
+                    class="text-[10px] font-medium tracking-widest text-muted-foreground uppercase"
+                >
                     Active schedules used for AI matching & dispatch
                 </CardDescription>
             </CardHeader>
             <CardContent class="p-0">
                 <div class="overflow-x-auto">
-                    <table class="w-full text-sm text-left text-muted-foreground">
-                        <thead class="text-xs uppercase bg-accent/40 text-foreground border-b font-bold tracking-wider">
+                    <table
+                        class="w-full text-left text-sm text-muted-foreground"
+                    >
+                        <thead
+                            class="border-b bg-accent/40 text-xs font-bold tracking-wider text-foreground uppercase"
+                        >
                             <tr>
-                                <th scope="col" class="px-6 py-4">Technician</th>
-                                <th scope="col" class="px-6 py-4">Day of Week</th>
-                                <th scope="col" class="px-6 py-4">Working Hours</th>
+                                <th scope="col" class="px-6 py-4">
+                                    Technician
+                                </th>
+                                <th scope="col" class="px-6 py-4">
+                                    Day of Week
+                                </th>
+                                <th scope="col" class="px-6 py-4">
+                                    Working Hours
+                                </th>
                                 <th scope="col" class="px-6 py-4">Status</th>
-                                <th scope="col" class="px-6 py-4 text-right">Actions</th>
+                                <th scope="col" class="px-6 py-4 text-right">
+                                    Actions
+                                </th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-border text-foreground font-medium">
-                            <tr 
-                                v-for="avail in filteredAvailabilities" 
+                        <tbody
+                            class="divide-y divide-border font-medium text-foreground"
+                        >
+                            <tr
+                                v-for="avail in filteredAvailabilities"
                                 :key="avail.id"
-                                class="hover:bg-accent/10 transition-colors"
+                                class="transition-colors hover:bg-accent/10"
                             >
                                 <td class="px-6 py-4">
-                                    <span class="flex items-center gap-1.5 font-bold">
-                                        <UserIcon class="h-4 w-4 text-primary/70" />
-                                        {{ avail.employee.first_name }} {{ avail.employee.last_name }}
+                                    <span
+                                        class="flex items-center gap-1.5 font-bold"
+                                    >
+                                        <UserIcon
+                                            class="h-4 w-4 text-primary/70"
+                                        />
+                                        {{ avail.employee.first_name }}
+                                        {{ avail.employee.last_name }}
                                     </span>
                                 </td>
                                 <td class="px-6 py-4 font-bold">
                                     {{ getDayName(avail.day_of_week) }}
                                 </td>
-                                <td class="px-6 py-4 font-mono text-xs font-bold text-muted-foreground">
-                                    {{ avail.start_time.substring(0,5) }} - {{ avail.end_time.substring(0,5) }}
+                                <td
+                                    class="px-6 py-4 font-mono text-xs font-bold text-muted-foreground"
+                                >
+                                    {{ avail.start_time.substring(0, 5) }} -
+                                    {{ avail.end_time.substring(0, 5) }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    <Badge 
-                                        :variant="avail.is_active ? 'secondary' : 'outline'" 
-                                        :class="avail.is_active ? 'bg-emerald-100/60 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400 border border-emerald-500/20' : 'text-muted-foreground'"
-                                        class="font-bold uppercase text-[9px] px-2 py-0.5 rounded"
+                                    <Badge
+                                        :variant="
+                                            avail.is_active
+                                                ? 'secondary'
+                                                : 'outline'
+                                        "
+                                        :class="
+                                            avail.is_active
+                                                ? 'border border-emerald-500/20 bg-emerald-100/60 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400'
+                                                : 'text-muted-foreground'
+                                        "
+                                        class="rounded px-2 py-0.5 text-[9px] font-bold uppercase"
                                     >
-                                        {{ avail.is_active ? 'Active' : 'Inactive' }}
+                                        {{
+                                            avail.is_active
+                                                ? 'Active'
+                                                : 'Inactive'
+                                        }}
                                     </Badge>
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    <div class="flex items-center justify-end gap-2">
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
+                                    <div
+                                        class="flex items-center justify-end gap-2"
+                                    >
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             class="h-8 px-2.5 font-bold"
                                             @click="openEditModal(avail)"
                                         >
                                             <Edit2 class="h-3.5 w-3.5" />
                                         </Button>
-                                        <Button 
-                                            variant="outline" 
-                                            size="sm" 
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             class="h-8 px-2.5 font-bold text-rose-600 hover:text-rose-700 dark:hover:text-rose-500"
                                             @click="deleteShift(avail.id)"
                                         >
@@ -313,7 +404,10 @@ const editValidation = computed(() => {
                                 </td>
                             </tr>
                             <tr v-if="filteredAvailabilities.length === 0">
-                                <td colspan="5" class="text-center py-8 font-semibold text-muted-foreground text-xs">
+                                <td
+                                    colspan="5"
+                                    class="py-8 text-center text-xs font-semibold text-muted-foreground"
+                                >
                                     No shifts configured.
                                 </td>
                             </tr>
@@ -329,7 +423,8 @@ const editValidation = computed(() => {
                 <DialogHeader>
                     <DialogTitle>Add Technician Shift</DialogTitle>
                     <DialogDescription>
-                        Assign new weekly shift hours. Conflicting shifts for the technician will be checked in real-time.
+                        Assign new weekly shift hours. Conflicting shifts for
+                        the technician will be checked in real-time.
                     </DialogDescription>
                 </DialogHeader>
                 <form @submit.prevent="submitCreate" class="space-y-4 pt-4">
@@ -337,15 +432,26 @@ const editValidation = computed(() => {
                         <Label for="employee_id">Select Technician</Label>
                         <Select v-model="createForm.employee_id">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a technician" />
+                                <SelectValue
+                                    placeholder="Select a technician"
+                                />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="emp in employees" :key="emp.id" :value="emp.id.toString()">
+                                <SelectItem
+                                    v-for="emp in employees"
+                                    :key="emp.id"
+                                    :value="emp.id.toString()"
+                                >
                                     {{ emp.first_name }} {{ emp.last_name }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="createForm.errors.employee_id" class="text-xs text-rose-500 mt-1">{{ createForm.errors.employee_id }}</p>
+                        <p
+                            v-if="createForm.errors.employee_id"
+                            class="mt-1 text-xs text-rose-500"
+                        >
+                            {{ createForm.errors.employee_id }}
+                        </p>
                     </div>
 
                     <div class="space-y-2">
@@ -364,39 +470,82 @@ const editValidation = computed(() => {
                                 <SelectItem value="6">Saturday</SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="createForm.errors.day_of_week" class="text-xs text-rose-500 mt-1">{{ createForm.errors.day_of_week }}</p>
+                        <p
+                            v-if="createForm.errors.day_of_week"
+                            class="mt-1 text-xs text-rose-500"
+                        >
+                            {{ createForm.errors.day_of_week }}
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="start_time">Start Time</Label>
-                            <Input id="start_time" type="time" v-model="createForm.start_time" />
-                            <p v-if="createForm.errors.start_time" class="text-xs text-rose-500 mt-1">{{ createForm.errors.start_time }}</p>
+                            <Input
+                                id="start_time"
+                                type="time"
+                                v-model="createForm.start_time"
+                            />
+                            <p
+                                v-if="createForm.errors.start_time"
+                                class="mt-1 text-xs text-rose-500"
+                            >
+                                {{ createForm.errors.start_time }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="end_time">End Time</Label>
-                            <Input id="end_time" type="time" v-model="createForm.end_time" />
-                            <p v-if="createForm.errors.end_time" class="text-xs text-rose-500 mt-1">{{ createForm.errors.end_time }}</p>
+                            <Input
+                                id="end_time"
+                                type="time"
+                                v-model="createForm.end_time"
+                            />
+                            <p
+                                v-if="createForm.errors.end_time"
+                                class="mt-1 text-xs text-rose-500"
+                            >
+                                {{ createForm.errors.end_time }}
+                            </p>
                         </div>
                     </div>
 
                     <!-- Live validation alert -->
-                    <div 
-                        v-if="createValidation.status !== 'idle'" 
+                    <div
+                        v-if="createValidation.status !== 'idle'"
                         :class="{
-                            'bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-400': createValidation.status === 'success',
-                            'bg-rose-500/10 border-rose-500/25 text-rose-800 dark:text-rose-400': createValidation.status === 'error'
+                            'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-400':
+                                createValidation.status === 'success',
+                            'border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-400':
+                                createValidation.status === 'error',
                         }"
-                        class="p-3 rounded-lg border text-xs font-semibold flex items-center gap-2 mt-2"
+                        class="mt-2 flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold"
                     >
-                        <CheckCircle v-if="createValidation.status === 'success'" class="h-4 w-4 shrink-0 text-emerald-500" />
-                        <XCircle v-else class="h-4 w-4 shrink-0 text-rose-500" />
+                        <CheckCircle
+                            v-if="createValidation.status === 'success'"
+                            class="h-4 w-4 shrink-0 text-emerald-500"
+                        />
+                        <XCircle
+                            v-else
+                            class="h-4 w-4 shrink-0 text-rose-500"
+                        />
                         <span>{{ createValidation.message }}</span>
                     </div>
 
-                    <DialogFooter class="pt-4 border-t">
-                        <Button type="button" variant="outline" @click="isCreateOpen = false">Cancel</Button>
-                        <Button type="submit" :disabled="createForm.processing || createValidation.status === 'error'">Add Shift</Button>
+                    <DialogFooter class="border-t pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="isCreateOpen = false"
+                            >Cancel</Button
+                        >
+                        <Button
+                            type="submit"
+                            :disabled="
+                                createForm.processing ||
+                                createValidation.status === 'error'
+                            "
+                            >Add Shift</Button
+                        >
                     </DialogFooter>
                 </form>
             </DialogContent>
@@ -416,15 +565,26 @@ const editValidation = computed(() => {
                         <Label for="edit_employee_id">Technician</Label>
                         <Select v-model="editForm.employee_id">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select a technician" />
+                                <SelectValue
+                                    placeholder="Select a technician"
+                                />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem v-for="emp in employees" :key="emp.id" :value="emp.id.toString()">
+                                <SelectItem
+                                    v-for="emp in employees"
+                                    :key="emp.id"
+                                    :value="emp.id.toString()"
+                                >
                                     {{ emp.first_name }} {{ emp.last_name }}
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="editForm.errors.employee_id" class="text-xs text-rose-500 mt-1">{{ editForm.errors.employee_id }}</p>
+                        <p
+                            v-if="editForm.errors.employee_id"
+                            class="mt-1 text-xs text-rose-500"
+                        >
+                            {{ editForm.errors.employee_id }}
+                        </p>
                     </div>
 
                     <div class="space-y-2">
@@ -443,39 +603,82 @@ const editValidation = computed(() => {
                                 <SelectItem value="6">Saturday</SelectItem>
                             </SelectContent>
                         </Select>
-                        <p v-if="editForm.errors.day_of_week" class="text-xs text-rose-500 mt-1">{{ editForm.errors.day_of_week }}</p>
+                        <p
+                            v-if="editForm.errors.day_of_week"
+                            class="mt-1 text-xs text-rose-500"
+                        >
+                            {{ editForm.errors.day_of_week }}
+                        </p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4">
                         <div class="space-y-2">
                             <Label for="edit_start_time">Start Time</Label>
-                            <Input id="edit_start_time" type="time" v-model="editForm.start_time" />
-                            <p v-if="editForm.errors.start_time" class="text-xs text-rose-500 mt-1">{{ editForm.errors.start_time }}</p>
+                            <Input
+                                id="edit_start_time"
+                                type="time"
+                                v-model="editForm.start_time"
+                            />
+                            <p
+                                v-if="editForm.errors.start_time"
+                                class="mt-1 text-xs text-rose-500"
+                            >
+                                {{ editForm.errors.start_time }}
+                            </p>
                         </div>
                         <div class="space-y-2">
                             <Label for="edit_end_time">End Time</Label>
-                            <Input id="edit_end_time" type="time" v-model="editForm.end_time" />
-                            <p v-if="editForm.errors.end_time" class="text-xs text-rose-500 mt-1">{{ editForm.errors.end_time }}</p>
+                            <Input
+                                id="edit_end_time"
+                                type="time"
+                                v-model="editForm.end_time"
+                            />
+                            <p
+                                v-if="editForm.errors.end_time"
+                                class="mt-1 text-xs text-rose-500"
+                            >
+                                {{ editForm.errors.end_time }}
+                            </p>
                         </div>
                     </div>
 
                     <!-- Live validation alert -->
-                    <div 
-                        v-if="editValidation.status !== 'idle'" 
+                    <div
+                        v-if="editValidation.status !== 'idle'"
                         :class="{
-                            'bg-emerald-500/10 border-emerald-500/25 text-emerald-800 dark:text-emerald-400': editValidation.status === 'success',
-                            'bg-rose-500/10 border-rose-500/25 text-rose-800 dark:text-rose-400': editValidation.status === 'error'
+                            'border-emerald-500/25 bg-emerald-500/10 text-emerald-800 dark:text-emerald-400':
+                                editValidation.status === 'success',
+                            'border-rose-500/25 bg-rose-500/10 text-rose-800 dark:text-rose-400':
+                                editValidation.status === 'error',
                         }"
-                        class="p-3 rounded-lg border text-xs font-semibold flex items-center gap-2 mt-2"
+                        class="mt-2 flex items-center gap-2 rounded-lg border p-3 text-xs font-semibold"
                     >
-                        <CheckCircle v-if="editValidation.status === 'success'" class="h-4 w-4 shrink-0 text-emerald-500" />
-                        <XCircle v-else class="h-4 w-4 shrink-0 text-rose-500" />
+                        <CheckCircle
+                            v-if="editValidation.status === 'success'"
+                            class="h-4 w-4 shrink-0 text-emerald-500"
+                        />
+                        <XCircle
+                            v-else
+                            class="h-4 w-4 shrink-0 text-rose-500"
+                        />
                         <span>{{ editValidation.message }}</span>
                     </div>
 
-                    <DialogFooter class="pt-4 border-t">
-                        <Button type="button" variant="outline" @click="isEditOpen = false">Cancel</Button>
-                        <Button type="submit" :disabled="editForm.processing || editValidation.status === 'error'">Save Changes</Button>
+                    <DialogFooter class="border-t pt-4">
+                        <Button
+                            type="button"
+                            variant="outline"
+                            @click="isEditOpen = false"
+                            >Cancel</Button
+                        >
+                        <Button
+                            type="submit"
+                            :disabled="
+                                editForm.processing ||
+                                editValidation.status === 'error'
+                            "
+                            >Save Changes</Button
+                        >
                     </DialogFooter>
                 </form>
             </DialogContent>

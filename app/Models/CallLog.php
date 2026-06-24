@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Attributes\Casts;
 use App\Concerns\BelongsToTenant;
 use App\Concerns\HasAttributeCasts;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -11,7 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('call_logs')]
-#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score')]
+#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score', 'is_test_mode')]
+#[Casts(['is_test_mode' => 'boolean'])]
 class CallLog extends Model
 {
     use BelongsToTenant, HasAttributeCasts, HasFactory;
