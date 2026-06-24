@@ -12,6 +12,7 @@ use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\SmsWebhookController;
 use App\Http\Controllers\Api\SpecializedKeywordsController;
 use App\Http\Controllers\Api\WebCallController;
+use App\Http\Controllers\Api\WebRtcTelemetryController;
 use App\Http\Middleware\EnsureWebhookIdempotency;
 use App\Http\Middleware\RestrictToTelephonyIps;
 use App\Http\Middleware\ThrottleTenantTelephony;
@@ -37,3 +38,5 @@ Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle
 Route::post('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/settings/call-flow', [CallFlowController::class, 'store'])->middleware('auth:sanctum');
+
+Route::post('/telemetry/webrtc', WebRtcTelemetryController::class)->middleware('auth:sanctum');

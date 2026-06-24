@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\CallLog;
+use App\Models\CustomVoice;
+use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Services\PdfGeneratorService;
 use Illuminate\Support\Facades\Cache;
@@ -263,6 +265,83 @@ class AdminController extends Controller
             'audits' => $audits,
             'trustScore' => $trustScore,
             'allPassed' => $passed === $total,
+        ]);
+    }
+
+    /**
+     * Display the achievements panel.
+     */
+    public function achievements(): Response
+    {
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+
+        $totalBookings = Booking::count();
+        $totalCustomVoices = CustomVoice::count();
+        $totalCampaigns = OutboundCampaign::count();
+        $streak = $tenant ? (int) $tenant->getSetting('booking_streak', 0) : 0;
+
+        $averageCqs = (float) (CallLog::whereNotNull('call_quality_score')->avg('call_quality_score') ?? 0.95);
+
+        // Compile milestones
+        $achievements = [
+            [
+                'id' => 'bookings_streak',
+                'name' => 'Booking Streak',
+                'description' => 'Maintain consecutive days of dispatch bookings.',
+                'metric' => $streak,
+                'unit' => 'days',
+                'milestones' => [
+                    ['level' => 1, 'name' => 'Bronze', 'target' => 3, 'unlocked' => $streak >= 3],
+                    ['level' => 2, 'name' => 'Silver', 'target' => 7, 'unlocked' => $streak >= 7],
+                    ['level' => 3, 'name' => 'Gold', 'target' => 15, 'unlocked' => $streak >= 15],
+                ],
+            ],
+            [
+                'id' => 'total_bookings',
+                'name' => 'Job Dispatcher',
+                'description' => 'Successfully book dispatch jobs via AI.',
+                'metric' => $totalBookings,
+                'unit' => 'bookings',
+                'milestones' => [
+                    ['level' => 1, 'name' => 'Bronze', 'target' => 1, 'unlocked' => $totalBookings >= 1],
+                    ['level' => 2, 'name' => 'Silver', 'target' => 5, 'unlocked' => $totalBookings >= 5],
+                    ['level' => 3, 'name' => 'Gold', 'target' => 10, 'unlocked' => $totalBookings >= 10],
+                ],
+            ],
+            [
+                'id' => 'custom_voices',
+                'name' => 'Vocal Impersonator',
+                'description' => 'Upload short MP3 clips to clone branded custom dispatch voices.',
+                'metric' => $totalCustomVoices,
+                'unit' => 'voices',
+                'milestones' => [
+                    ['level' => 1, 'name' => 'Bronze', 'target' => 1, 'unlocked' => $totalCustomVoices >= 1],
+                    ['level' => 2, 'name' => 'Silver', 'target' => 2, 'unlocked' => $totalCustomVoices >= 2],
+                    ['level' => 3, 'name' => 'Gold', 'target' => 4, 'unlocked' => $totalCustomVoices >= 4],
+                ],
+            ],
+            [
+                'id' => 'campaigns',
+                'name' => 'Campaign Manager',
+                'description' => 'Launch bulk outbound AI calling campaigns.',
+                'metric' => $totalCampaigns,
+                'unit' => 'campaigns',
+                'milestones' => [
+                    ['level' => 1, 'name' => 'Bronze', 'target' => 1, 'unlocked' => $totalCampaigns >= 1],
+                    ['level' => 2, 'name' => 'Silver', 'target' => 3, 'unlocked' => $totalCampaigns >= 3],
+                    ['level' => 3, 'name' => 'Gold', 'target' => 5, 'unlocked' => $totalCampaigns >= 5],
+                ],
+            ],
+        ];
+
+        return Inertia::render('Admin/Achievements', [
+            'achievements' => $achievements,
+            'averageCqs' => $averageCqs,
+            'streak' => $streak,
+            'totalBookings' => $totalBookings,
+            'totalCustomVoices' => $totalCustomVoices,
+            'totalCampaigns' => $totalCampaigns,
         ]);
     }
 }

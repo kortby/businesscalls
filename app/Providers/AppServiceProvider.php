@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Ai\Text;
 use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
 use App\Jobs\SendFollowUpSmsJob;
@@ -54,6 +55,11 @@ class AppServiceProvider extends ServiceProvider
 
         // Register zero-downtime replication observers
         Booking::observe(BookingObserver::class);
+
+        // Register class alias for Laravel\Ai\Text
+        if (! class_exists('Laravel\Ai\Text')) {
+            class_alias(Text::class, 'Laravel\Ai\Text');
+        }
 
         // Register toEmbeddings macro
         Str::macro('toEmbeddings', function (string $text) {

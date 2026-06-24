@@ -14,6 +14,7 @@ use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Cache;
 
 class DispatchWebhookController extends Controller
 {
@@ -218,6 +219,15 @@ class DispatchWebhookController extends Controller
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
         ]);
+
+        $callId = $request->input('call_id')
+            ?? $request->input('call.id')
+            ?? $request->input('message.call.id')
+            ?? $request->input('message.callId');
+
+        if ($callId) {
+            Cache::put("call_booking_map:{$callId}", $booking->id, 86400); // 1 day cache
+        }
 
         SendTechnicianAlertJob::dispatch($booking);
 

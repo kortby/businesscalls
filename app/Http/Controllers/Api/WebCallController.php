@@ -58,6 +58,7 @@ class WebCallController extends Controller
                 }
 
                 $accessToken = $response->json('access_token');
+                $callId = $response->json('call_id') ?? $response->json('id');
                 if (! $accessToken) {
                     return response()->json(['error' => 'Missing access token in provider response.'], 500);
                 }
@@ -65,6 +66,7 @@ class WebCallController extends Controller
                 return response()->json([
                     'provider' => 'retell',
                     'access_token' => $accessToken,
+                    'call_id' => $callId,
                     'assistant_id' => $assistantId,
                     'assistantOverrides' => $assistantPayload['assistantOverrides'] ?? [],
                     'assistant_overrides' => $assistantPayload['assistantOverrides'] ?? [],

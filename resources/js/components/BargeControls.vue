@@ -8,6 +8,7 @@ import {
     CheckCircle,
 } from '@lucide/vue';
 import { ref, onBeforeUnmount } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import { callStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
@@ -16,9 +17,17 @@ const props = defineProps<{
     activeCall: {
         call_id: string;
         customer_phone: string;
+        telemetry?: {
+            jitter: number;
+            latency: number;
+            packetLoss: number;
+        };
     };
     isTestMode: boolean;
 }>();
+
+const page = usePage();
+let telemetryInterval: any = null;
 
 const emit = defineEmits<{
     (e: 'barge_initiated', payload: { mode: 'monitor' | 'barge' }): void;
@@ -33,6 +42,96 @@ const errorMsg = ref('');
 
 let vapiInstance: any = null;
 let retellInstance: any = null;
+
+const startTelemetryCollection = (callId: string, provider: 'vapi' | 'retell' | 'simulated') => {
+    const latencies: number[] = [];
+    const tenantId = (page.props as any).auth?.user?.tenant_id || 1;
+
+    telemetryInterval = setInterval(async () => {
+        let stats = { jitter: 0, latency: 0, packetLoss: 0 };
+
+        if (provider === 'vapi' && vapiInstance) {
+            const dailyCall = typeof vapiInstance.getDailyCallObject === 'function'
+                ? vapiInstance.getDailyCallObject()
+                : (vapiInstance.daily || null);
+            if (dailyCall && typeof dailyCall.getNetworkStats === 'function') {
+                try {
+                    const netStats = await dailyCall.getNetworkStats();
+                    const latest = netStats?.stats?.latest;
+                    if (latest) {
+                        stats.latency = (latest.networkRoundTripTime || 0) * 1000;
+                        stats.packetLoss = latest.audioRecvPacketLoss || 0;
+                    }
+                } catch (e) {
+                    console.error("Vapi telemetry stats error:", e);
+                }
+            }
+        } else if (provider === 'retell' && retellInstance && retellInstance.room) {
+            try {
+                const pc = retellInstance.room?.engine?.subscriber?.pcTransport;
+                if (pc && typeof pc.getStats === 'function') {
+                    const rawStats = await pc.getStats();
+                    rawStats.forEach((report: any) => {
+                        if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+                            stats.packetLoss = report.packetsLost || 0;
+                        }
+                        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
+                            stats.latency = (report.currentRoundTripTime || 0) * 1000;
+                        }
+                    });
+                }
+            } catch (e) {
+                console.error("Retell telemetry stats error:", e);
+            }
+        } else if (provider === 'simulated') {
+            stats.latency = 80 + Math.random() * 40;
+            stats.packetLoss = Math.random() < 0.05 ? Math.random() * 2 : 0;
+        }
+
+        // Standard Deviation Jitter Calculation
+        if (stats.latency > 0) {
+            latencies.push(stats.latency);
+            if (latencies.length > 100) {
+                latencies.shift();
+            }
+        }
+
+        const J = latencies.length;
+        if (J > 0) {
+            const sum = latencies.reduce((acc, val) => acc + val, 0);
+            const avg = sum / J;
+            const squaredDiffSum = latencies.reduce((acc, val) => acc + Math.pow(val - avg, 2), 0);
+            stats.jitter = Math.sqrt(squaredDiffSum / J);
+        }
+
+        try {
+            await fetch('/api/telemetry/webrtc', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                    'Accept': 'application/json',
+                },
+                body: JSON.stringify({
+                    tenant_id: tenantId,
+                    call_id: callId,
+                    jitter: stats.jitter,
+                    latency: stats.latency,
+                    packet_loss: stats.packetLoss,
+                }),
+            });
+        } catch (e) {
+            // Silently swallow
+        }
+    }, 2000);
+};
+
+const stopTelemetryCollection = () => {
+    if (telemetryInterval) {
+        clearInterval(telemetryInterval);
+        telemetryInterval = null;
+    }
+};
 
 const initiateOverride = async (mode: 'monitor' | 'barge') => {
     connectionStatus.value = 'connecting';
@@ -72,6 +171,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
             setTimeout(() => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
+                startTelemetryCollection(props.activeCall.call_id, 'simulated');
             }, 1000);
 
             return;
@@ -86,6 +186,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
             retellInstance.on('call_started', () => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
+                startTelemetryCollection(props.activeCall.call_id, 'retell');
             });
 
             retellInstance.on('call_ended', () => {
@@ -110,6 +211,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
             vapiInstance.on('call-start', () => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
+                startTelemetryCollection(props.activeCall.call_id, 'vapi');
             });
 
             vapiInstance.on('call-end', () => {
@@ -148,6 +250,7 @@ const stopOverride = () => {
 };
 
 const cleanupOverride = () => {
+    stopTelemetryCollection();
     vapiInstance = null;
     retellInstance = null;
     callStore.vapiClient = null;
@@ -264,6 +367,31 @@ onBeforeUnmount(() => {
                         animationDelay: `${i * 0.05}s`,
                     }"
                 ></div>
+            </div>
+
+            <!-- Telemetry Metrics Badge -->
+            <div
+                v-if="props.activeCall.telemetry"
+                class="grid grid-cols-3 gap-2 rounded-xl border border-slate-800 bg-slate-900/60 p-3 text-center"
+            >
+                <div>
+                    <span class="block text-[9px] font-semibold tracking-wider text-slate-400 uppercase">Jitter</span>
+                    <span class="font-mono text-xs font-black" :class="props.activeCall.telemetry.jitter > 30 ? 'text-red-400' : 'text-emerald-400'">
+                        {{ props.activeCall.telemetry.jitter.toFixed(1) }} ms
+                    </span>
+                </div>
+                <div>
+                    <span class="block text-[9px] font-semibold tracking-wider text-slate-400 uppercase">Latency</span>
+                    <span class="font-mono text-xs font-black" :class="props.activeCall.telemetry.latency > 250 ? 'text-red-400' : 'text-emerald-400'">
+                        {{ props.activeCall.telemetry.latency.toFixed(0) }} ms
+                    </span>
+                </div>
+                <div>
+                    <span class="block text-[9px] font-semibold tracking-wider text-slate-400 uppercase">Packet Loss</span>
+                    <span class="font-mono text-xs font-black" :class="props.activeCall.telemetry.packetLoss > 2 ? 'text-red-400' : 'text-emerald-400'">
+                        {{ props.activeCall.telemetry.packetLoss.toFixed(1) }} %
+                    </span>
+                </div>
             </div>
 
             <div
