@@ -17,7 +17,7 @@ class TenantSettingsService
 
         $skills = $tenant->employees()->get()->pluck('skills')->flatten()->filter()->unique()->implode(', ');
 
-        return [
+        $payload = [
             'assistantOverrides' => [
                 'variableValues' => [
                     'business_name' => $businessName,
@@ -27,6 +27,11 @@ class TenantSettingsService
                 ],
             ],
         ];
+
+        $dictionaryService = app(PronunciationDictionaryService::class);
+        $payload = $dictionaryService->applyOverridesToPayload($tenant, $payload);
+
+        return $payload;
     }
 
     /**

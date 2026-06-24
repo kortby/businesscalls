@@ -40,6 +40,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         $totalCallsCount = CallLog::count();
         $successfulBookingsCount = Booking::where('status', 'booked')->count();
         $openJobsTodayCount = Booking::whereDate('scheduled_start', now()->startOfDay())->where('status', 'booked')->count();
+        $averageCqs = CallLog::whereNotNull('call_quality_score')->avg('call_quality_score') ?? 1.0;
 
         // Calculate daily booking streak
         $bookingStreak = 0;
@@ -61,6 +62,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'successfulBookingsCount' => $successfulBookingsCount,
             'openJobsTodayCount' => $openJobsTodayCount,
             'bookingStreak' => $bookingStreak,
+            'averageCqs' => (float) $averageCqs,
         ]);
     })->name('dashboard');
 

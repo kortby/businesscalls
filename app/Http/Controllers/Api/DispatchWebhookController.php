@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\CallLog;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
@@ -47,9 +48,20 @@ class DispatchWebhookController extends Controller
             ], 404);
         }
 
-        // 3. Security Check: Validate HMAC SHA256 Signature
+        // 3. Security Check: Validate Custom Credentials or HMAC SHA256 Signature
         $signature = $request->header('x-vapi-signature') ?? $request->header('x-signature');
+        $vapiSecret = $request->header('X-Vapi-Secret') ?? $request->header('x-vapi-secret');
+        $retellSecret = $request->header('X-Retell-Secret') ?? $request->header('x-retell-secret');
+        $authToken = $request->bearerToken();
+
+        $hasCustomCredentials = false;
         if ($tenant->secret_key) {
+            $hasCustomCredentials = ($authToken && hash_equals($tenant->secret_key, $authToken))
+                || ($vapiSecret && hash_equals($tenant->secret_key, $vapiSecret))
+                || ($retellSecret && hash_equals($tenant->secret_key, $retellSecret));
+        }
+
+        if ($tenant->secret_key && ! $hasCustomCredentials) {
             $computed = hash_hmac('sha256', $request->getContent(), $tenant->secret_key);
             if (! $signature || ! hash_equals($computed, $signature)) {
                 // Broadcast authorization error to dashboard
@@ -156,15 +168,31 @@ class DispatchWebhookController extends Controller
 
         // 6. Handle Schedule Conflicts or Failures
         if (! $assignedEmployee) {
-            $conflictMessage = "No available technician found with skill '{$serviceType}' at the requested time.";
+            $conflictMessage = "No available technician found with skill '{$serviceType}' at the requested time. Routing call to voicemail fallback.";
 
             event(new DispatchUpdated($tenant->id, [
                 'type' => 'error',
                 'message' => $conflictMessage,
             ]));
 
-            $conflictResult = [
-                'status' => 'error',
+            $callId = $request->input('call_id')
+                ?? $request->input('call.id')
+                ?? $request->input('message.call.id')
+                ?? $request->input('message.callId');
+
+            if ($callId) {
+                $callLog = CallLog::where('call_id', $callId)->first();
+                if ($callLog) {
+                    $callLog->update([
+                        'call_end_reason' => 'forwarded_to_voicemail',
+                    ]);
+                }
+            }
+
+            $voicemailResult = [
+                'status' => 'forward_to_voicemail',
+                'action' => 'transfer',
+                'destination' => '+18005550199',
                 'message' => $conflictMessage,
             ];
 
@@ -173,13 +201,13 @@ class DispatchWebhookController extends Controller
                     'results' => [
                         [
                             'toolCallId' => $toolCallId,
-                            'result' => $conflictResult,
+                            'result' => $voicemailResult,
                         ],
                     ],
                 ]);
             }
 
-            return response()->json($conflictResult, 422);
+            return response()->json($voicemailResult, 422);
         }
 
         $booking = Booking::create([

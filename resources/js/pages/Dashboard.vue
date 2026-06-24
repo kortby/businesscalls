@@ -97,6 +97,7 @@ const props = defineProps<{
     successfulBookingsCount: number;
     openJobsTodayCount: number;
     bookingStreak: number;
+    averageCqs: number;
 }>();
 
 // Page info for auth checks
@@ -151,6 +152,18 @@ const streakCount = ref(props.bookingStreak);
 watch(() => props.bookingStreak, (newVal) => {
     streakCount.value = newVal;
 });
+
+const liveCqs = ref(props.averageCqs);
+watch(() => props.averageCqs, (newVal) => {
+    liveCqs.value = newVal;
+});
+
+const emergencyAlerts = ref<Array<{
+    call_id: string;
+    customer_phone: string;
+    details: string;
+    recording_url: string | null;
+}>>([]);
 
 // Sound effects or delay mascot state resets
 const transitionMascot = (newState: number) => {
@@ -223,6 +236,14 @@ if (props.tenant) {
             // If it was a cancel message, we dynamically sync bookings lists
             // Let's filter out deleted bookings by inspecting message contents or re-triggering reload
             router.reload({ only: ['bookings'] });
+        } else if (payload.type === 'emergency_voicemail') {
+            transitionMascot(3);
+            emergencyAlerts.value.unshift({
+                call_id: payload.call_id,
+                customer_phone: payload.customer_phone,
+                details: payload.details,
+                recording_url: payload.recording_url,
+            });
         }
     });
 
@@ -268,6 +289,7 @@ if (props.tenant) {
         });
 
         transitionMascot(2);
+        router.reload({ only: ['averageCqs'] });
     });
 
     useEcho(`tenant.${props.tenant.id}`, 'CallAnalyzed', (payload: any) => {
@@ -296,6 +318,7 @@ if (props.tenant) {
         });
 
         transitionMascot(0);
+        router.reload({ only: ['averageCqs'] });
     });
 }
 
@@ -790,8 +813,46 @@ const shiftValidation = computed(() => {
             </div>
         </div>
 
+        <!-- Emergency Voicemail Alerts Banner -->
+        <div v-if="emergencyAlerts.length > 0" class="mb-8 space-y-4">
+            <div 
+                v-for="alert in emergencyAlerts" 
+                :key="alert.call_id" 
+                class="border-4 border-b-8 border-rose-500 bg-rose-50 dark:bg-rose-950/20 rounded-3xl p-5 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-md animate-pulse"
+            >
+                <div class="flex items-start gap-4">
+                    <div class="p-3 bg-rose-500 text-white rounded-2xl shrink-0">
+                        <XCircle class="h-6 w-6" />
+                    </div>
+                    <div>
+                        <h3 class="text-base font-black text-rose-950 dark:text-rose-200 uppercase tracking-tight">🚨 Emergency Voicemail Received</h3>
+                        <p class="text-xs text-rose-700/80 dark:text-rose-400/80 font-bold mt-0.5">From: {{ alert.customer_phone }}</p>
+                        <p class="text-sm font-semibold text-slate-800 dark:text-slate-200 mt-2 bg-white/40 dark:bg-black/20 p-3 rounded-xl border border-rose-200/50">
+                            {{ alert.details }}
+                        </p>
+                    </div>
+                </div>
+                <div class="flex gap-2 self-stretch md:self-auto items-center justify-end">
+                    <a 
+                        v-if="alert.recording_url" 
+                        :href="alert.recording_url" 
+                        target="_blank" 
+                        class="bg-rose-500 hover:bg-rose-400 text-white font-black tracking-wide uppercase px-4 py-2.5 rounded-xl border-2 border-rose-500 border-b-4 border-rose-700 hover:border-rose-600 active:border-b-0 cursor-pointer text-xs"
+                    >
+                        Listen Voicemail
+                    </a>
+                    <button 
+                        @click="emergencyAlerts = emergencyAlerts.filter(a => a.call_id !== alert.call_id)" 
+                        class="bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold px-4 py-2.5 rounded-xl text-xs cursor-pointer border border-b-4 hover:bg-slate-200/80"
+                    >
+                        Dismiss
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Stats Grid (Duolingo Exaggerated Style) -->
-        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
+        <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-6 mb-8">
             <!-- Calls Managed -->
             <div class="border-4 border-b-8 border-indigo-400 bg-indigo-50/50 dark:bg-indigo-950/20 dark:border-indigo-800 rounded-3xl p-5 flex flex-col justify-between">
                 <div class="flex items-center justify-between">
@@ -854,6 +915,30 @@ const shiftValidation = computed(() => {
                     <!-- Streak Flame Animation -->
                     <div class="shrink-0 -mr-2 -mb-2">
                         <StreakFlame :streak="streakCount" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Connection Health (CQS) -->
+            <div class="border-4 border-b-8 border-violet-400 bg-violet-50/50 dark:bg-violet-950/20 dark:border-violet-800 rounded-3xl p-5 flex flex-col justify-between">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-black uppercase tracking-wider text-violet-700 dark:text-violet-400">Connection Health</span>
+                    <Activity class="h-5 w-5 text-violet-500" />
+                </div>
+                <div class="mt-4">
+                    <div class="text-4xl font-black text-violet-950 dark:text-violet-200">{{ Math.round(liveCqs * 100) }}%</div>
+                    <div class="flex items-center gap-1.5 mt-2">
+                        <span class="text-[10px] font-bold text-violet-700/60 dark:text-violet-400/60 uppercase tracking-widest leading-none">CQS:</span>
+                        <Badge 
+                            :class="{
+                                'bg-emerald-500 hover:bg-emerald-500 text-white border-none': liveCqs >= 0.85,
+                                'bg-amber-500 hover:bg-amber-500 text-white border-none': liveCqs >= 0.70 && liveCqs < 0.85,
+                                'bg-rose-500 hover:bg-rose-500 text-white border-none': liveCqs < 0.70
+                            }"
+                            class="font-black text-[9px] px-1.5 py-0.5"
+                        >
+                            {{ liveCqs >= 0.85 ? 'Great' : (liveCqs >= 0.70 ? 'Good' : 'Poor') }}
+                        </Badge>
                     </div>
                 </div>
             </div>

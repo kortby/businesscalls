@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Services\VoicemailParserService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -47,7 +48,18 @@ class CallWebhookController extends Controller
             ?? $request->header('x-vapi-signature')
             ?? $request->header('x-signature');
 
+        $vapiSecret = $request->header('X-Vapi-Secret') ?? $request->header('x-vapi-secret');
+        $retellSecret = $request->header('X-Retell-Secret') ?? $request->header('x-retell-secret');
+        $authToken = $request->bearerToken();
+
+        $hasCustomCredentials = false;
         if ($tenant->secret_key) {
+            $hasCustomCredentials = ($authToken && hash_equals($tenant->secret_key, $authToken))
+                || ($vapiSecret && hash_equals($tenant->secret_key, $vapiSecret))
+                || ($retellSecret && hash_equals($tenant->secret_key, $retellSecret));
+        }
+
+        if ($tenant->secret_key && ! $hasCustomCredentials) {
             if (! $signature) {
                 return response()->json(['error' => 'Signature header missing.'], 401);
             }
@@ -122,6 +134,49 @@ class CallWebhookController extends Controller
                 $duration = $callData['duration_seconds'] ?? $callData['duration'] ?? null;
                 $recordingUrl = $callData['recording_url'] ?? null;
 
+                $rawReason = $callData['disconnection_reason'] ?? $callData['endReason'] ?? $callData['end_reason'] ?? $request->input('message.call.endReason') ?? $request->input('endReason') ?? null;
+                $callEndReason = null;
+                if ($rawReason) {
+                    $normalized = str_replace('-', '_', strtolower($rawReason));
+                    if (str_contains($normalized, 'user') || str_contains($normalized, 'customer') || $normalized === 'user_hung_up') {
+                        $callEndReason = 'user_hung_up';
+                    } elseif (str_contains($normalized, 'agent') || str_contains($normalized, 'assistant') || $normalized === 'agent_hung_up') {
+                        $callEndReason = 'agent_hung_up';
+                    } elseif (str_contains($normalized, 'dial_failed') || str_contains($normalized, 'dial') || $normalized === 'dial_failed') {
+                        $callEndReason = 'dial_failed';
+                    } elseif (str_contains($normalized, 'error') || $normalized === 'error') {
+                        $callEndReason = 'error';
+                    } else {
+                        $callEndReason = $normalized;
+                    }
+                }
+
+                $disconnectionSource = $callData['disconnection_source'] ?? $callData['disconnectionSource'] ?? $request->input('message.call.disconnectionSource') ?? $request->input('disconnectionSource') ?? null;
+
+                $latency = $callData['monitor']['latency']['average'] ?? $callData['average_latency'] ?? $callData['latency'] ?? $request->input('message.call.monitor.latency.average') ?? null;
+
+                $transcriptionConfidence = $callData['analysis']['transcriptionConfidence'] ?? $callData['transcription_confidence'] ?? $request->input('message.call.analysis.transcriptionConfidence') ?? null;
+
+                $toolCalls = $callData['tool_calls'] ?? $callData['toolCalls'] ?? $request->input('message.call.toolCalls') ?? [];
+                $toolCallsCount = count($toolCalls);
+                $successfulToolCalls = 0;
+                if ($toolCallsCount > 0) {
+                    foreach ($toolCalls as $tc) {
+                        $isError = $tc['isError'] ?? $tc['error'] ?? (($tc['result']['status'] ?? '') === 'error') ?? false;
+                        if (! $isError) {
+                            $successfulToolCalls++;
+                        }
+                    }
+                    $toolSuccessRate = $successfulToolCalls / $toolCallsCount;
+                } else {
+                    $toolSuccessRate = 1.0;
+                }
+
+                $existingCallLog = CallLog::where('call_id', $callId)->first();
+                $finalEndReason = ($existingCallLog?->call_end_reason === 'forwarded_to_voicemail' && $callEndReason !== 'error')
+                    ? 'forwarded_to_voicemail'
+                    : ($callEndReason ?? $existingCallLog?->call_end_reason);
+
                 $callLog = CallLog::updateOrCreate(
                     ['call_id' => $callId],
                     [
@@ -130,7 +185,15 @@ class CallWebhookController extends Controller
                         'customer_phone' => $customerPhone,
                         'duration' => $duration,
                         'recording_url' => $recordingUrl,
+                        'call_end_reason' => $finalEndReason,
+                        'disconnection_source' => $disconnectionSource,
                     ]
+                );
+
+                $callLog->calculateCqsScore(
+                    $latency !== null ? (int) $latency : null,
+                    $transcriptionConfidence !== null ? (float) $transcriptionConfidence : null,
+                    (float) $toolSuccessRate
                 );
 
                 $ratings = $request->input('survey_scores')
@@ -160,6 +223,49 @@ class CallWebhookController extends Controller
                     $summary = json_encode($summary);
                 }
 
+                $rawReason = $callData['disconnection_reason'] ?? $callData['endReason'] ?? $callData['end_reason'] ?? $request->input('message.call.endReason') ?? $request->input('endReason') ?? null;
+                $callEndReason = null;
+                if ($rawReason) {
+                    $normalized = str_replace('-', '_', strtolower($rawReason));
+                    if (str_contains($normalized, 'user') || str_contains($normalized, 'customer') || $normalized === 'user_hung_up') {
+                        $callEndReason = 'user_hung_up';
+                    } elseif (str_contains($normalized, 'agent') || str_contains($normalized, 'assistant') || $normalized === 'agent_hung_up') {
+                        $callEndReason = 'agent_hung_up';
+                    } elseif (str_contains($normalized, 'dial_failed') || str_contains($normalized, 'dial') || $normalized === 'dial_failed') {
+                        $callEndReason = 'dial_failed';
+                    } elseif (str_contains($normalized, 'error') || $normalized === 'error') {
+                        $callEndReason = 'error';
+                    } else {
+                        $callEndReason = $normalized;
+                    }
+                }
+
+                $disconnectionSource = $callData['disconnection_source'] ?? $callData['disconnectionSource'] ?? $request->input('message.call.disconnectionSource') ?? $request->input('disconnectionSource') ?? null;
+
+                $latency = $callData['monitor']['latency']['average'] ?? $callData['average_latency'] ?? $callData['latency'] ?? $request->input('message.call.monitor.latency.average') ?? null;
+
+                $transcriptionConfidence = $callData['analysis']['transcriptionConfidence'] ?? $callData['transcription_confidence'] ?? $request->input('message.call.analysis.transcriptionConfidence') ?? null;
+
+                $toolCalls = $callData['tool_calls'] ?? $callData['toolCalls'] ?? $request->input('message.call.toolCalls') ?? [];
+                $toolCallsCount = count($toolCalls);
+                $successfulToolCalls = 0;
+                if ($toolCallsCount > 0) {
+                    foreach ($toolCalls as $tc) {
+                        $isError = $tc['isError'] ?? $tc['error'] ?? (($tc['result']['status'] ?? '') === 'error') ?? false;
+                        if (! $isError) {
+                            $successfulToolCalls++;
+                        }
+                    }
+                    $toolSuccessRate = $successfulToolCalls / $toolCallsCount;
+                } else {
+                    $toolSuccessRate = 1.0;
+                }
+
+                $existingCallLog = CallLog::where('call_id', $callId)->first();
+                $finalEndReason = ($existingCallLog?->call_end_reason === 'forwarded_to_voicemail' && $callEndReason !== 'error')
+                    ? 'forwarded_to_voicemail'
+                    : ($callEndReason ?? $existingCallLog?->call_end_reason);
+
                 $callLog = CallLog::updateOrCreate(
                     ['call_id' => $callId],
                     [
@@ -168,7 +274,15 @@ class CallWebhookController extends Controller
                         'customer_phone' => $customerPhone,
                         'transcript' => $transcript,
                         'summary' => $summary,
+                        'call_end_reason' => $finalEndReason,
+                        'disconnection_source' => $disconnectionSource,
                     ]
+                );
+
+                $callLog->calculateCqsScore(
+                    $latency !== null ? (int) $latency : null,
+                    $transcriptionConfidence !== null ? (float) $transcriptionConfidence : null,
+                    (float) $toolSuccessRate
                 );
 
                 $ratings = $request->input('survey_scores')
@@ -185,6 +299,11 @@ class CallWebhookController extends Controller
 
                 if (is_array($ratings) && ! empty($ratings)) {
                     $callLog->calculateCsatScore($ratings);
+                }
+
+                // If the call was routed to voicemail, trigger parser
+                if ($finalEndReason === 'forwarded_to_voicemail') {
+                    app(VoicemailParserService::class)->parseVoicemail($callLog);
                 }
 
                 event(new CallAnalyzed($tenant->id, $callLog));

@@ -122,7 +122,7 @@ test('webhook fails when requested time is outside technician availability', fun
     $response = $this->postJson('/api/webhooks/dispatch', $payload);
 
     $response->assertStatus(422);
-    $response->assertJsonPath('status', 'error');
+    $response->assertJsonPath('status', 'forward_to_voicemail');
     expect(Booking::count())->toBe(0);
 });
 
@@ -161,7 +161,7 @@ test('webhook fails when booking overlaps with existing appointment within 1.5 h
     $response = $this->postJson('/api/webhooks/dispatch', $payload);
 
     $response->assertStatus(422);
-    $response->assertJsonPath('status', 'error');
+    $response->assertJsonPath('status', 'forward_to_voicemail');
     expect(Booking::count())->toBe(1); // Only the pre-existing one
 });
 

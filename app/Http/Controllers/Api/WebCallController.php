@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Rules\ReCaptcha;
+use App\Services\TenantSettingsService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -36,6 +37,9 @@ class WebCallController extends Controller
 
         Log::info("Generating WebRTC calling token for Tenant: {$tenant->id}, provider: {$provider}");
 
+        $settingsService = app(TenantSettingsService::class);
+        $assistantPayload = $settingsService->generateAssistantPayload($tenant);
+
         if ($provider === 'retell') {
             try {
                 $response = Http::withToken($apiKey)
@@ -59,6 +63,8 @@ class WebCallController extends Controller
                     'provider' => 'retell',
                     'access_token' => $accessToken,
                     'assistant_id' => $assistantId,
+                    'assistantOverrides' => $assistantPayload['assistantOverrides'] ?? [],
+                    'assistant_overrides' => $assistantPayload['assistantOverrides'] ?? [],
                 ]);
             } catch (\Exception $e) {
                 Log::error('Retell web call connection exception: '.$e->getMessage());
@@ -74,6 +80,8 @@ class WebCallController extends Controller
             'provider' => 'vapi',
             'access_token' => $publicKey,
             'assistant_id' => $assistantId,
+            'assistantOverrides' => $assistantPayload['assistantOverrides'] ?? [],
+            'assistant_overrides' => $assistantPayload['assistantOverrides'] ?? [],
         ]);
     }
 }

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
@@ -129,6 +130,24 @@ class McpController extends Controller
                             'required' => ['booking_id', 'new_start_time'],
                         ],
                     ],
+                    [
+                        'name' => 'voicemail_fallback',
+                        'description' => 'Route the active call stream to the automated voicemail mailbox because no technicians are available or they are busy.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'call_id' => [
+                                    'type' => 'string',
+                                    'description' => 'The call ID of the active call.',
+                                ],
+                                'reason' => [
+                                    'type' => 'string',
+                                    'description' => 'The reason for fallback.',
+                                ],
+                            ],
+                            'required' => ['call_id'],
+                        ],
+                    ],
                 ],
             ],
             'id' => $id,
@@ -246,6 +265,38 @@ class McpController extends Controller
                             'text' => "Booking #{$bookingId} has been successfully rescheduled to ".$requestedTimeCarbon->toIso8601String().'.',
                         ],
                     ],
+                ],
+                'id' => $id,
+            ]);
+        }
+
+        if ($name === 'voicemail_fallback') {
+            $callId = $arguments['call_id'] ?? null;
+            $reason = $arguments['reason'] ?? 'No available technicians';
+
+            if (! $callId) {
+                return $this->toolErrorResponse('call_id argument is required.', $id);
+            }
+
+            $callLog = CallLog::where('call_id', $callId)->first();
+            if ($callLog) {
+                $callLog->update([
+                    'call_end_reason' => 'forwarded_to_voicemail',
+                ]);
+            }
+
+            return response()->json([
+                'jsonrpc' => '2.0',
+                'result' => [
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => "Routing call to voicemail fallback mailbox due to: {$reason}.",
+                        ],
+                    ],
+                    'action' => 'transfer',
+                    'destination' => '+18005550199',
+                    'status' => 'forward_to_voicemail',
                 ],
                 'id' => $id,
             ]);

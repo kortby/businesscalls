@@ -45,8 +45,23 @@ class WebhookGatewayMiddleware
         // Extend the session context TTL directly using Cache::touch()
         Cache::touch($cacheKey, 600);
 
+        $vapiSecret = $request->header('X-Vapi-Secret') ?? $request->header('x-vapi-secret');
+        $retellSecret = $request->header('X-Retell-Secret') ?? $request->header('x-retell-secret');
+        $authToken = $request->bearerToken();
+
+        $hasCustomCredentials = false;
+        if ($tenant->secret_key) {
+            $hasCustomCredentials = ($authToken && hash_equals($tenant->secret_key, $authToken))
+                || ($vapiSecret && hash_equals($tenant->secret_key, $vapiSecret))
+                || ($retellSecret && hash_equals($tenant->secret_key, $retellSecret));
+        }
+
         // 2. Signature Validation and Replay Attack Prevention
-        if ($signature && $tenant->secret_key) {
+        if ($tenant->secret_key && ! $hasCustomCredentials) {
+            if (! $signature) {
+                return response()->json(['error' => 'Authentication missing (Token or Signature).'], 401);
+            }
+
             $sigKey = 'webhook-sig:'.sha1($signature);
 
             if (Cache::has($sigKey)) {
