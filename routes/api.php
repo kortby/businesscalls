@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\BookingStatusController;
+use App\Http\Controllers\Api\CallFlowController;
 use App\Http\Controllers\Api\CallRedactionController;
 use App\Http\Controllers\Api\CallWebhookController;
 use App\Http\Controllers\Api\DispatchWebhookController;
@@ -35,3 +36,4 @@ Route::post('/web-calls/barge', [WebCallController::class, 'barge'])->middleware
 Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle'])->middleware('auth:sanctum');
 Route::post('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'index'])->middleware('auth:sanctum');
+Route::post('/settings/call-flow', [CallFlowController::class, 'store'])->middleware('auth:sanctum');

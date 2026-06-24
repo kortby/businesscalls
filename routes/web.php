@@ -29,6 +29,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/diagnostics', [AdminController::class, 'diagnostics'])->name('admin.diagnostics');
     Route::get('admin/loyalty', [AdminController::class, 'loyalty'])->name('admin.loyalty');
     Route::get('admin/health', [AdminController::class, 'health'])->name('admin.health');
+    Route::get('admin/call-flow', [AdminController::class, 'callFlow'])->name('admin.callflow');
+    Route::get('admin/reports', [AdminController::class, 'executiveReports'])->name('admin.reports');
+    Route::get('admin/executive-report/download', [AdminController::class, 'downloadReport'])->name('admin.report.download');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

@@ -92,6 +92,9 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                         'customer' => [
                             'number' => $employee->phone,
                         ],
+                        'answeringMachineDetectionConfiguration' => [
+                            'enabled' => true,
+                        ],
                         'assistantOverrides' => [
                             'variableValues' => [
                                 'first_name' => $employee->first_name,
@@ -108,6 +111,7 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                         'assistant_id' => $assistantId,
                         'to_number' => $employee->phone,
                         'from_number' => $tenant?->getSetting('telephony_phone_number') ?? '+15550000000',
+                        'machine_detection' => true,
                         'override_values' => [
                             'first_name' => $employee->first_name,
                             'scheduled_start' => $scheduledStart,
@@ -123,6 +127,11 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                 if ($response->failed()) {
                     Log::error("Outbound voice call failed for employee {$employee->id}: ".$response->body());
                     throw new \Exception('Outbound voice call alert failed: '.$response->body());
+                }
+
+                $callId = $response->json('id') ?? $response->json('call_id');
+                if ($callId) {
+                    Cache::put("call_booking_map:{$callId}", $booking->id, 86400); // 1 day cache
                 }
 
                 Log::info("Voice call alert queued successfully for employee {$employee->id}.");
@@ -154,8 +163,10 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                 Log::info("SMS alert sent successfully to employee {$employee->id}.");
             }
 
-            $booking->status = 'booked';
-            $booking->save();
+            if ($preference !== 'voice') {
+                $booking->status = 'booked';
+                $booking->save();
+            }
         } finally {
             $lock->release();
         }

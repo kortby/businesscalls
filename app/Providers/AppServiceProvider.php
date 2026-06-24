@@ -13,7 +13,10 @@ use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Str;
+use Illuminate\Support\Stringable;
 use Illuminate\Validation\Rules\Password;
 use Laravel\Cashier\Cashier;
 
@@ -51,6 +54,54 @@ class AppServiceProvider extends ServiceProvider
 
         // Register zero-downtime replication observers
         Booking::observe(BookingObserver::class);
+
+        // Register toEmbeddings macro
+        Str::macro('toEmbeddings', function (string $text) {
+            $apiKey = env('OPENAI_API_KEY');
+            if ($apiKey && ! app()->runningUnitTests()) {
+                try {
+                    $response = Http::withToken($apiKey)
+                        ->timeout(10)
+                        ->post('https://api.openai.com/v1/embeddings', [
+                            'model' => 'text-embedding-3-small',
+                            'input' => $text,
+                        ]);
+                    if ($response->successful()) {
+                        $embeddings = $response->json('data.0.embedding');
+                        if (is_array($embeddings)) {
+                            return $embeddings;
+                        }
+                    }
+                } catch (\Exception $e) {
+                    // Fall back
+                }
+            }
+
+            // Deterministic fallback vector of 1536 dimensions
+            $len = strlen($text);
+            if ($len === 0) {
+                return array_fill(0, 1536, 0.0);
+            }
+            $vector = [];
+            $sumOfSquares = 0;
+            for ($i = 0; $i < 1536; $i++) {
+                $val = sin($len + $i + ord($text[$i % $len] ?? 0));
+                $vector[] = $val;
+                $sumOfSquares += $val * $val;
+            }
+            $magnitude = sqrt($sumOfSquares);
+            if ($magnitude > 0) {
+                foreach ($vector as &$val) {
+                    $val = (float) ($val / $magnitude);
+                }
+            }
+
+            return $vector;
+        });
+
+        Stringable::macro('toEmbeddings', function () {
+            return Str::toEmbeddings($this->value);
+        });
     }
 
     /**

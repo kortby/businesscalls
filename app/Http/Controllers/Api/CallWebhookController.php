@@ -7,6 +7,7 @@ use App\Events\CallEnded;
 use App\Events\CallStarted;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessLatencyDriftJob;
+use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
@@ -101,6 +102,83 @@ class CallWebhookController extends Controller
 
         // Bypass TenantScope to execute multi-tenant DB updates in system mode
         TenantScope::setTenantId($tenant->id);
+
+        // 4. Answering Machine Detection (AMD) handling
+        $amdStatus = null;
+        $vapiAmd = $callData['answeringMachineDetectionResult']
+            ?? $request->input('message.call.answeringMachineDetectionResult')
+            ?? $request->input('message.answeringMachineDetectionResult')
+            ?? $request->input('answeringMachineDetectionResult');
+
+        if ($vapiAmd) {
+            if (in_array($vapiAmd, ['machine', 'answering_machine', 'voicemail'])) {
+                $amdStatus = 'machine';
+            } elseif ($vapiAmd === 'human') {
+                $amdStatus = 'human';
+            }
+        }
+
+        $retellAmd = $callData['machine_detection_result']
+            ?? $request->input('machine_detection_result');
+
+        if ($retellAmd) {
+            if (in_array($retellAmd, ['machine_answered', 'machine', 'voicemail'])) {
+                $amdStatus = 'machine';
+            } elseif (in_array($retellAmd, ['human_answered', 'human'])) {
+                $amdStatus = 'human';
+            }
+        }
+
+        if (! $amdStatus) {
+            $genericAmd = $request->input('amd_status') ?? $request->input('machine');
+            if ($genericAmd !== null) {
+                if ($genericAmd === 'machine' || $genericAmd === true || $genericAmd === 'true') {
+                    $amdStatus = 'machine';
+                } elseif ($genericAmd === 'human' || $genericAmd === false || $genericAmd === 'false') {
+                    $amdStatus = 'human';
+                }
+            }
+        }
+
+        if ($amdStatus && $callId) {
+            $bookingId = Cache::get("call_booking_map:{$callId}");
+            if ($bookingId) {
+                $booking = Booking::find($bookingId);
+                if ($booking) {
+                    if ($amdStatus === 'machine') {
+                        // Outbound Answering Machine voicemail drop API call
+                        $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
+                        $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
+
+                        $scheduledStart = $booking->scheduled_start ? $booking->scheduled_start->format('Y-m-d H:i') : now()->format('Y-m-d H:i');
+                        $employee = $booking->employee;
+                        $alertText = 'Hi '.($employee ? $employee->first_name : 'technician').", you have been assigned a new HVAC dispatch at {$scheduledStart}. Please check your portal.";
+
+                        try {
+                            if ($provider === 'vapi') {
+                                Http::withToken($apiKey)->post("https://api.vapi.ai/call/{$callId}/voicemail-drop", [
+                                    'message' => $alertText,
+                                ]);
+                            } else {
+                                Http::withToken($apiKey)->post("https://api.retellai.com/v2/calls/{$callId}/voicemail-drop", [
+                                    'text' => $alertText,
+                                ]);
+                            }
+                        } catch (\Exception $e) {
+                            Log::error("Voicemail drop API call failed for Call: {$callId}: ".$e->getMessage());
+                        }
+
+                        $booking->status = 'voicemail_alerted';
+                        $booking->save();
+                        Log::info("Booking ID {$booking->id} transitioned to voicemail_alerted via AMD webhook.");
+                    } elseif ($amdStatus === 'human') {
+                        $booking->status = 'booked';
+                        $booking->save();
+                        Log::info("Booking ID {$booking->id} transitioned to booked via AMD webhook.");
+                    }
+                }
+            }
+        }
 
         // VoIP Spam call filter (reject if >= 3 failed/short calls in last 10 mins)
         if ($customerPhone !== 'Unknown') {

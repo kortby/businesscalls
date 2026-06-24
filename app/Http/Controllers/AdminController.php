@@ -3,8 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Tenant;
+use App\Services\PdfGeneratorService;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -151,5 +153,72 @@ class AdminController extends Controller
             'activeQueueWorkers' => $activeQueueWorkers,
             'recentEvents' => $recentEvents,
         ]);
+    }
+
+    /**
+     * Display the visual drag-and-drop call flow builder.
+     */
+    public function callFlow(): Response
+    {
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+        $callFlowTree = $tenant ? $tenant->getSetting('call_flow_tree', []) : [];
+
+        return Inertia::render('Admin/CallFlowBuilder', [
+            'callFlowTree' => $callFlowTree,
+        ]);
+    }
+
+    /**
+     * Display the playful executive reports overview dashboard.
+     */
+    public function executiveReports(): Response
+    {
+        $user = auth()->user();
+        $tenantId = $user ? $user->tenant_id : null;
+
+        // Compile dashboard metrics
+        $averageCqs = (float) (CallLog::whereNotNull('call_quality_score')->avg('call_quality_score') ?? 0.95);
+        $bookingsCount = Booking::count();
+        $avgLatencyDrift = (float) (CallLog::whereNotNull('latency_drift')->avg('latency_drift') ?? 0.0);
+        $weeklyPerformanceTargetMet = $bookingsCount >= 8;
+
+        return Inertia::render('Admin/ExecutiveReports', [
+            'averageCqs' => $averageCqs,
+            'bookingsCount' => $bookingsCount,
+            'avgLatencyDrift' => $avgLatencyDrift,
+            'weeklyPerformanceTargetMet' => $weeklyPerformanceTargetMet,
+        ]);
+    }
+
+    /**
+     * Download the gamified executive PDF report.
+     */
+    public function downloadReport()
+    {
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+
+        // Compile report statistics
+        $averageCqs = CallLog::whereNotNull('call_quality_score')->avg('call_quality_score') ?? 0.95;
+        $bookingsCount = Booking::count();
+        $avgLatencyDrift = CallLog::whereNotNull('latency_drift')->avg('latency_drift') ?? 0.0;
+
+        $data = [
+            'title' => ($tenant ? $tenant->name : 'System').' Executive Performance Report',
+            'metrics' => [
+                'Total Bookings' => $bookingsCount,
+                'Average Call Quality Score' => round($averageCqs, 2),
+                'Average Latency Drift' => round($avgLatencyDrift, 2).' ms',
+                'Plan Level' => $tenant ? $tenant->plan : 'Trial',
+                'Report Generated' => now()->toDateTimeString(),
+            ],
+        ];
+
+        $pdfContent = app(PdfGeneratorService::class)->generate($data);
+
+        return response($pdfContent)
+            ->header('Content-Type', 'application/pdf')
+            ->header('Content-Disposition', 'attachment; filename="executive_report.pdf"');
     }
 }
