@@ -9,3 +9,7 @@ Broadcast::channel('App.Models.User.{id}', function ($user, $id) {
 Broadcast::channel('tenant.{id}', function ($user, $id) {
     return (int) $user->tenant_id === (int) $id;
 });
+
+Broadcast::channel('tenant.{tenant_id}.coaching.{call_id}', function ($user, $tenant_id, $call_id) {
+    return (int) $user->tenant_id === (int) $tenant_id;
+});

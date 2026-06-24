@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
+use App\Models\CallLog;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Http\Request;
@@ -78,6 +79,19 @@ class TechnicianController extends Controller
             $performanceScore = round($j_completed / $denominator, 2);
         }
 
+        $activeCalls = [];
+        $phones = $bookings->pluck('customer_phone')->filter()->toArray();
+        if (! empty($phones)) {
+            $activeCalls = CallLog::whereIn('customer_phone', $phones)
+                ->where('status', 'ongoing')
+                ->get()
+                ->map(fn ($cl) => [
+                    'call_id' => $cl->call_id,
+                    'customer_phone' => $cl->customer_phone,
+                ])
+                ->toArray();
+        }
+
         return Inertia::render('technician/Dashboard', [
             'employee' => $employee,
             'bookings' => $bookings,
@@ -85,6 +99,7 @@ class TechnicianController extends Controller
             'tScheduled' => $t_scheduled,
             'sumTravel' => $sum_travel,
             'performanceScore' => $performanceScore,
+            'activeCalls' => $activeCalls,
             'passkeys' => $user->passkeys()->get()->map(fn ($passkey) => [
                 'id' => $passkey->id,
                 'name' => $passkey->name,

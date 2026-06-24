@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, router, Link } from '@inertiajs/vue3';
+import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import {
     Wrench,
     Clock,
@@ -19,6 +19,7 @@ import {
 import { ref, computed } from 'vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import PasskeyRegister from '@/components/PasskeyRegister.vue';
+import CoachingWidget from '@/components/CoachingWidget.vue';
 import { Button } from '@/components/ui/button';
 import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
@@ -54,7 +55,11 @@ const props = defineProps<{
     sumTravel: number;
     performanceScore: number;
     passkeys: Passkey[];
+    activeCalls: Array<{ call_id: string; customer_phone: string }>;
 }>();
+
+const page = usePage();
+const tenantId = computed(() => page.props.auth?.user?.tenant_id ?? '');
 
 const selectedBooking = ref<Booking | null>(null);
 const feedback = ref('');
@@ -237,6 +242,13 @@ const getStatusLabel = (status: string) => {
 
 <template>
     <Head title="Technician Portal - Dashboard" />
+
+    <!-- Live Supervisor Coaching Widget -->
+    <CoachingWidget
+        :tenant-id="tenantId"
+        :bookings="bookings"
+        :active-calls="activeCalls"
+    />
 
     <!-- Pure CSS Confetti Overlay -->
     <div

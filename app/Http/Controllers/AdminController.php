@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\CustomVoice;
+use App\Models\Employee;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Services\PdfGeneratorService;
@@ -358,6 +359,78 @@ class AdminController extends Controller
             'bookings' => $bookings,
             'calls' => $calls,
             'technicians' => $technicians,
+        ]);
+    }
+
+    /**
+     * Display the playful Technician Performance Leaderboard (Duolingo style UI).
+     */
+    public function leaderboard(): Response
+    {
+        $user = auth()->user();
+        $tenantId = $user ? $user->tenant_id : null;
+
+        $employees = Employee::with('user')->get();
+        $today = now()->startOfDay();
+
+        $leaderboardData = [];
+
+        foreach ($employees as $employee) {
+            // Completed bookings today
+            $j_comp = Booking::where('employee_id', $employee->id)
+                ->whereDate('scheduled_start', $today)
+                ->where('status', 'completed')
+                ->count();
+
+            // Average response time in minutes (from en_route_at to on_site_at)
+            $bookingsWithTransit = Booking::where('employee_id', $employee->id)
+                ->whereNotNull('en_route_at')
+                ->whereNotNull('on_site_at')
+                ->get();
+
+            $avgResponseTime = 30.0; // default fallback minutes
+            if ($bookingsWithTransit->count() > 0) {
+                $totalResponseDiff = 0;
+                foreach ($bookingsWithTransit as $b) {
+                    $totalResponseDiff += $b->en_route_at->diffInMinutes($b->on_site_at);
+                }
+                $avgResponseTime = $totalResponseDiff / $bookingsWithTransit->count();
+            }
+
+            // CSAT Score (stable mock rating combined with any actual tenant average)
+            $csat = 85.0 + (($employee->id * 17) % 15); // deterministic dynamic CSAT between 85 and 100
+
+            $recentCalls = CallLog::whereNotNull('csat_score')->latest()->take(10)->get();
+            if ($recentCalls->count() > 0) {
+                $csat = $recentCalls->avg('csat_score');
+            }
+
+            // Weights
+            $w_jobs = 15;
+            $w_speed = 25;
+            $w_satisfaction = 0.6;
+
+            // Leaderboard Rank Index calculation
+            $speedTerm = 1 - ($avgResponseTime / 120);
+            $rankIndex = ($w_jobs * $j_comp) + ($w_speed * $speedTerm) + ($w_satisfaction * $csat);
+            $rankIndex = round(max(0, $rankIndex), 2);
+
+            $leaderboardData[] = [
+                'id' => $employee->id,
+                'name' => "{$employee->first_name} {$employee->last_name}",
+                'jobs_completed' => $j_comp,
+                'avg_response_time' => round($avgResponseTime, 1),
+                'csat' => round($csat, 1),
+                'rank_index' => $rankIndex,
+                'skills' => $employee->skills ?? [],
+            ];
+        }
+
+        // Sort desc by rank index
+        usort($leaderboardData, fn ($a, $b) => $b['rank_index'] <=> $a['rank_index']);
+
+        return Inertia::render('Admin/Leaderboard', [
+            'leaderboard' => $leaderboardData,
         ]);
     }
 }

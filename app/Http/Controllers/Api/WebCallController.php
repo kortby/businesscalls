@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\SupervisorBarged;
+use App\Events\SupervisorWhisperSent;
 use App\Http\Controllers\Controller;
 use App\Models\CallLog;
 use App\Rules\ReCaptcha;
@@ -182,6 +183,38 @@ class WebCallController extends Controller
             'room_url' => $roomUrl,
             'call_id' => $callId,
             'mode' => $mode,
+        ]);
+    }
+
+    /**
+     * Broadcast a supervisor whisper coaching event to the active technician.
+     */
+    public function whisper(Request $request): JsonResponse
+    {
+        $request->validate([
+            'call_id' => 'required|string',
+            'instruction' => 'required|string',
+        ]);
+
+        $user = $request->user();
+        if (! $user || ! $user->tenant_id) {
+            return response()->json(['error' => 'Unauthorized or missing tenant context.'], 403);
+        }
+
+        // Sanitize the instruction
+        $instruction = strip_tags($request->input('instruction'));
+
+        // Broadcast the whisper event
+        event(new SupervisorWhisperSent(
+            $user->tenant_id,
+            $request->input('call_id'),
+            $instruction,
+            $user->name
+        ));
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Whisper coaching tip sent.',
         ]);
     }
 }

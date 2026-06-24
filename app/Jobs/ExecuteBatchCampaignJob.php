@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Attributes\Queue;
 use App\Attributes\Tries;
+use App\Jobs\Middleware\EnsureRegulatoryCompliance;
 use App\Models\Booking;
 use App\Models\OutboundCampaign;
 use App\Models\Scopes\TenantScope;
@@ -48,6 +49,16 @@ class ExecuteBatchCampaignJob implements ShouldQueue
         } else {
             $this->tries = 3;
         }
+    }
+
+    /**
+     * Get the middleware the job should pass through.
+     *
+     * @return array<int, object>
+     */
+    public function middleware(): array
+    {
+        return [new EnsureRegulatoryCompliance];
     }
 
     /**

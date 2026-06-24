@@ -11,6 +11,7 @@ use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Services\CarrierFailoverService;
 use App\Services\ComplianceSanitizerService;
 use App\Services\SentimentEvaluationService;
 use App\Services\VoicemailParserService;
@@ -272,6 +273,10 @@ class CallWebhookController extends Controller
                         'disconnection_source' => $disconnectionSource,
                     ]
                 );
+
+                if ($finalEndReason === 'dial_failed' || $finalEndReason === 'dial_busy') {
+                    app(CarrierFailoverService::class)->orchestrateFailover($tenant, $callLog, $callData);
+                }
 
                 $callLog->calculateCqsScore(
                     $latency !== null ? (int) $latency : null,
