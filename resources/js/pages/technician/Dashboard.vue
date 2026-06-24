@@ -83,17 +83,28 @@ const startScan = async () => {
             isScanning.value = false;
 
             if (result.hasContent) {
-                feedback.value = (feedback.value ? feedback.value + '\n' : '') + '[Scanned HVAC: ' + result.content + ']';
+                feedback.value =
+                    (feedback.value ? feedback.value + '\n' : '') +
+                    '[Scanned HVAC: ' +
+                    result.content +
+                    ']';
             }
         } else {
             alert('Camera permission denied.');
             isScanning.value = false;
         }
     } catch (e) {
-        console.warn('BarcodeScanner is not available, using simulated barcode scan.');
+        console.warn(
+            'BarcodeScanner is not available, using simulated barcode scan.',
+        );
         // Simulated fallback for browser environments
-        const mockSerial = 'SN-' + Math.floor(10000000 + Math.random() * 90000000);
-        feedback.value = (feedback.value ? feedback.value + '\n' : '') + '[Scanned HVAC: ' + mockSerial + ']';
+        const mockSerial =
+            'SN-' + Math.floor(10000000 + Math.random() * 90000000);
+        feedback.value =
+            (feedback.value ? feedback.value + '\n' : '') +
+            '[Scanned HVAC: ' +
+            mockSerial +
+            ']';
         isScanning.value = false;
     }
 };
@@ -575,11 +586,13 @@ const getStatusLabel = (status: string) => {
                     <!-- Text Area for Feedback -->
                     <div class="space-y-1.5">
                         <div class="flex items-center justify-between">
-                            <label class="text-xs font-bold text-slate-300">Job Details & Feedback</label>
+                            <label class="text-xs font-bold text-slate-300"
+                                >Job Details & Feedback</label
+                            >
                             <button
                                 type="button"
                                 @click="startScan"
-                                class="rounded-xl border border-indigo-500/30 bg-indigo-600/10 px-3 py-1 text-[10px] font-black uppercase text-indigo-400 hover:bg-indigo-600/20"
+                                class="rounded-xl border border-indigo-500/30 bg-indigo-600/10 px-3 py-1 text-[10px] font-black text-indigo-400 uppercase hover:bg-indigo-600/20"
                             >
                                 📷 Scan HVAC System
                             </button>
@@ -688,19 +701,29 @@ const getStatusLabel = (status: string) => {
             class="fixed inset-0 z-50 flex flex-col items-center justify-between bg-slate-950/90 p-6 text-center text-white"
         >
             <div class="pt-10">
-                <h2 class="text-lg font-black uppercase tracking-wider text-indigo-400">Scanning HVAC Serial</h2>
-                <p class="text-xs text-slate-400">Position the appliance barcode within the guide box</p>
+                <h2
+                    class="text-lg font-black tracking-wider text-indigo-400 uppercase"
+                >
+                    Scanning HVAC Serial
+                </h2>
+                <p class="text-xs text-slate-400">
+                    Position the appliance barcode within the guide box
+                </p>
             </div>
 
             <!-- Guide frame box with heavy slate borders -->
-            <div class="relative h-64 w-64 rounded-3xl border-8 border-indigo-500/70 shadow-[0_0_0_2000px_rgba(15,23,42,0.8)]">
-                <div class="absolute inset-x-0 top-1/2 h-1 bg-rose-500 animate-pulse"></div>
+            <div
+                class="relative h-64 w-64 rounded-3xl border-8 border-indigo-500/70 shadow-[0_0_0_2000px_rgba(15,23,42,0.8)]"
+            >
+                <div
+                    class="absolute inset-x-0 top-1/2 h-1 animate-pulse bg-rose-500"
+                ></div>
             </div>
 
             <button
                 type="button"
                 @click="stopScan"
-                class="mb-10 rounded-2xl border-4 border-slate-100 bg-slate-900 px-6 py-3.5 text-xs font-black uppercase text-white hover:bg-slate-800"
+                class="mb-10 rounded-2xl border-4 border-slate-100 bg-slate-900 px-6 py-3.5 text-xs font-black text-white uppercase hover:bg-slate-800"
             >
                 Cancel Scan
             </button>

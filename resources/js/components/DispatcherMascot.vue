@@ -11,7 +11,7 @@ const props = withDefaults(
     {
         isSpeaking: false,
         amplitude: 0,
-    }
+    },
 );
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
@@ -23,8 +23,8 @@ let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
     if (!canvasRef.value) {
-return;
-}
+        return;
+    }
 
     const src = '/assets/animations/dispatcher_mascot.riv';
 
@@ -66,7 +66,12 @@ return;
                     }
 
                     const speaking = inputs.find(
-                        (i) => i.name === 'is_speaking' || i.name === 'speaking' || i.name === 'active_speech' || i.name === 'talk' || i.name === 'isSpeaking',
+                        (i) =>
+                            i.name === 'is_speaking' ||
+                            i.name === 'speaking' ||
+                            i.name === 'active_speech' ||
+                            i.name === 'talk' ||
+                            i.name === 'isSpeaking',
                     );
 
                     if (speaking) {
@@ -178,7 +183,12 @@ onBeforeUnmount(() => {
                 <!-- State 0: Idle (Friendly wide open eyes) -->
                 <g v-if="state === 0">
                     <!-- Left Eye -->
-                    <g :style="{ transform: `scale(${1 - amplitude * 0.15})`, transformOrigin: '38px 42px' }">
+                    <g
+                        :style="{
+                            transform: `scale(${1 - amplitude * 0.15})`,
+                            transformOrigin: '38px 42px',
+                        }"
+                    >
                         <circle
                             cx="38"
                             cy="42"
@@ -192,7 +202,12 @@ onBeforeUnmount(() => {
                     </g>
 
                     <!-- Right Eye -->
-                    <g :style="{ transform: `scale(${1 - amplitude * 0.15})`, transformOrigin: '62px 42px' }">
+                    <g
+                        :style="{
+                            transform: `scale(${1 - amplitude * 0.15})`,
+                            transformOrigin: '62px 42px',
+                        }"
+                    >
                         <circle
                             cx="62"
                             cy="42"
@@ -215,7 +230,10 @@ onBeforeUnmount(() => {
                         fill="#EF4444"
                         stroke="#D97706"
                         stroke-width="1.5"
-                        :style="{ transform: `scaleY(${1 + amplitude * 1.5})`, transformOrigin: '50px 51px' }"
+                        :style="{
+                            transform: `scaleY(${1 + amplitude * 1.5})`,
+                            transformOrigin: '50px 51px',
+                        }"
                         class="transition-transform duration-75 ease-out"
                     />
                     <!-- Cute Beak/Smile -->

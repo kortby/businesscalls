@@ -34,7 +34,10 @@ let retellInstance: any = null;
 const page = usePage();
 let telemetryInterval: any = null;
 
-const startTelemetryCollection = (callId: string, provider: 'vapi' | 'retell') => {
+const startTelemetryCollection = (
+    callId: string,
+    provider: 'vapi' | 'retell',
+) => {
     const latencies: number[] = [];
     const tenantId = (page.props as any).auth?.user?.tenant_id || 1;
 
@@ -42,37 +45,50 @@ const startTelemetryCollection = (callId: string, provider: 'vapi' | 'retell') =
         let stats = { jitter: 0, latency: 0, packetLoss: 0 };
 
         if (provider === 'vapi' && vapiInstance) {
-            const dailyCall = typeof vapiInstance.getDailyCallObject === 'function'
-                ? vapiInstance.getDailyCallObject()
-                : (vapiInstance.daily || null);
+            const dailyCall =
+                typeof vapiInstance.getDailyCallObject === 'function'
+                    ? vapiInstance.getDailyCallObject()
+                    : vapiInstance.daily || null;
             if (dailyCall && typeof dailyCall.getNetworkStats === 'function') {
                 try {
                     const netStats = await dailyCall.getNetworkStats();
                     const latest = netStats?.stats?.latest;
                     if (latest) {
-                        stats.latency = (latest.networkRoundTripTime || 0) * 1000;
+                        stats.latency =
+                            (latest.networkRoundTripTime || 0) * 1000;
                         stats.packetLoss = latest.audioRecvPacketLoss || 0;
                     }
                 } catch (e) {
-                    console.error("Vapi telemetry stats error:", e);
+                    console.error('Vapi telemetry stats error:', e);
                 }
             }
-        } else if (provider === 'retell' && retellInstance && retellInstance.room) {
+        } else if (
+            provider === 'retell' &&
+            retellInstance &&
+            retellInstance.room
+        ) {
             try {
                 const pc = retellInstance.room?.engine?.subscriber?.pcTransport;
                 if (pc && typeof pc.getStats === 'function') {
                     const rawStats = await pc.getStats();
                     rawStats.forEach((report: any) => {
-                        if (report.type === 'inbound-rtp' && report.kind === 'audio') {
+                        if (
+                            report.type === 'inbound-rtp' &&
+                            report.kind === 'audio'
+                        ) {
                             stats.packetLoss = report.packetsLost || 0;
                         }
-                        if (report.type === 'candidate-pair' && report.state === 'succeeded') {
-                            stats.latency = (report.currentRoundTripTime || 0) * 1000;
+                        if (
+                            report.type === 'candidate-pair' &&
+                            report.state === 'succeeded'
+                        ) {
+                            stats.latency =
+                                (report.currentRoundTripTime || 0) * 1000;
                         }
                     });
                 }
             } catch (e) {
-                console.error("Retell telemetry stats error:", e);
+                console.error('Retell telemetry stats error:', e);
             }
         }
 
@@ -88,7 +104,10 @@ const startTelemetryCollection = (callId: string, provider: 'vapi' | 'retell') =
         if (J > 0) {
             const sum = latencies.reduce((acc, val) => acc + val, 0);
             const avg = sum / J;
-            const squaredDiffSum = latencies.reduce((acc, val) => acc + Math.pow(val - avg, 2), 0);
+            const squaredDiffSum = latencies.reduce(
+                (acc, val) => acc + Math.pow(val - avg, 2),
+                0,
+            );
             stats.jitter = Math.sqrt(squaredDiffSum / J);
         }
 
@@ -97,8 +116,13 @@ const startTelemetryCollection = (callId: string, provider: 'vapi' | 'retell') =
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
-                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN':
+                        (
+                            document.querySelector(
+                                'meta[name="csrf-token"]',
+                            ) as HTMLMetaElement
+                        )?.content || '',
+                    Accept: 'application/json',
                 },
                 body: JSON.stringify({
                     tenant_id: tenantId,
@@ -152,25 +176,36 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
             return;
         }
 
-        const dailyCall = typeof vapiInst.getDailyCallObject === 'function'
-            ? vapiInst.getDailyCallObject()
-            : (vapiInst.daily || null);
+        const dailyCall =
+            typeof vapiInst.getDailyCallObject === 'function'
+                ? vapiInst.getDailyCallObject()
+                : vapiInst.daily || null;
 
         if (dailyCall) {
             clearInterval(interval);
-            
+
             dailyCall.on('track-started', (event: any) => {
-                if (event.participant && !event.participant.local && event.track && event.track.kind === 'audio') {
+                if (
+                    event.participant &&
+                    !event.participant.local &&
+                    event.track &&
+                    event.track.kind === 'audio'
+                ) {
                     try {
                         if (!audioCtx) {
-                            audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                            audioCtx = new (
+                                window.AudioContext ||
+                                (window as any).webkitAudioContext
+                            )();
                         }
-                        const source = audioCtx.createMediaStreamSource(new MediaStream([event.track]));
+                        const source = audioCtx.createMediaStreamSource(
+                            new MediaStream([event.track]),
+                        );
                         analyser = audioCtx.createAnalyser();
                         analyser.fftSize = 256;
                         source.connect(analyser);
                         dataArray = new Uint8Array(analyser.frequencyBinCount);
-                        
+
                         const updateAmplitude = () => {
                             if (analyser && dataArray) {
                                 analyser.getByteTimeDomainData(dataArray);
@@ -183,11 +218,15 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                                 callStore.amplitude = rms;
                                 callStore.isSpeaking = rms > 0.03;
                             }
-                            animationFrameId = requestAnimationFrame(updateAmplitude);
+                            animationFrameId =
+                                requestAnimationFrame(updateAmplitude);
                         };
                         updateAmplitude();
                     } catch (e) {
-                        console.error('Audio extraction context initialization failed:', e);
+                        console.error(
+                            'Audio extraction context initialization failed:',
+                            e,
+                        );
                     }
                 }
             });

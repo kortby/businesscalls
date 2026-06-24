@@ -89,8 +89,8 @@ const selectConversation = (id: number) => {
 
 const submitMessage = () => {
     if (!activeConversationId.value || !form.body.trim()) {
-return;
-}
+        return;
+    }
 
     transitionMascot(1); // Searching/sending
 

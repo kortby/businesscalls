@@ -80,8 +80,8 @@ const addSkill = (isEdit = false) => {
     const val = newSkill.value.trim().toLowerCase();
 
     if (!val) {
-return;
-}
+        return;
+    }
 
     if (isEdit) {
         if (!editForm.skills.includes(val)) {

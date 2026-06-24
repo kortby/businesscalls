@@ -64,7 +64,8 @@ const getMilestoneInfo = (achievement: Achievement) => {
         nextName = nextMilestone.name;
     } else {
         // All unlocked
-        nextTarget = achievement.milestones[achievement.milestones.length - 1].target;
+        nextTarget =
+            achievement.milestones[achievement.milestones.length - 1].target;
         nextName = 'Max';
     }
 
@@ -81,7 +82,7 @@ const getMilestoneInfo = (achievement: Achievement) => {
 const getProgressPercentage = (achievement: Achievement) => {
     const info = getMilestoneInfo(achievement);
     if (info.allUnlocked) return 100;
-    
+
     // Calculate progress towards the next milestone
     const progress = (achievement.metric / info.nextTarget) * 100;
     return Math.min(100, Math.max(0, progress));
@@ -106,7 +107,7 @@ const handleCardHover = (achievement: Achievement, isHovered: boolean) => {
 const triggerCelebration = (achievement: Achievement) => {
     clickedCardId.value = achievement.id;
     mascotState.value = 2; // Victory pose
-    
+
     setTimeout(() => {
         clickedCardId.value = null;
     }, 1500);
@@ -127,7 +128,8 @@ const triggerCelebration = (achievement: Achievement) => {
                 <span
                     class="inline-flex items-center gap-1.5 rounded-full border-2 border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-xs font-black tracking-widest text-emerald-400 uppercase"
                 >
-                    <Trophy class="h-3 w-3 fill-emerald-400 text-emerald-400" /> Gamified Milestones
+                    <Trophy class="h-3 w-3 fill-emerald-400 text-emerald-400" />
+                    Gamified Milestones
                 </span>
                 <h1
                     class="mt-2 text-4xl font-extrabold tracking-tight text-white uppercase md:text-5xl"
@@ -157,7 +159,6 @@ const triggerCelebration = (achievement: Achievement) => {
 
         <!-- Main Layout Grid -->
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            
             <!-- Left Column: Rive Mascot Center & Stats Summary -->
             <div class="flex flex-col gap-6 lg:col-span-1">
                 <!-- Rive Mascot Card -->
@@ -178,10 +179,14 @@ const triggerCelebration = (achievement: Achievement) => {
                         <div
                             class="text-lg font-black tracking-tight text-white uppercase"
                         >
-                            <span v-if="mascotState === 2" class="text-emerald-400"
+                            <span
+                                v-if="mascotState === 2"
+                                class="text-emerald-400"
                                 >Woohoo! Looking Great! 🎉</span
                             >
-                            <span v-else-if="mascotState === 3" class="text-rose-400"
+                            <span
+                                v-else-if="mascotState === 3"
+                                class="text-rose-400"
                                 >Keep pushing for targets! 💪</span
                             >
                             <span v-else class="text-amber-400"
@@ -189,7 +194,8 @@ const triggerCelebration = (achievement: Achievement) => {
                             >
                         </div>
                         <p class="px-4 text-xs text-slate-400">
-                            Hover over cards to see unlocked status. Click cards to trigger celebration!
+                            Hover over cards to see unlocked status. Click cards
+                            to trigger celebration!
                         </p>
                     </div>
                 </div>
@@ -204,7 +210,9 @@ const triggerCelebration = (achievement: Achievement) => {
                         Quality Score Status
                     </h3>
 
-                    <div class="rounded-2xl border-2 border-slate-900 bg-slate-950 p-4 text-center">
+                    <div
+                        class="rounded-2xl border-2 border-slate-900 bg-slate-950 p-4 text-center"
+                    >
                         <span
                             class="block text-[10px] font-bold text-slate-500 uppercase"
                             >Avg Quality Score (CQS)</span
@@ -214,12 +222,22 @@ const triggerCelebration = (achievement: Achievement) => {
                         >
                             {{ (averageCqs * 100).toFixed(1) }}%
                         </span>
-                        <div class="mt-3 flex items-center justify-center gap-1.5">
+                        <div
+                            class="mt-3 flex items-center justify-center gap-1.5"
+                        >
                             <span
-                                :class="averageCqs >= 0.90 ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-amber-500/10 text-amber-500 border-amber-500/20'"
-                                class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black uppercase tracking-wider"
+                                :class="
+                                    averageCqs >= 0.9
+                                        ? 'border-emerald-500/20 bg-emerald-500/10 text-emerald-400'
+                                        : 'border-amber-500/20 bg-amber-500/10 text-amber-500'
+                                "
+                                class="inline-flex items-center rounded-full border px-2.5 py-0.5 text-[9px] font-black tracking-wider uppercase"
                             >
-                                {{ averageCqs >= 0.90 ? 'A Grade' : 'Needs Review' }}
+                                {{
+                                    averageCqs >= 0.9
+                                        ? 'A Grade'
+                                        : 'Needs Review'
+                                }}
                             </span>
                         </div>
                     </div>
@@ -237,8 +255,14 @@ const triggerCelebration = (achievement: Achievement) => {
                         >
                             Your Milestone Roadmap
                         </h2>
-                        <span class="rounded-lg bg-slate-900 px-3 py-1 font-mono text-xs font-bold text-emerald-400">
-                            {{ achievements.filter(a => getMilestoneInfo(a).activeLevel > 0).length }}/{{ achievements.length }} Active
+                        <span
+                            class="rounded-lg bg-slate-900 px-3 py-1 font-mono text-xs font-bold text-emerald-400"
+                        >
+                            {{
+                                achievements.filter(
+                                    (a) => getMilestoneInfo(a).activeLevel > 0,
+                                ).length
+                            }}/{{ achievements.length }} Active
                         </span>
                     </div>
 
@@ -251,8 +275,10 @@ const triggerCelebration = (achievement: Achievement) => {
                             @mouseleave="handleCardHover(achievement, false)"
                             @click="triggerCelebration(achievement)"
                             :class="[
-                                clickedCardId === achievement.id ? 'scale-[1.02] border-emerald-500/80 bg-emerald-950/10 shadow-[0_0_25px_rgba(16,185,129,0.15)]' : 'border-slate-900 bg-slate-900/30 hover:border-slate-800 hover:bg-slate-900/50',
-                                'relative cursor-pointer rounded-3xl border-4 p-6 transition-all duration-300'
+                                clickedCardId === achievement.id
+                                    ? 'scale-[1.02] border-emerald-500/80 bg-emerald-950/10 shadow-[0_0_25px_rgba(16,185,129,0.15)]'
+                                    : 'border-slate-900 bg-slate-900/30 hover:border-slate-800 hover:bg-slate-900/50',
+                                'relative cursor-pointer rounded-3xl border-4 p-6 transition-all duration-300',
                             ]"
                         >
                             <!-- Celebrate Confetti Effect Overlay -->
@@ -260,44 +286,92 @@ const triggerCelebration = (achievement: Achievement) => {
                                 v-if="clickedCardId === achievement.id"
                                 class="pointer-events-none absolute inset-0 overflow-hidden rounded-[20px]"
                             >
-                                <div class="absolute inset-0 bg-emerald-500/5 animate-pulse"></div>
-                                <div class="absolute -top-10 left-1/4 h-2 w-2 rounded-full bg-emerald-400 animate-ping"></div>
-                                <div class="absolute -top-10 left-2/4 h-3 w-3 rounded-full bg-yellow-400 animate-ping delay-75"></div>
-                                <div class="absolute -top-10 left-3/4 h-2.5 w-2.5 rounded-full bg-teal-400 animate-ping delay-150"></div>
+                                <div
+                                    class="absolute inset-0 animate-pulse bg-emerald-500/5"
+                                ></div>
+                                <div
+                                    class="absolute -top-10 left-1/4 h-2 w-2 animate-ping rounded-full bg-emerald-400"
+                                ></div>
+                                <div
+                                    class="absolute -top-10 left-2/4 h-3 w-3 animate-ping rounded-full bg-yellow-400 delay-75"
+                                ></div>
+                                <div
+                                    class="absolute -top-10 left-3/4 h-2.5 w-2.5 animate-ping rounded-full bg-teal-400 delay-150"
+                                ></div>
                             </div>
 
-                            <div class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div
+                                class="flex flex-col gap-4 md:flex-row md:items-start md:justify-between"
+                            >
                                 <div class="space-y-1">
                                     <div class="flex items-center gap-2">
                                         <!-- Dynamic Icons -->
                                         <div
                                             :class="{
-                                                'bg-amber-500/10 text-amber-400 border-amber-500/20': achievement.id === 'bookings_streak',
-                                                'bg-emerald-500/10 text-emerald-400 border-emerald-500/20': achievement.id === 'total_bookings',
-                                                'bg-indigo-500/10 text-indigo-400 border-indigo-500/20': achievement.id === 'custom_voices',
-                                                'bg-rose-500/10 text-rose-400 border-rose-500/20': achievement.id === 'campaigns',
+                                                'border-amber-500/20 bg-amber-500/10 text-amber-400':
+                                                    achievement.id ===
+                                                    'bookings_streak',
+                                                'border-emerald-500/20 bg-emerald-500/10 text-emerald-400':
+                                                    achievement.id ===
+                                                    'total_bookings',
+                                                'border-indigo-500/20 bg-indigo-500/10 text-indigo-400':
+                                                    achievement.id ===
+                                                    'custom_voices',
+                                                'border-rose-500/20 bg-rose-500/10 text-rose-400':
+                                                    achievement.id ===
+                                                    'campaigns',
                                             }"
                                             class="rounded-xl border p-2"
                                         >
-                                            <Flame v-if="achievement.id === 'bookings_streak'" class="h-5 w-5" />
-                                            <PhoneCall v-else-if="achievement.id === 'total_bookings'" class="h-5 w-5" />
-                                            <Mic v-else-if="achievement.id === 'custom_voices'" class="h-5 w-5" />
+                                            <Flame
+                                                v-if="
+                                                    achievement.id ===
+                                                    'bookings_streak'
+                                                "
+                                                class="h-5 w-5"
+                                            />
+                                            <PhoneCall
+                                                v-else-if="
+                                                    achievement.id ===
+                                                    'total_bookings'
+                                                "
+                                                class="h-5 w-5"
+                                            />
+                                            <Mic
+                                                v-else-if="
+                                                    achievement.id ===
+                                                    'custom_voices'
+                                                "
+                                                class="h-5 w-5"
+                                            />
                                             <Award v-else class="h-5 w-5" />
                                         </div>
-                                        <h3 class="text-base font-black tracking-tight text-white uppercase">
+                                        <h3
+                                            class="text-base font-black tracking-tight text-white uppercase"
+                                        >
                                             {{ achievement.name }}
                                         </h3>
                                     </div>
-                                    <p class="text-xs font-medium text-slate-400 leading-relaxed max-w-md">
+                                    <p
+                                        class="max-w-md text-xs leading-relaxed font-medium text-slate-400"
+                                    >
                                         {{ achievement.description }}
                                     </p>
                                 </div>
 
                                 <div class="flex flex-col items-end gap-1">
-                                    <span class="text-xs font-semibold text-slate-500 uppercase">Current Metrics</span>
-                                    <span class="font-mono text-2xl font-black text-white">
+                                    <span
+                                        class="text-xs font-semibold text-slate-500 uppercase"
+                                        >Current Metrics</span
+                                    >
+                                    <span
+                                        class="font-mono text-2xl font-black text-white"
+                                    >
                                         {{ achievement.metric }}
-                                        <span class="text-xs font-bold text-slate-400 uppercase">{{ achievement.unit }}</span>
+                                        <span
+                                            class="text-xs font-bold text-slate-400 uppercase"
+                                            >{{ achievement.unit }}</span
+                                        >
                                     </span>
                                 </div>
                             </div>
@@ -310,38 +384,68 @@ const triggerCelebration = (achievement: Achievement) => {
                                     :class="[
                                         m.unlocked
                                             ? m.level === 1
-                                                ? 'border-amber-800 bg-amber-950/20 text-amber-500 shadow-[inset_0_2px_4px_rgba(245,158,11,0.05)] font-bold'
+                                                ? 'border-amber-800 bg-amber-950/20 font-bold text-amber-500 shadow-[inset_0_2px_4px_rgba(245,158,11,0.05)]'
                                                 : m.level === 2
-                                                    ? 'border-slate-600 bg-slate-800/30 text-slate-300 shadow-[inset_0_2px_4px_rgba(148,163,184,0.05)] font-bold'
-                                                    : 'border-yellow-500 bg-yellow-500/10 text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)] font-black'
+                                                  ? 'border-slate-600 bg-slate-800/30 font-bold text-slate-300 shadow-[inset_0_2px_4px_rgba(148,163,184,0.05)]'
+                                                  : 'border-yellow-500 bg-yellow-500/10 font-black text-yellow-400 shadow-[0_0_15px_rgba(234,179,8,0.15)]'
                                             : 'border-slate-900 bg-slate-950/50 text-slate-600 opacity-60',
-                                        'flex items-center justify-between rounded-2xl border-2 px-3 py-2 text-[10px] tracking-widest uppercase transition-all duration-300'
+                                        'flex items-center justify-between rounded-2xl border-2 px-3 py-2 text-[10px] tracking-widest uppercase transition-all duration-300',
                                     ]"
                                 >
-                                    <span class="flex items-center gap-1.5 font-black">
-                                        <Sparkles v-if="m.unlocked && m.level === 3" class="h-3 w-3 text-yellow-400 animate-spin" />
+                                    <span
+                                        class="flex items-center gap-1.5 font-black"
+                                    >
+                                        <Sparkles
+                                            v-if="m.unlocked && m.level === 3"
+                                            class="h-3 w-3 animate-spin text-yellow-400"
+                                        />
                                         {{ m.name }}
                                     </span>
                                     <div class="flex items-center gap-1">
-                                        <span class="font-mono font-bold">{{ m.target }}</span>
-                                        <CheckCircle2 v-if="m.unlocked" class="h-3.5 w-3.5 text-current fill-current/10" />
-                                        <Lock v-else class="h-3 w-3 text-slate-700" />
+                                        <span class="font-mono font-bold">{{
+                                            m.target
+                                        }}</span>
+                                        <CheckCircle2
+                                            v-if="m.unlocked"
+                                            class="h-3.5 w-3.5 fill-current/10 text-current"
+                                        />
+                                        <Lock
+                                            v-else
+                                            class="h-3 w-3 text-slate-700"
+                                        />
                                     </div>
                                 </div>
                             </div>
 
                             <!-- Progress Track (Duolingo style) -->
                             <div class="mt-5">
-                                <div class="mb-1.5 flex items-center justify-between text-[9px] font-black uppercase tracking-wider text-slate-500">
-                                    <span>Progress to {{ getMilestoneInfo(achievement).nextName }}</span>
-                                    <span class="font-mono text-xs font-black text-slate-300">
-                                        {{ achievement.metric }}/{{ getMilestoneInfo(achievement).nextTarget }}
+                                <div
+                                    class="mb-1.5 flex items-center justify-between text-[9px] font-black tracking-wider text-slate-500 uppercase"
+                                >
+                                    <span
+                                        >Progress to
+                                        {{
+                                            getMilestoneInfo(achievement)
+                                                .nextName
+                                        }}</span
+                                    >
+                                    <span
+                                        class="font-mono text-xs font-black text-slate-300"
+                                    >
+                                        {{ achievement.metric }}/{{
+                                            getMilestoneInfo(achievement)
+                                                .nextTarget
+                                        }}
                                     </span>
                                 </div>
-                                <div class="h-4 w-full rounded-full border-2 border-slate-900 bg-slate-950 p-0.5 overflow-hidden">
+                                <div
+                                    class="h-4 w-full overflow-hidden rounded-full border-2 border-slate-900 bg-slate-950 p-0.5"
+                                >
                                     <div
-                                        :style="{ width: `${getProgressPercentage(achievement)}%` }"
-                                        class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 transition-all duration-500 shadow-[0_0_8px_rgba(52,211,153,0.3)]"
+                                        :style="{
+                                            width: `${getProgressPercentage(achievement)}%`,
+                                        }"
+                                        class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-green-500 shadow-[0_0_8px_rgba(52,211,153,0.3)] transition-all duration-500"
                                     ></div>
                                 </div>
                             </div>
@@ -349,7 +453,6 @@ const triggerCelebration = (achievement: Achievement) => {
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 </template>

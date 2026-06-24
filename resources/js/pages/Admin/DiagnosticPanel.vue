@@ -67,8 +67,8 @@ onMounted(() => {
         connectionHistory.value.push(activeConnections.value);
 
         if (connectionHistory.value.length > 10) {
-connectionHistory.value.shift();
-}
+            connectionHistory.value.shift();
+        }
 
         // Queue load changes
         const queueChange = Math.floor(Math.random() * 2) - 0.5;
@@ -79,8 +79,8 @@ connectionHistory.value.shift();
         queueLoadHistory.value.push(currentQueueLoad.value);
 
         if (queueLoadHistory.value.length > 10) {
-queueLoadHistory.value.shift();
-}
+            queueLoadHistory.value.shift();
+        }
 
         // Latency drift changes
         const latencyChange = Math.random() * 40 - 20;
@@ -90,8 +90,8 @@ queueLoadHistory.value.shift();
         latencyHistory.value.push(currentLatencyDrift.value);
 
         if (latencyHistory.value.length > 10) {
-latencyHistory.value.shift();
-}
+            latencyHistory.value.shift();
+        }
 
         // DB latency fluctuation
         currentDbLatency.value = parseFloat(
@@ -129,8 +129,8 @@ const mascotState = computed(() => {
 // Helpers to draw quick inline sparkline graphs
 const getSparklinePath = (data: number[], maxVal: number) => {
     if (data.length === 0) {
-return '';
-}
+        return '';
+    }
 
     const width = 180;
     const height = 40;

@@ -14,8 +14,8 @@ let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
     if (!canvasRef.value) {
-return;
-}
+        return;
+    }
 
     const src = '/assets/animations/streak_flame.riv';
 

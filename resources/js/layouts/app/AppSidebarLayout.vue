@@ -27,23 +27,19 @@ const tenantId = page.props.auth?.user?.tenant_id;
 const channelName = tenantId ? `tenant.${tenantId}` : '';
 
 if (channelName) {
-    useEcho(
-        channelName,
-        'WebhookReceived',
-        (e: any) => {
-            if (!tenantId) return;
-            callStore.recentWebhookEvents.unshift({
-                event_id: e.eventId,
-                event: e.event,
-                is_duplicate: e.isDuplicate,
-                timestamp: e.timestamp,
-                url: `/api/webhooks/call-events/${tenantId}`,
-            });
-            if (callStore.recentWebhookEvents.length > 20) {
-                callStore.recentWebhookEvents.pop();
-            }
+    useEcho(channelName, 'WebhookReceived', (e: any) => {
+        if (!tenantId) return;
+        callStore.recentWebhookEvents.unshift({
+            event_id: e.eventId,
+            event: e.event,
+            is_duplicate: e.isDuplicate,
+            timestamp: e.timestamp,
+            url: `/api/webhooks/call-events/${tenantId}`,
+        });
+        if (callStore.recentWebhookEvents.length > 20) {
+            callStore.recentWebhookEvents.pop();
         }
-    );
+    });
 }
 
 // Listen to Vapi speech events when client updates
@@ -64,7 +60,8 @@ watch(
             };
             const onMessage = (message: any) => {
                 if (message.type === 'transcript') {
-                    const sender = message.role === 'user' ? 'Customer' : 'Assistant';
+                    const sender =
+                        message.role === 'user' ? 'Customer' : 'Assistant';
                     callStore.transcript = `${sender}: ${message.transcript}`;
                 }
             };
@@ -80,7 +77,7 @@ watch(
             };
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 // Listen to Retell speech events when client updates
@@ -116,7 +113,7 @@ watch(
             };
         }
     },
-    { immediate: true }
+    { immediate: true },
 );
 
 onBeforeUnmount(() => {

@@ -156,8 +156,8 @@ const stats = ref({
 // Dynamic booking success rate calculation (Psi)
 const successRate = computed(() => {
     if (stats.value.calls === 0) {
-return 0;
-}
+        return 0;
+    }
 
     return Math.round((stats.value.success / stats.value.calls) * 100);
 });
@@ -414,18 +414,22 @@ if (props.tenant) {
         });
     });
 
-    useEcho(`tenant.${props.tenant.id}`, 'WebRtcTelemetryUpdated', (payload: any) => {
-        if (
-            activeCall.value &&
-            activeCall.value.call_id === payload.callId
-        ) {
-            activeCall.value.telemetry = {
-                jitter: payload.jitter,
-                latency: payload.latency,
-                packetLoss: payload.packetLoss,
-            };
-        }
-    });
+    useEcho(
+        `tenant.${props.tenant.id}`,
+        'WebRtcTelemetryUpdated',
+        (payload: any) => {
+            if (
+                activeCall.value &&
+                activeCall.value.call_id === payload.callId
+            ) {
+                activeCall.value.telemetry = {
+                    jitter: payload.jitter,
+                    latency: payload.latency,
+                    packetLoss: payload.packetLoss,
+                };
+            }
+        },
+    );
 }
 
 // Watch props.bookings to sync liveBookings list on direct Inertia requests
@@ -1443,23 +1447,77 @@ const shiftValidation = computed(() => {
                                         </div>
 
                                         <!-- WebRTC Telemetry Live Diagnostics -->
-                                        <div v-if="activeCall.telemetry" class="grid grid-cols-3 gap-2 border-b pb-2 text-center text-[10px]">
-                                            <div class="rounded bg-slate-950/40 p-1 border border-slate-900">
-                                                <span class="block text-[8px] tracking-wider text-slate-400 uppercase">Jitter</span>
-                                                <span class="font-mono font-bold" :class="activeCall.telemetry.jitter > 30 ? 'text-red-400' : 'text-emerald-400'">
-                                                    {{ activeCall.telemetry.jitter.toFixed(1) }}ms
+                                        <div
+                                            v-if="activeCall.telemetry"
+                                            class="grid grid-cols-3 gap-2 border-b pb-2 text-center text-[10px]"
+                                        >
+                                            <div
+                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                            >
+                                                <span
+                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    >Jitter</span
+                                                >
+                                                <span
+                                                    class="font-mono font-bold"
+                                                    :class="
+                                                        activeCall.telemetry
+                                                            .jitter > 30
+                                                            ? 'text-red-400'
+                                                            : 'text-emerald-400'
+                                                    "
+                                                >
+                                                    {{
+                                                        activeCall.telemetry.jitter.toFixed(
+                                                            1,
+                                                        )
+                                                    }}ms
                                                 </span>
                                             </div>
-                                            <div class="rounded bg-slate-950/40 p-1 border border-slate-900">
-                                                <span class="block text-[8px] tracking-wider text-slate-400 uppercase">Latency</span>
-                                                <span class="font-mono font-bold" :class="activeCall.telemetry.latency > 250 ? 'text-red-400' : 'text-emerald-400'">
-                                                    {{ activeCall.telemetry.latency.toFixed(0) }}ms
+                                            <div
+                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                            >
+                                                <span
+                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    >Latency</span
+                                                >
+                                                <span
+                                                    class="font-mono font-bold"
+                                                    :class="
+                                                        activeCall.telemetry
+                                                            .latency > 250
+                                                            ? 'text-red-400'
+                                                            : 'text-emerald-400'
+                                                    "
+                                                >
+                                                    {{
+                                                        activeCall.telemetry.latency.toFixed(
+                                                            0,
+                                                        )
+                                                    }}ms
                                                 </span>
                                             </div>
-                                            <div class="rounded bg-slate-950/40 p-1 border border-slate-900">
-                                                <span class="block text-[8px] tracking-wider text-slate-400 uppercase">Loss</span>
-                                                <span class="font-mono font-bold" :class="activeCall.telemetry.packetLoss > 2 ? 'text-red-400' : 'text-emerald-400'">
-                                                    {{ activeCall.telemetry.packetLoss.toFixed(1) }}%
+                                            <div
+                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                            >
+                                                <span
+                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    >Loss</span
+                                                >
+                                                <span
+                                                    class="font-mono font-bold"
+                                                    :class="
+                                                        activeCall.telemetry
+                                                            .packetLoss > 2
+                                                            ? 'text-red-400'
+                                                            : 'text-emerald-400'
+                                                    "
+                                                >
+                                                    {{
+                                                        activeCall.telemetry.packetLoss.toFixed(
+                                                            1,
+                                                        )
+                                                    }}%
                                                 </span>
                                             </div>
                                         </div>

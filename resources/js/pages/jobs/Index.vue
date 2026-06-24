@@ -126,12 +126,12 @@ const filteredJobs = computed(() => {
         if (techFilter.value) {
             if (techFilter.value === 'unassigned') {
                 if (job.employee_id !== null) {
-return false;
-}
+                    return false;
+                }
             } else {
                 if (job.employee_id?.toString() !== techFilter.value) {
-return false;
-}
+                    return false;
+                }
             }
         }
 
