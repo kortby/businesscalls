@@ -81,6 +81,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::resource('employees', EmployeeController::class);
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
+    Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
 });
 
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
