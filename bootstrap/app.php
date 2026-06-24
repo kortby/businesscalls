@@ -25,6 +25,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/webhooks/sms/*',
             'api/webhooks/ivr',
             'api/webhooks/ivr/*',
+            'api/webhooks/ivr-keypress',
+            'api/webhooks/ivr-keypress/*',
             'api/mcp',
         ]);
 

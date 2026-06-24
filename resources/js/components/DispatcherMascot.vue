@@ -6,9 +6,11 @@ const props = withDefaults(
     defineProps<{
         state: number; // 0 = Idle, 1 = Searching, 2 = Victory, 3 = Error
         isSpeaking?: boolean;
+        amplitude?: number;
     }>(),
     {
         isSpeaking: false,
+        amplitude: 0,
     }
 );
 
@@ -176,28 +178,32 @@ onBeforeUnmount(() => {
                 <!-- State 0: Idle (Friendly wide open eyes) -->
                 <g v-if="state === 0">
                     <!-- Left Eye -->
-                    <circle
-                        cx="38"
-                        cy="42"
-                        r="9"
-                        fill="white"
-                        stroke="#047857"
-                        stroke-width="2.5"
-                    />
-                    <circle cx="39" cy="42" r="4.5" fill="#111827" />
-                    <circle cx="41" cy="40" r="1.8" fill="white" />
+                    <g :style="{ transform: `scale(${1 - amplitude * 0.15})`, transformOrigin: '38px 42px' }">
+                        <circle
+                            cx="38"
+                            cy="42"
+                            r="9"
+                            fill="white"
+                            stroke="#047857"
+                            stroke-width="2.5"
+                        />
+                        <circle cx="39" cy="42" r="4.5" fill="#111827" />
+                        <circle cx="41" cy="40" r="1.8" fill="white" />
+                    </g>
 
                     <!-- Right Eye -->
-                    <circle
-                        cx="62"
-                        cy="42"
-                        r="9"
-                        fill="white"
-                        stroke="#047857"
-                        stroke-width="2.5"
-                    />
-                    <circle cx="61" cy="42" r="4.5" fill="#111827" />
-                    <circle cx="63" cy="40" r="1.8" fill="white" />
+                    <g :style="{ transform: `scale(${1 - amplitude * 0.15})`, transformOrigin: '62px 42px' }">
+                        <circle
+                            cx="62"
+                            cy="42"
+                            r="9"
+                            fill="white"
+                            stroke="#047857"
+                            stroke-width="2.5"
+                        />
+                        <circle cx="61" cy="42" r="4.5" fill="#111827" />
+                        <circle cx="63" cy="40" r="1.8" fill="white" />
+                    </g>
 
                     <!-- Speaking Beak/Mouth -->
                     <ellipse
@@ -209,7 +215,8 @@ onBeforeUnmount(() => {
                         fill="#EF4444"
                         stroke="#D97706"
                         stroke-width="1.5"
-                        class="animate-pulse"
+                        :style="{ transform: `scaleY(${1 + amplitude * 1.5})`, transformOrigin: '50px 51px' }"
+                        class="transition-transform duration-75 ease-out"
                     />
                     <!-- Cute Beak/Smile -->
                     <polygon

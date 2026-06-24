@@ -37,9 +37,20 @@ class IvrController extends Controller
         // Apply tenant scope context
         TenantScope::setTenantId($tenant->id);
 
-        // 2. Extract digit/DTMF and call ID
-        $callId = $request->input('call_id') ?? $request->input('call.id') ?? 'unknown_call';
-        $digit = $request->input('digit') ?? $request->input('dtmf') ?? $request->input('key');
+        // 2. Extract digit/DTMF, call ID and tool call ID
+        $callId = $request->input('call_id')
+            ?? $request->input('call.id')
+            ?? $request->input('message.call.id')
+            ?? 'unknown_call';
+
+        $digit = $request->input('digit')
+            ?? $request->input('dtmf')
+            ?? $request->input('key')
+            ?? $request->input('message.toolCalls.0.function.arguments.digit')
+            ?? $request->input('message.toolCall.function.arguments.digit');
+
+        $toolCallId = $request->input('message.toolCalls.0.id')
+            ?? $request->input('message.toolCall.id');
 
         if ($digit === null) {
             return response()->json(['error' => 'Digit / DTMF payload is missing.'], 400);
@@ -71,14 +82,27 @@ class IvrController extends Controller
                 Cache::forget($cacheKey);
             }
 
-            return response()->json([
+            $resultData = [
                 'success' => true,
                 'digits_pressed' => $digits,
                 'action' => $route['action'],
                 'destination_agent_id' => $route['agent_id'] ?? null,
                 'menu' => $route['menu'] ?? null,
                 'detection_delay_ms' => $detectionDelayMs,
-            ]);
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $resultData,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($resultData);
         }
 
         // If no match yet but there are routes starting with the sequence, keep waiting
@@ -94,19 +118,45 @@ class IvrController extends Controller
             // No potential match, reset digits sequence
             Cache::forget($cacheKey);
 
-            return response()->json([
+            $resultData = [
                 'success' => true,
                 'digits_pressed' => $digits,
                 'action' => 'none',
                 'detection_delay_ms' => $detectionDelayMs,
-            ]);
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $resultData,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($resultData);
         }
 
-        return response()->json([
+        $resultData = [
             'success' => true,
             'digits_pressed' => $digits,
             'action' => 'collecting',
             'detection_delay_ms' => $detectionDelayMs,
-        ]);
+        ];
+
+        if ($toolCallId) {
+            return response()->json([
+                'results' => [
+                    [
+                        'toolCallId' => $toolCallId,
+                        'result' => $resultData,
+                    ],
+                ],
+            ]);
+        }
+
+        return response()->json($resultData);
     }
 }

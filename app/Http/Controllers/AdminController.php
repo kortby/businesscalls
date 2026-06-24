@@ -344,4 +344,20 @@ class AdminController extends Controller
             'totalCampaigns' => $totalCampaigns,
         ]);
     }
+
+    /**
+     * Display the playful animated Live Dispatch Map (Duolingo style UI).
+     */
+    public function dispatchMap(): Response
+    {
+        $bookings = Booking::with('employee')->latest()->get();
+        $calls = CallLog::latest()->take(10)->get();
+        $technicians = Employee::with('user')->get();
+
+        return Inertia::render('Admin/LiveDispatchMap', [
+            'bookings' => $bookings,
+            'calls' => $calls,
+            'technicians' => $technicians,
+        ]);
+    }
 }

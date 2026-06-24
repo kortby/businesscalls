@@ -14,6 +14,7 @@ export interface CallStore {
     vapiClient: any | null;
     retellClient: any | null;
     recentWebhookEvents: WebhookEvent[];
+    amplitude: number;
 }
 
 export const callStore = reactive<CallStore>({
@@ -22,4 +23,5 @@ export const callStore = reactive<CallStore>({
     vapiClient: null,
     retellClient: null,
     recentWebhookEvents: [],
+    amplitude: 0,
 });

@@ -19,6 +19,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import BargeControls from '@/components/BargeControls.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import { callStore } from '@/lib/store';
 import StreakFlame from '@/components/StreakFlame.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -1360,7 +1361,11 @@ const shiftValidation = computed(() => {
                             <div
                                 class="aspect-square w-full max-w-[260px] rounded-xl border bg-accent/35 p-2 md:w-1/2"
                             >
-                                <DispatcherMascot :state="mascotState" />
+                                <DispatcherMascot
+                                    :state="mascotState"
+                                    :is-speaking="callStore.isSpeaking"
+                                    :amplitude="callStore.amplitude"
+                                />
                             </div>
                             <div
                                 class="flex w-full flex-col justify-center gap-3 md:w-1/2"

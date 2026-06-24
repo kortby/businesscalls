@@ -28,6 +28,7 @@ Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware(
 Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'])->name('webhook.sms')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr-keypress')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::match(['get', 'post'], '/mcp', [McpController::class, 'handle'])->name('mcp.server');
 Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class]);
 Route::put('/bookings/{booking}/status', [BookingStatusController::class, 'update'])->middleware('auth:sanctum');

@@ -133,6 +133,99 @@ const stopTelemetryCollection = () => {
     }
 };
 
+let audioCtx: AudioContext | null = null;
+let analyser: AnalyserNode | null = null;
+let dataArray: Uint8Array | null = null;
+let animationFrameId: number | null = null;
+let simAudioInterval: any = null;
+
+const startAudioPolling = (vapiInst: any, isSimulated = false) => {
+    stopAudioPolling();
+
+    if (isSimulated) {
+        simAudioInterval = setInterval(() => {
+            if (Math.random() < 0.3) {
+                callStore.isSpeaking = !callStore.isSpeaking;
+            }
+            if (callStore.isSpeaking) {
+                callStore.amplitude = 0.15 + Math.random() * 0.45;
+            } else {
+                callStore.amplitude = 0;
+            }
+        }, 150);
+        return;
+    }
+
+    let attempts = 0;
+    const interval = setInterval(() => {
+        attempts++;
+        if (attempts > 100 || !vapiInst) {
+            clearInterval(interval);
+            return;
+        }
+
+        const dailyCall = typeof vapiInst.getDailyCallObject === 'function'
+            ? vapiInst.getDailyCallObject()
+            : (vapiInst.daily || null);
+
+        if (dailyCall) {
+            clearInterval(interval);
+            
+            dailyCall.on('track-started', (event: any) => {
+                if (event.participant && !event.participant.local && event.track && event.track.kind === 'audio') {
+                    try {
+                        if (!audioCtx) {
+                            audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                        }
+                        const source = audioCtx.createMediaStreamSource(new MediaStream([event.track]));
+                        analyser = audioCtx.createAnalyser();
+                        analyser.fftSize = 256;
+                        source.connect(analyser);
+                        dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        
+                        const updateAmplitude = () => {
+                            if (analyser && dataArray) {
+                                analyser.getByteTimeDomainData(dataArray);
+                                let sum = 0;
+                                for (let i = 0; i < dataArray.length; i++) {
+                                    const v = (dataArray[i] - 128) / 128;
+                                    sum += v * v;
+                                }
+                                const rms = Math.sqrt(sum / dataArray.length);
+                                callStore.amplitude = rms;
+                                callStore.isSpeaking = rms > 0.03;
+                            }
+                            animationFrameId = requestAnimationFrame(updateAmplitude);
+                        };
+                        updateAmplitude();
+                    } catch (e) {
+                        console.error('Audio extraction context initialization failed:', e);
+                    }
+                }
+            });
+        }
+    }, 100);
+};
+
+const stopAudioPolling = () => {
+    if (simAudioInterval) {
+        clearInterval(simAudioInterval);
+        simAudioInterval = null;
+    }
+    if (animationFrameId) {
+        cancelAnimationFrame(animationFrameId);
+        animationFrameId = null;
+    }
+    if (audioCtx) {
+        audioCtx.close().catch(() => {});
+        audioCtx = null;
+    }
+    analyser = null;
+    dataArray = null;
+    callStore.amplitude = 0;
+    callStore.isSpeaking = false;
+};
+
 const initiateOverride = async (mode: 'monitor' | 'barge') => {
     connectionStatus.value = 'connecting';
     modeState.value = mode === 'barge' ? 'barging' : 'monitoring';
@@ -172,6 +265,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
                 startTelemetryCollection(props.activeCall.call_id, 'simulated');
+                startAudioPolling(null, true);
             }, 1000);
 
             return;
@@ -187,6 +281,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
                 startTelemetryCollection(props.activeCall.call_id, 'retell');
+                startAudioPolling(null, true);
             });
 
             retellInstance.on('call_ended', () => {
@@ -212,6 +307,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
                 connectionStatus.value = 'connected';
                 emit('barge_initiated', { mode: activeMode });
                 startTelemetryCollection(props.activeCall.call_id, 'vapi');
+                startAudioPolling(vapiInstance, false);
             });
 
             vapiInstance.on('call-end', () => {
@@ -251,12 +347,14 @@ const stopOverride = () => {
 
 const cleanupOverride = () => {
     stopTelemetryCollection();
+    stopAudioPolling();
     vapiInstance = null;
     retellInstance = null;
     callStore.vapiClient = null;
     callStore.retellClient = null;
     callStore.isSpeaking = false;
     callStore.transcript = '';
+    callStore.amplitude = 0;
     modeState.value = 'idle';
     connectionStatus.value = 'disconnected';
     emit('barge_ended');
