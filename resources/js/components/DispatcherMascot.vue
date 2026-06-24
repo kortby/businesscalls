@@ -2,14 +2,21 @@
 import * as Rive from '@rive-app/webgl';
 import { ref, onMounted, onBeforeUnmount, watch } from 'vue';
 
-const props = defineProps<{
-    state: number; // 0 = Idle, 1 = Searching, 2 = Victory, 3 = Error
-}>();
+const props = withDefaults(
+    defineProps<{
+        state: number; // 0 = Idle, 1 = Searching, 2 = Victory, 3 = Error
+        isSpeaking?: boolean;
+    }>(),
+    {
+        isSpeaking: false,
+    }
+);
 
 const canvasRef = ref<HTMLCanvasElement | null>(null);
 const hasRiveLoaded = ref(false);
 let rInstance: Rive.Rive | null = null;
 let stateTriggerInput: Rive.StateMachineInput | null = null;
+let speakingInput: Rive.StateMachineInput | null = null;
 let resizeObserver: ResizeObserver | null = null;
 
 onMounted(async () => {
@@ -55,6 +62,15 @@ return;
                         stateTriggerInput = trigger;
                         stateTriggerInput.value = props.state;
                     }
+
+                    const speaking = inputs.find(
+                        (i) => i.name === 'is_speaking' || i.name === 'speaking' || i.name === 'active_speech' || i.name === 'talk' || i.name === 'isSpeaking',
+                    );
+
+                    if (speaking) {
+                        speakingInput = speaking;
+                        speakingInput.value = props.isSpeaking;
+                    }
                 }
             },
             onLoadError: () => {
@@ -78,6 +94,16 @@ watch(
     (newVal) => {
         if (stateTriggerInput) {
             stateTriggerInput.value = newVal;
+        }
+    },
+);
+
+// Watch the isSpeaking prop to animate speech on Rive mascot
+watch(
+    () => props.isSpeaking,
+    (newVal) => {
+        if (speakingInput) {
+            speakingInput.value = newVal;
         }
     },
 );
@@ -173,8 +199,21 @@ onBeforeUnmount(() => {
                     <circle cx="61" cy="42" r="4.5" fill="#111827" />
                     <circle cx="63" cy="40" r="1.8" fill="white" />
 
+                    <!-- Speaking Beak/Mouth -->
+                    <ellipse
+                        v-if="isSpeaking"
+                        cx="50"
+                        cy="51"
+                        rx="4.5"
+                        ry="6.5"
+                        fill="#EF4444"
+                        stroke="#D97706"
+                        stroke-width="1.5"
+                        class="animate-pulse"
+                    />
                     <!-- Cute Beak/Smile -->
                     <polygon
+                        v-else
                         points="50,48 46,54 54,54"
                         fill="#F59E0B"
                         stroke="#D97706"
@@ -380,9 +419,9 @@ onBeforeUnmount(() => {
                     <circle
                         cx="43"
                         cy="62"
-                        r="2.5"
+                        :r="isSpeaking ? '4.5' : '2.5'"
                         fill="#EF4444"
-                        class="animate-pulse"
+                        :class="[isSpeaking ? 'animate-ping' : 'animate-pulse']"
                     />
                 </g>
             </svg>

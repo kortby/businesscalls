@@ -34,4 +34,21 @@ return [
             'w3' => 0.4,
         ],
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Telephony Security Allowlist & Custom Credentials
+    |--------------------------------------------------------------------------
+    |
+    | Allowlist of trusted static IP addresses from our voice carriers,
+    | and credentials for fallback token verification.
+    |
+    */
+    'allowlist' => [
+        '100.20.5.228',
+        '127.0.0.1',
+        '::1',
+    ],
+
+    'client_credentials' => env('TELEPHONY_CLIENT_CREDENTIALS', 'vapi-secret-key-123'),
 ];

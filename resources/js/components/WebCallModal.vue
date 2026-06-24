@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Phone, PhoneOff, Mic, MicOff, Volume2 } from '@lucide/vue';
 import { ref, watch, onBeforeUnmount } from 'vue';
+import { callStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -63,6 +64,7 @@ const startCall = async () => {
         if (provider === 'retell') {
             const { RetellWebClient } = await import('retell-client-js-sdk');
             retellInstance = new RetellWebClient();
+            callStore.retellClient = retellInstance;
 
             retellInstance.on('call_started', () => {
                 callStatus.value = 'connected';
@@ -91,6 +93,7 @@ const startCall = async () => {
             // Default to Vapi
             const Vapi = (await import('@vapi-ai/web')).default;
             vapiInstance = new Vapi(access_token);
+            callStore.vapiClient = vapiInstance;
 
             vapiInstance.on('call-start', () => {
                 callStatus.value = 'connected';
@@ -147,6 +150,10 @@ const endCall = () => {
 const cleanupCall = () => {
     vapiInstance = null;
     retellInstance = null;
+    callStore.vapiClient = null;
+    callStore.retellClient = null;
+    callStore.isSpeaking = false;
+    callStore.transcript = '';
 };
 
 const toggleMute = () => {

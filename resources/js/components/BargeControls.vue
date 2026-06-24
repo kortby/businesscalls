@@ -8,6 +8,7 @@ import {
     CheckCircle,
 } from '@lucide/vue';
 import { ref, onBeforeUnmount } from 'vue';
+import { callStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 
@@ -80,6 +81,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
         if (provider === 'retell') {
             const { RetellWebClient } = await import('retell-client-js-sdk');
             retellInstance = new RetellWebClient();
+            callStore.retellClient = retellInstance;
 
             retellInstance.on('call_started', () => {
                 connectionStatus.value = 'connected';
@@ -103,6 +105,7 @@ const initiateOverride = async (mode: 'monitor' | 'barge') => {
             // Vapi
             const Vapi = (await import('@vapi-ai/web')).default;
             vapiInstance = new Vapi(access_token);
+            callStore.vapiClient = vapiInstance;
 
             vapiInstance.on('call-start', () => {
                 connectionStatus.value = 'connected';
@@ -147,6 +150,10 @@ const stopOverride = () => {
 const cleanupOverride = () => {
     vapiInstance = null;
     retellInstance = null;
+    callStore.vapiClient = null;
+    callStore.retellClient = null;
+    callStore.isSpeaking = false;
+    callStore.transcript = '';
     modeState.value = 'idle';
     connectionStatus.value = 'disconnected';
     emit('barge_ended');

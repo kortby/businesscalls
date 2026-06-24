@@ -159,3 +159,66 @@ test('call completion webhook calculates CQS and parses voicemail', function () 
     //     = 0.3 * 0.9 + 0.27 + 0.4 = 0.27 + 0.27 + 0.4 = 0.94
     expect($callLog->call_quality_score)->toBe(0.94);
 });
+
+test('RestrictToTelephonyIps allowlists static carrier IPs and validates fallback bearer token custom credentials', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    config(['telephony.allowlist' => ['100.20.5.228']]);
+    config(['telephony.client_credentials' => 'trusted-token-999']);
+
+    // 1. IP is not allowlisted, no bearer token -> 403
+    $response1 = $this->withServerVariables(['REMOTE_ADDR' => '192.168.10.10'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => ['call_id' => 'ip-auth-1', 'customer_phone_number' => '+15550009999'],
+        ]);
+    $response1->assertStatus(403);
+
+    // 2. IP is not allowlisted, but valid bearer token -> passes RestrictToTelephonyIps
+    $response2 = $this->withServerVariables(['REMOTE_ADDR' => '192.168.10.10'])
+        ->withToken('trusted-token-999')
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => ['call_id' => 'ip-auth-2', 'customer_phone_number' => '+15550009999'],
+        ]);
+    $response2->assertStatus(200);
+
+    // 3. IP is allowlisted -> passes RestrictToTelephonyIps
+    $response3 = $this->withServerVariables(['REMOTE_ADDR' => '100.20.5.228'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => ['call_id' => 'ip-auth-3', 'customer_phone_number' => '+15550009999'],
+        ]);
+    $response3->assertStatus(200);
+});
+
+test('EnsureWebhookIdempotency middleware intercepts duplicate concurrent requests and returns cached results', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    config(['telephony.allowlist' => ['100.20.5.228']]);
+
+    // Send first request
+    $response1 = $this->withServerVariables(['REMOTE_ADDR' => '100.20.5.228'])
+        ->withHeaders(['X-Signature' => 'unique-sig-123456'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => ['call_id' => 'idempotent-call-777', 'customer_phone_number' => '+15550009999'],
+        ]);
+    $response1->assertStatus(200);
+
+    // Verify DB count
+    $callLogsCount = CallLog::where('call_id', 'idempotent-call-777')->count();
+    expect($callLogsCount)->toBe(1);
+
+    // Send duplicate request (same signature header)
+    $response2 = $this->withServerVariables(['REMOTE_ADDR' => '100.20.5.228'])
+        ->withHeaders(['X-Signature' => 'unique-sig-123456'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => ['call_id' => 'idempotent-call-777', 'customer_phone_number' => '+15550009999'],
+        ]);
+    $response2->assertStatus(200);
+    $response2->assertJsonFragment(['success' => true]);
+
+    // Verify DB count has NOT increased
+    $callLogsCountAfter = CallLog::where('call_id', 'idempotent-call-777')->count();
+    expect($callLogsCountAfter)->toBe(1);
+});
