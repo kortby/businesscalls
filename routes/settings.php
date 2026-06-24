@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\StripeBillingController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Settings\TenantSettingsController;
@@ -14,6 +15,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::get('settings/prompt', [TenantSettingsController::class, 'edit'])->name('settings.prompt.edit');
     Route::patch('settings/prompt', [TenantSettingsController::class, 'update'])->name('settings.prompt.update');
+
+    Route::get('settings/billing', [StripeBillingController::class, 'index'])->name('settings.billing.index');
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

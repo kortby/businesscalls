@@ -20,6 +20,10 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/prompt',
     },
     {
+        title: 'Billing',
+        href: '/settings/billing',
+    },
+    {
         title: 'Security',
         href: editSecurity(),
     },

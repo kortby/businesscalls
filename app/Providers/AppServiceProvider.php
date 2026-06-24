@@ -2,11 +2,16 @@
 
 namespace App\Providers;
 
+use App\Events\CallAnalyzed;
+use App\Jobs\SyncCallToCrmJob;
+use App\Models\Tenant;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Cashier\Cashier;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -24,6 +29,15 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         $this->configureDefaults();
+
+        // Configure Cashier
+        Cashier::useCustomerModel(Tenant::class);
+        Cashier::ignoreRoutes();
+
+        // Dispatch CRM sync when a call is analyzed
+        Event::listen(CallAnalyzed::class, function (CallAnalyzed $event) {
+            SyncCallToCrmJob::dispatch($event->callLog);
+        });
     }
 
     /**

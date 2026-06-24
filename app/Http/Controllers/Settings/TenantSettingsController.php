@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Settings;
 
 use App\Http\Controllers\Controller;
+use App\Models\AuditLog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -37,7 +38,7 @@ class TenantSettingsController extends Controller
             'pricing_list' => ['nullable', 'array'],
         ]);
 
-        $settings = $tenant->settings ?? [];
+        $oldSettings = $tenant->settings ?? [];
 
         $settings['ai_prompt'] = $validated['ai_prompt'];
         $settings['emergency_fee'] = $validated['emergency_fee'];
@@ -49,6 +50,18 @@ class TenantSettingsController extends Controller
 
         $tenant->settings = $settings;
         $tenant->save();
+
+        AuditLog::create([
+            'tenant_id' => $tenant->id,
+            'user_id' => $request->user()->id,
+            'action' => 'prompt_changed',
+            'ip_address' => $request->ip(),
+            'browser_agent' => $request->userAgent(),
+            'payload' => [
+                'old' => $oldSettings,
+                'new' => $settings,
+            ],
+        ]);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => __('AI Prompt and pricing settings updated.')]);
 

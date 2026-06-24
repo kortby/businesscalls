@@ -20,6 +20,28 @@ class Employee extends Model
     use BelongsToTenant, HasAttributeCasts, HasFactory;
 
     /**
+     * Boot model and register event listeners.
+     */
+    protected static function booted(): void
+    {
+        static::deleted(function (Employee $employee) {
+            $user = auth()->user();
+            AuditLog::create([
+                'tenant_id' => $employee->tenant_id,
+                'user_id' => $user?->id,
+                'action' => 'technician_removed',
+                'ip_address' => request()->ip() ?: '127.0.0.1',
+                'browser_agent' => request()->userAgent() ?: 'System/CLI',
+                'payload' => [
+                    'id' => $employee->id,
+                    'name' => "{$employee->first_name} {$employee->last_name}",
+                    'phone' => $employee->phone,
+                ],
+            ]);
+        });
+    }
+
+    /**
      * Get the tenant that owns the employee.
      */
     public function tenant(): BelongsTo

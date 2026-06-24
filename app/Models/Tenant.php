@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Laravel\Cashier\Billable;
 
 #[Table('tenants')]
-#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key')]
+#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at')]
 #[Casts(['settings' => 'array'])]
 class Tenant extends Model
 {
-    use HasAttributeCasts, HasFactory;
+    use Billable, HasAttributeCasts, HasFactory;
 
     /**
      * Get a setting by key.

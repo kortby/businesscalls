@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, computed, watch } from 'vue';
-import { Head, usePage, useForm, router } from '@inertiajs/vue3';
+import { Head, usePage, useForm, router, Link } from '@inertiajs/vue3';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import StreakFlame from '@/components/StreakFlame.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
@@ -942,7 +942,19 @@ const shiftValidation = computed(() => {
                 </Card>
 
                 <!-- Active Technicians Dispatch Center -->
-                <Card class="shadow-sm">
+                <Card class="shadow-sm relative">
+                    <!-- Lock Overlay -->
+                    <div v-if="tenant?.settings?.dispatch_locked" class="absolute inset-0 bg-slate-900/60 backdrop-blur-xs rounded-xl flex flex-col items-center justify-center text-center p-6 z-50">
+                        <div class="bg-card border-3 border-rose-500 rounded-2xl p-6 max-w-sm shadow-xl space-y-4">
+                            <XCircle class="h-12 w-12 text-rose-500 mx-auto animate-bounce" />
+                            <h3 class="text-lg font-black text-slate-950 dark:text-white uppercase tracking-tight">Dispatch Panel Locked</h3>
+                            <p class="text-xs text-muted-foreground font-semibold">Your recent subscription payment failed. Please update your payment method to unlock scheduling services.</p>
+                            <Link href="/settings/billing" class="inline-block bg-rose-500 hover:bg-rose-400 text-white font-black tracking-wide uppercase px-6 py-2.5 rounded-xl border-2 border-rose-500 border-b-4 border-rose-700 hover:border-rose-600 active:border-b-0 cursor-pointer transition-all shadow-md text-xs">
+                                Manage Subscription
+                            </Link>
+                        </div>
+                    </div>
+
                     <CardHeader class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b">
                         <div>
                             <CardTitle class="text-xl font-bold uppercase tracking-wider">Technician Dispatch Center</CardTitle>

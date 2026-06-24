@@ -1,8 +1,12 @@
 <?php
 
+use App\Http\Controllers\Api\StripeBillingController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ConversationsController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TechnicianController;
 use App\Models\Booking;
 use App\Models\CallLog;
@@ -71,6 +75,14 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('conversations', [ConversationsController::class, 'index'])->name('conversations.index');
     Route::post('conversations/{conversation}/messages', [ConversationsController::class, 'storeMessage'])->name('conversations.messages.store');
+
+    Route::get('api/billing/portal', [StripeBillingController::class, 'portal'])->name('billing.portal');
+    Route::post('api/billing/checkout', [StripeBillingController::class, 'checkout'])->name('billing.checkout');
+
+    Route::resource('employees', EmployeeController::class);
+    Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
 });
+
+Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');
 
 require __DIR__.'/settings.php';
