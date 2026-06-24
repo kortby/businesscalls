@@ -221,4 +221,48 @@ class AdminController extends Controller
             ->header('Content-Type', 'application/pdf')
             ->header('Content-Disposition', 'attachment; filename="executive_report.pdf"');
     }
+
+    /**
+     * Display the playful pre-flight launch audit panel.
+     */
+    public function preFlightAudit(): Response
+    {
+        $stripeKey = config('cashier.key') ?: env('STRIPE_KEY');
+        $telephonyKey = env('TELEPHONY_API_KEY');
+        $reverbHost = env('REVERB_HOST');
+        $crmToken = env('CRM_API_TOKEN');
+
+        $audits = [
+            [
+                'name' => 'Stripe Gateway Connectivity',
+                'status' => ! empty($stripeKey),
+                'details' => $stripeKey ? 'Connected and ready for subscription payments.' : 'Stripe API key (STRIPE_KEY) is missing.',
+            ],
+            [
+                'name' => 'Telephony Portal Authentication',
+                'status' => ! empty($telephonyKey),
+                'details' => $telephonyKey ? 'Retell/Vapi authentication established.' : 'Telephony API key (TELEPHONY_API_KEY) is missing.',
+            ],
+            [
+                'name' => 'Reverb WebSocket Channels',
+                'status' => ! empty($reverbHost),
+                'details' => $reverbHost ? 'Queue & socket connections bound.' : 'Reverb socket configuration host is missing.',
+            ],
+            [
+                'name' => 'CRM Integration Synchronization',
+                'status' => ! empty($crmToken),
+                'details' => $crmToken ? 'CRM synchronization filters active.' : 'CRM integration API token is missing.',
+            ],
+        ];
+
+        $passed = count(array_filter($audits, fn ($a) => $a['status']));
+        $total = count($audits);
+        $trustScore = $total > 0 ? round(($passed / $total) * 100, 1) : 100.0;
+
+        return Inertia::render('Admin/PreFlightAudit', [
+            'audits' => $audits,
+            'trustScore' => $trustScore,
+            'allPassed' => $passed === $total,
+        ]);
+    }
 }

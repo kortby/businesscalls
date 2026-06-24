@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Attributes\Queue;
 use App\Models\Booking;
+use App\Models\CustomVoice;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\Interruptible;
@@ -84,6 +85,10 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                 $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
                 $assistantId = $tenant?->getSetting('voice_assistant_id') ?? 'default-assistant-id';
                 $phoneNumberId = $tenant?->getSetting('telephony_phone_number_id');
+                $customVoice = $tenant ? CustomVoice::where('tenant_id', $tenant->id)
+                    ->where('status', 'active')
+                    ->latest()
+                    ->first() : null;
 
                 if ($provider === 'vapi') {
                     $url = 'https://api.vapi.ai/call';
@@ -105,6 +110,12 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                     if ($phoneNumberId) {
                         $payload['phoneNumberId'] = $phoneNumberId;
                     }
+                    if ($customVoice) {
+                        $payload['assistantOverrides']['voice'] = [
+                            'provider' => 'elevenlabs',
+                            'voiceId' => $customVoice->provider_voice_id,
+                        ];
+                    }
                 } else {
                     $url = 'https://api.retellai.com/create-phone-call';
                     $payload = [
@@ -117,6 +128,11 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                             'scheduled_start' => $scheduledStart,
                         ],
                     ];
+                    if ($customVoice) {
+                        $payload['assistant_overrides'] = [
+                            'voice_id' => $customVoice->provider_voice_id,
+                        ];
+                    }
                 }
 
                 $response = Http::withHeaders([

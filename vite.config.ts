@@ -33,6 +33,7 @@ export default defineConfig({
     ],
     build: {
         rollupOptions: {
+            external: [],
             onLog(level, log, handler) {
                 if (log.code === 'INVALID_ANNOTATION') {
                     return;

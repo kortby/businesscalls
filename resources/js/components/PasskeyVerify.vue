@@ -7,6 +7,7 @@ import InputError from '@/components/InputError.vue';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Spinner } from '@/components/ui/spinner';
+import { Capacitor } from '@capacitor/core';
 
 type Props = {
     routes?: {
@@ -33,6 +34,28 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
         router.visit(response.redirect ?? '/dashboard');
     },
 });
+
+const verifyWithBiometrics = async () => {
+    try {
+        const FingerprintAuth = Capacitor.Plugins.FingerprintAuth;
+        if (FingerprintAuth) {
+            const auth = await FingerprintAuth.isAvailable();
+            if (auth.isAvailable) {
+                const result = await FingerprintAuth.didAuthenticate({
+                    title: 'Biometric Authentication',
+                    message: 'Authenticate to access your portal',
+                });
+                if (result) {
+                    verify();
+                    return;
+                }
+            }
+        }
+        verify();
+    } catch (e) {
+        verify();
+    }
+};
 </script>
 
 <template>
@@ -42,7 +65,7 @@ const { verify, isLoading, error, isSupported } = usePasskeyVerify({
                 type="button"
                 variant="outline"
                 class="w-full"
-                @click="verify"
+                @click="verifyWithBiometrics"
                 :disabled="isLoading"
             >
                 <Spinner v-if="isLoading" />

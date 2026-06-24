@@ -17,6 +17,10 @@ beforeEach(function () {
     session()->forget('tenant_id');
 });
 
+afterEach(function () {
+    SendTechnicianAlertJob::$shouldRunInTests = false;
+});
+
 test('str toembeddings macro generates deterministic unit vector', function () {
     $text = 'HVAC unit error code 4';
     $vector = Str::toEmbeddings($text);

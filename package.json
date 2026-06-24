@@ -34,6 +34,9 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@capacitor-community/barcode-scanner": "^4.0.1",
+        "@capacitor/cli": "^8.4.1",
+        "@capacitor/core": "^8.4.1",
         "@inertiajs/vite": "^3.0.0",
         "@inertiajs/vue3": "^3.0.0",
         "@laravel/echo-vue": "^2.3.7",

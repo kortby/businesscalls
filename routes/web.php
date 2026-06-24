@@ -32,6 +32,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/call-flow', [AdminController::class, 'callFlow'])->name('admin.callflow');
     Route::get('admin/reports', [AdminController::class, 'executiveReports'])->name('admin.reports');
     Route::get('admin/executive-report/download', [AdminController::class, 'downloadReport'])->name('admin.report.download');
+    Route::get('admin/pre-flight-audit', [AdminController::class, 'preFlightAudit'])->name('admin.preflight');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

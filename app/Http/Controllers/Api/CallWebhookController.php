@@ -411,6 +411,9 @@ class CallWebhookController extends Controller
 
                     // 2. Multilingual Voice Hot-Swapping
                     $this->handleLanguageHotSwap($callId, $transcriptText, $tenant);
+
+                    // 3. Real-Time Speech Pace & Rate Congruence Engine
+                    $this->handleSpeechPaceAlignment($callId, $transcriptText, $tenant, $request);
                 }
                 break;
 
@@ -507,6 +510,103 @@ class CallWebhookController extends Controller
             }
         } catch (\Exception $e) {
             Log::error("Failed to hot-swap telephony language for Call ID: {$callId}: ".$e->getMessage());
+        }
+    }
+
+    /**
+     * Monitor live transcription turn timestamps, calculate speech rate congruence,
+     * and dynamically patch speaking speed mid-call if pace mismatch occurs.
+     */
+    protected function handleSpeechPaceAlignment(string $callId, string $text, Tenant $tenant, Request $request): void
+    {
+        $words = explode(' ', trim($text));
+        $wordCount = count(array_filter($words));
+
+        if ($wordCount === 0) {
+            return;
+        }
+
+        // Get speaker role or segment type to ensure we only analyze the user/customer, not the agent
+        $role = $request->input('message.transcript.role')
+            ?? $request->input('role')
+            ?? $request->input('speaker')
+            ?? 'user';
+
+        if ($role !== 'user' && $role !== 'customer') {
+            return;
+        }
+
+        $startTime = (float) ($request->input('start_time')
+            ?? $request->input('message.transcript.startTime')
+            ?? $request->input('message.transcript.start')
+            ?? 0.0);
+
+        $endTime = (float) ($request->input('end_time')
+            ?? $request->input('message.transcript.endTime')
+            ?? $request->input('message.transcript.end')
+            ?? 0.0);
+
+        $duration = $endTime - $startTime;
+        if ($duration <= 0.0) {
+            $duration = (float) ($request->input('duration')
+                ?? $request->input('message.transcript.duration')
+                ?? 0.0);
+        }
+
+        $targetPace = 2.0; // Default active assistant speaking pace (words per second)
+
+        // Handle division-by-zero boundary values elegantly under erratic caller pause cycles
+        if ($duration <= 0.0) {
+            $userPace = $targetPace;
+        } else {
+            $userPace = $wordCount / $duration;
+        }
+
+        $maxPace = max($userPace, $targetPace);
+        if ($maxPace <= 0.0) {
+            $congruence = 1.0;
+        } else {
+            $congruence = 1.0 - (abs($userPace - $targetPace) / $maxPace);
+        }
+
+        Log::info("Speech Pace Alignment check: User Pace = {$userPace} W/S, Assistant Pace = {$targetPace} W/S, Congruence = {$congruence}");
+
+        // If mismatch detected (congruence < 0.70), update assistant pace by +/- 15%
+        if ($congruence < 0.70) {
+            // If already adjusted in last 60 seconds, skip to avoid rapid pacing jitter
+            $throttleKey = "speech-pace-adjusted:{$callId}";
+            if (Cache::has($throttleKey)) {
+                return;
+            }
+            Cache::put($throttleKey, true, 60);
+
+            // Speed multiplier: fast speaker -> speed up by +15% (1.15), slow speaker -> slow down by -15% (0.85)
+            $newSpeed = ($userPace > $targetPace) ? 1.15 : 0.85;
+
+            Log::info("Speech pace mismatch detected (Congruence = {$congruence}). Patching assistant speed to {$newSpeed} for Call: {$callId}");
+
+            $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
+            $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
+
+            try {
+                if ($provider === 'vapi') {
+                    Http::withToken($apiKey)->patch("https://api.vapi.ai/call/{$callId}", [
+                        'assistantOverrides' => [
+                            'voice' => [
+                                'speed' => $newSpeed,
+                            ],
+                        ],
+                    ]);
+                } else {
+                    Http::withToken($apiKey)->patch("https://api.retellai.com/v2/calls/{$callId}", [
+                        'assistant_overrides' => [
+                            'speed' => $newSpeed,
+                        ],
+                    ]);
+                }
+            } catch (\Exception $e) {
+                Log::error("Failed to patch speech pace for Call: {$callId}: ".$e->getMessage());
+            }
         }
     }
 }
