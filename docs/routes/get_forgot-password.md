@@ -1,6 +1,6 @@
-# Route: GET /forgot-password
+# API Reference: GET /forgot-password
 
-Renders the password reset request prompt page.
+Show the reset password link request view.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Renders the password reset request prompt page.
 
 ## How it Works
 
-GET: Renders the password recovery view where users input their email address to receive recovery links.
+Processes request triggers.
 
 ## How to Use
 
-Navigate to `/forgot-password` in the web browser.
+Send HTTP request calls.

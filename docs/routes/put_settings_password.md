@@ -1,21 +1,23 @@
-# Route: PUT /settings/password
+# Change Account Password
 
-Update the user's password.
+## Overview
+
+Update your login password.
+
+## How it Works
+
+Validates your old password and saves a new secure hash.
+
+## How to Use
+
+Input your current password, type the new password, and click "Save Password".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/password` |
-| **HTTP Methods** | `PUT` |
+| **URL Path** | `/settings/password` |
+| **HTTP Method** | `PUT` |
 | **Route Name** | `user-password.update` |
-| **Controller Action** | `App\Http\Controllers\Settings\SecurityController@update` |
+| **Action Code** | `App\Http\Controllers\Settings\SecurityController@update` |
 | **Middleware** | `web`, `auth`, `verified`, `throttle:6,1` |
-
-## How it Works
-
-Processes request through the controller action.
-
-## How to Use
-
-Perform an HTTP PUT request with the required payload parameters.

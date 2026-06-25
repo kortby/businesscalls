@@ -1,21 +1,23 @@
-# Route: GET /pricing
+# Subscription Pricing Plans
 
-No description available.
+## Overview
+
+Review active plan options, price structures, and custom feature tiers.
+
+## How it Works
+
+Presents tiered business options (Starter, Professional, Enterprise) and active features like CQS analysis, Reverb channels, and Twilio support.
+
+## How to Use
+
+Navigate to `/pricing` in your web browser to compare plans.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/pricing` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/pricing` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `pricing` |
-| **Controller Action** | `\Inertia\Controller` |
+| **Action Code** | `\Inertia\Controller` |
 | **Middleware** | `web` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

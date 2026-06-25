@@ -1,6 +1,6 @@
-# Route: GET /email/verify
+# API Reference: GET /email/verify
 
-Renders the email verification prompt view.
+Display the email verification prompt.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Renders the email verification prompt view.
 
 ## How it Works
 
-GET: Renders the verification notice requesting the user to confirm their email address before accessing features.
+Processes request triggers.
 
 ## How to Use
 
-Navigate to `/email/verify` in the web browser.
+Send HTTP request calls.

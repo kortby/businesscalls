@@ -1,22 +1,23 @@
-# Route: GET /jobs
+# Service Jobs Board
 
-Display a listing of service jobs with customer and employee lists.
+## Overview
+
+Track active work tickets and job details.
+
+## How it Works
+
+Groups job descriptions, assigned technicians, dates, and billing amounts.
+
+## How to Use
+
+Browse open jobs and monitor status cards from creation to completion.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/jobs` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/jobs` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `jobs.index` |
-| **Controller Action** | `App\Http\Controllers\ServiceJobController@index` |
+| **Action Code** | `App\Http\Controllers\ServiceJobController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `jobs/Index` |
-
-## How it Works
-
-Renders the Inertia SPA view: `jobs/Index`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

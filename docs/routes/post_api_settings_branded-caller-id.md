@@ -1,4 +1,4 @@
-# Route: POST /api/settings/branded-caller-id
+# API Reference: POST /api/settings/branded-caller-id
 
 Submit Branded Caller ID registration details via API.
 
@@ -14,8 +14,8 @@ Submit Branded Caller ID registration details via API.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

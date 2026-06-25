@@ -1,22 +1,23 @@
-# Route: GET /admin/onboarding
+# Interactive Onboarding Guide
 
-Display the onboarding journey quest map.
+## Overview
+
+Interactive step-by-step checklist to configure businesscalls.
+
+## How it Works
+
+Tracks progress through necessary setup steps (Add technician, define shifts, link Twilio).
+
+## How to Use
+
+Complete each item on the quest checklist to move the account from sandbox to live production mode.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/onboarding` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/onboarding` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.onboarding` |
-| **Controller Action** | `App\Http\Controllers\AdminController@onboardingQuest` |
+| **Action Code** | `App\Http\Controllers\AdminController@onboardingQuest` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/OnboardingQuest` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/OnboardingQuest`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

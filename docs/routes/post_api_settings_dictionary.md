@@ -1,4 +1,4 @@
-# Route: POST /api/settings/dictionary
+# API Reference: POST /api/settings/dictionary
 
 Register a new phonetic dictionary entry for the tenant.
 
@@ -14,7 +14,7 @@ Register a new phonetic dictionary entry for the tenant.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## Request Parameters
 
@@ -25,7 +25,7 @@ Processes request through the controller action.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.
 
 ### Example Request Body
 

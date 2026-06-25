@@ -1,4 +1,4 @@
-# Route: GET|POST /broadcasting/auth
+# API Reference: GET|POST /broadcasting/auth
 
 Authenticate the request for channel access.
 
@@ -14,8 +14,8 @@ Authenticate the request for channel access.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP GET|POST request with the required payload parameters.
+Send HTTP request calls.

@@ -1,6 +1,6 @@
-# Route: GET /user/passkeys/options
+# API Reference: GET /user/passkeys/options
 
-Retrieves registration options for passkeys.
+Get passkey registration options for the authenticated user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves registration options for passkeys.
 
 ## How it Works
 
-GET: Generates registration challenge config details.
+Processes request triggers.
 
 ## How to Use
 
-Fetch registration options values.
+Send HTTP request calls.

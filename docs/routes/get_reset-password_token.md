@@ -1,6 +1,6 @@
-# Route: GET /reset-password/{token}
+# API Reference: GET /reset-password/{token}
 
-Renders the password update/reset form.
+Show the new password view.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Renders the password update/reset form.
 
 ## How it Works
 
-GET: Validates the password reset token in the URI and renders the Inertia view to input a new password.
+Processes request triggers.
 
 ## How to Use
 
-Navigate to `/reset-password/{token}` containing the reset token received in the email.
+Send HTTP request calls.

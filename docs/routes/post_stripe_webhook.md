@@ -1,6 +1,6 @@
-# Route: POST /stripe/webhook
+# API Reference: POST /stripe/webhook
 
-Handles incoming Stripe billing events.
+Handle a Stripe webhook call.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Handles incoming Stripe billing events.
 
 ## How it Works
 
-POST: Validates the Stripe webhook signature, routes the event type, and triggers corresponding handlers (such as updating subscriber states).
+Processes request triggers.
 
 ## How to Use
 
-Configured in the Stripe dashboard to forward webhook events.
+Send HTTP request calls.

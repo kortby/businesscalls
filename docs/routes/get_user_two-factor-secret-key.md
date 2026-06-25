@@ -1,6 +1,6 @@
-# Route: GET /user/two-factor-secret-key
+# API Reference: GET /user/two-factor-secret-key
 
-Retrieves the raw text two-factor secret key.
+Get the current user's two factor authentication setup / secret key.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves the raw text two-factor secret key.
 
 ## How it Works
 
-GET: Decrypts and returns the raw secret key for manual OTP enrollment.
+Processes request triggers.
 
 ## How to Use
 
-Retrieve raw key string value for display.
+Send HTTP request calls.

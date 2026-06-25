@@ -1,21 +1,23 @@
-# Route: POST /admin/integrations/timing
+# Save Sync Timing Settings
 
-Save customized speech timing settings.
+## Overview
+
+Configure sync intervals for external CRMs.
+
+## How it Works
+
+Saves cron sync schedules.
+
+## How to Use
+
+Select sync timing frequency (e.g. hourly, daily) and save.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/integrations/timing` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/admin/integrations/timing` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `admin.integrations.timing` |
-| **Controller Action** | `App\Http\Controllers\AdminController@saveTimingSettings` |
+| **Action Code** | `App\Http\Controllers\AdminController@saveTimingSettings` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.

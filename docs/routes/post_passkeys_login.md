@@ -1,6 +1,6 @@
-# Route: POST /passkeys/login
+# API Reference: POST /passkeys/login
 
-Authenticates user login sessions via passkey verification.
+Verify the passkey and log the user in.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Authenticates user login sessions via passkey verification.
 
 ## How it Works
 
-POST: Validates the WebAuthn passkey assertion signature and logs the user in.
+Processes request triggers.
 
 ## How to Use
 
-Sends assertion signature payload.
+Send HTTP request calls.

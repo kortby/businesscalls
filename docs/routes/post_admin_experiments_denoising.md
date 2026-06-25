@@ -1,21 +1,23 @@
-# Route: POST /admin/experiments/denoising
+# Toggle Call Noise Cancellation
 
-Toggle background denoising settings for the tenant.
+## Overview
+
+Enable or disable AI call noise cancellation filters.
+
+## How it Works
+
+Toggles raw audio cleanup processing models.
+
+## How to Use
+
+Click "Toggle Denoising" to enable or disable background audio cleaning.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/experiments/denoising` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/admin/experiments/denoising` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `admin.experiments.denoising` |
-| **Controller Action** | `App\Http\Controllers\AdminController@toggleDenoising` |
+| **Action Code** | `App\Http\Controllers\AdminController@toggleDenoising` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.

@@ -1,6 +1,6 @@
-# Route: POST /passkeys/confirm
+# API Reference: POST /passkeys/confirm
 
-Validates user credentials via passkey signature confirmation.
+Confirm the user's password via passkey verification.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Validates user credentials via passkey signature confirmation.
 
 ## How it Works
 
-POST: Verifies a passkey assertion signature for high-security actions.
+Processes request triggers.
 
 ## How to Use
 
-Sends the WebAuthn signature response payload.
+Send HTTP request calls.

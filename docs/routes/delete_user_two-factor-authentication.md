@@ -1,6 +1,6 @@
-# Route: DELETE /user/two-factor-authentication
+# API Reference: DELETE /user/two-factor-authentication
 
-Disables two-factor authentication for the authenticated user.
+Disable two factor authentication for the user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Disables two-factor authentication for the authenticated user.
 
 ## How it Works
 
-DELETE: Clears the user's two-factor secret key, recovery codes, and deactivates 2FA.
+Processes request triggers.
 
 ## How to Use
 
-Requires password confirmation before disabling.
+Send HTTP request calls.

@@ -1,6 +1,6 @@
-# Route: POST /reset-password
+# API Reference: POST /reset-password
 
-Performs the password reset operation.
+Reset the user's password.
 
 ## Technical Details
 
@@ -14,17 +14,8 @@ Performs the password reset operation.
 
 ## How it Works
 
-POST: Validates the token, email, and new passwords, updates the user's record in the database, and redirects to the login page.
+Processes request triggers.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "token": "secret-reset-token",
-  "email": "user@example.com",
-  "password": "new_password",
-  "password_confirmation": "new_password"
-}
-```
+Send HTTP request calls.

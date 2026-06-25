@@ -1,21 +1,23 @@
-# Route: GET /employees/create
+# Create Technician Form Page
 
-No description available.
+## Overview
+
+Form interface to add new staff members.
+
+## How it Works
+
+Renders the team registration input interface.
+
+## How to Use
+
+Fill out employee contact details and submit.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees/create` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/employees/create` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `employees.create` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@create` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@create` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

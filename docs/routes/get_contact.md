@@ -1,21 +1,23 @@
-# Route: GET /contact
+# Contact & Support Request
 
-No description available.
+## Overview
+
+Send messages or support queries directly to the businesscalls service administrators.
+
+## How it Works
+
+Provides client details form fields to capture name, email, text notes, and logs queries.
+
+## How to Use
+
+Fill out the contact form fields and press "Send Inquiry".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/contact` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/contact` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `contact` |
-| **Controller Action** | `\Inertia\Controller` |
+| **Action Code** | `\Inertia\Controller` |
 | **Middleware** | `web` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

@@ -1,6 +1,6 @@
-# Route: GET /api/user
+# API Reference: GET /api/user
 
-No description available.
+Developer API endpoint.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ No description available.
 
 ## How it Works
 
-Standard routing endpoint.
+Processes request triggers.
 
 ## How to Use
 
-Access via the specified HTTP method.
+Send HTTP request calls.

@@ -1,22 +1,23 @@
-# Route: GET /admin/reports
+# Executive Performance Reports
 
-Display the playful executive reports overview dashboard.
+## Overview
+
+Summarize call activities, booking conversion rates, and metrics.
+
+## How it Works
+
+Generates summaries of call counts, booking rates, and technician performance.
+
+## How to Use
+
+Choose a reporting date range and click "Download Report" to export a PDF summary.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/reports` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/reports` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.reports` |
-| **Controller Action** | `App\Http\Controllers\AdminController@executiveReports` |
+| **Action Code** | `App\Http\Controllers\AdminController@executiveReports` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/ExecutiveReports` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/ExecutiveReports`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

@@ -1,4 +1,4 @@
-# Route: POST /api/settings/specialized-keywords
+# API Reference: POST /api/settings/specialized-keywords
 
 Register specialized trade keywords for the active tenant.
 
@@ -14,7 +14,7 @@ Register specialized trade keywords for the active tenant.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## Request Parameters
 
@@ -25,7 +25,7 @@ Processes request through the controller action.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.
 
 ### Example Request Body
 

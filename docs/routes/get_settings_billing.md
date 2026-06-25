@@ -1,22 +1,23 @@
-# Route: GET /settings/billing
+# Invoice Billing & Card Payments
 
-Show the billing settings view.
+## Overview
+
+Manage Stripe subscription details, billing cards, and checkout.
+
+## How it Works
+
+Connects to the Stripe customer billing portal safely.
+
+## How to Use
+
+View current subscription details, click "Update Payment Method" or "View Invoices" to redirect to Stripe, or click "Upgrade Plan" to initiate checkout.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/billing` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/settings/billing` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `settings.billing.index` |
-| **Controller Action** | `App\Http\Controllers\Api\StripeBillingController@index` |
+| **Action Code** | `App\Http\Controllers\Api\StripeBillingController@index` |
 | **Middleware** | `web`, `auth` |
-| **Inertia Page Component** | `settings/Billing` |
-
-## How it Works
-
-Renders the Inertia SPA view: `settings/Billing`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

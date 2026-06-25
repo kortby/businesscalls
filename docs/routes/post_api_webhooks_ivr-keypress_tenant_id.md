@@ -1,4 +1,4 @@
-# Route: POST /api/webhooks/ivr-keypress/{tenant_id?}
+# API Reference: POST /api/webhooks/ivr-keypress/{tenant_id?}
 
 Handle incoming IVR digit presses / DTMF tones.
 
@@ -14,8 +14,8 @@ Handle incoming IVR digit presses / DTMF tones.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data.
+Applies tenant isolation scoping rules.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

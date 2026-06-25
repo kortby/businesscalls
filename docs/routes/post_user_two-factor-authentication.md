@@ -1,6 +1,6 @@
-# Route: POST /user/two-factor-authentication
+# API Reference: POST /user/two-factor-authentication
 
-Enables two-factor authentication for the authenticated user.
+Enable two factor authentication for the user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Enables two-factor authentication for the authenticated user.
 
 ## How it Works
 
-POST: Generates a 2FA secret key, recovery codes, and updates the user model state to active.
+Processes request triggers.
 
 ## How to Use
 
-Requires password confirmation before enabling.
+Send HTTP request calls.

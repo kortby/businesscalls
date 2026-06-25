@@ -1,21 +1,23 @@
-# Route: DELETE /settings/profile
+# Deactivate Account Profile
 
-Delete the user's profile.
+## Overview
+
+Deactivate or delete your user account profile.
+
+## How it Works
+
+Removes user records and log sessions.
+
+## How to Use
+
+Press "Deactivate Profile" and confirm.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/profile` |
-| **HTTP Methods** | `DELETE` |
+| **URL Path** | `/settings/profile` |
+| **HTTP Method** | `DELETE` |
 | **Route Name** | `profile.destroy` |
-| **Controller Action** | `App\Http\Controllers\Settings\ProfileController@destroy` |
+| **Action Code** | `App\Http\Controllers\Settings\ProfileController@destroy` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Deletes records or models from the database.
-
-## How to Use
-
-Perform an HTTP DELETE request with the required payload parameters.

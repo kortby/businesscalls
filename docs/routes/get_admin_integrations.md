@@ -1,22 +1,23 @@
-# Route: GET /admin/integrations
+# Third-Party Integration Hub
 
-Display the playful visual Integrations Panel (Duolingo style UI).
+## Overview
+
+Connect external CRM, invoicing, and messaging providers.
+
+## How it Works
+
+Saves API credentials and synchronization keys securely.
+
+## How to Use
+
+Enter API tokens for Twilio, ServiceTitan, or Housecall Pro to link calendars.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/integrations` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/integrations` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.integrations` |
-| **Controller Action** | `App\Http\Controllers\AdminController@integrations` |
+| **Action Code** | `App\Http\Controllers\AdminController@integrations` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/Integrations` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/Integrations`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

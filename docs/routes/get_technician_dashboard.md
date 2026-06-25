@@ -1,22 +1,23 @@
-# Route: GET /technician/dashboard
+# Technician Mobile App
 
-Show the technician mobile PWA dashboard.
+## Overview
+
+Mobile portal for technicians to check schedules and update jobs.
+
+## How it Works
+
+Displays shift calendar and assigned bookings scoped to the technician.
+
+## How to Use
+
+Log in on a mobile browser. View your daily route, tap "En Route" when heading to a job, "On Site" when you arrive, and "Completed" to log notes and billing amounts.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/technician/dashboard` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/technician/dashboard` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `technician.dashboard` |
-| **Controller Action** | `App\Http\Controllers\TechnicianController@dashboard` |
+| **Action Code** | `App\Http\Controllers\TechnicianController@dashboard` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `technician/Dashboard` |
-
-## How it Works
-
-Renders the Inertia SPA view: `technician/Dashboard`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

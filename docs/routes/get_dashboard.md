@@ -1,21 +1,23 @@
-# Route: GET /dashboard
+# Operations Control Dashboard
 
-No description available.
+## Overview
+
+The central management control center for business owners and dispatchers.
+
+## How it Works
+
+Aggregates real-time statistics including Call Quality Score (CQS), Booking Streak, open dispatches, and logs recent technician bookings dynamically via Pusher Reverb.
+
+## How to Use
+
+Monitor booking metrics, browse active technician schedules, and click logs rows to inspect job details.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/dashboard` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/dashboard` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `dashboard` |
-| **Controller Action** | `Closure` |
+| **Action Code** | `Closure` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

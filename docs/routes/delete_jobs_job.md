@@ -1,21 +1,23 @@
-# Route: DELETE /jobs/{job}
+# Cancel Service Jobs
 
-Remove the specified service job.
+## Overview
+
+Archive or cancel service tickets.
+
+## How it Works
+
+Deletes the job ticket and logs compliance events.
+
+## How to Use
+
+Press "Cancel Job" and confirm.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/jobs/{job}` |
-| **HTTP Methods** | `DELETE` |
+| **URL Path** | `/jobs/{job}` |
+| **HTTP Method** | `DELETE` |
 | **Route Name** | `jobs.destroy` |
-| **Controller Action** | `App\Http\Controllers\ServiceJobController@destroy` |
+| **Action Code** | `App\Http\Controllers\ServiceJobController@destroy` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Deletes records or models from the database.
-
-## How to Use
-
-Perform an HTTP DELETE request with the required payload parameters.

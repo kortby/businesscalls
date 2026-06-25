@@ -1,21 +1,23 @@
-# Route: DELETE /employees/{employee}
+# Deactivate Technician Profiles
 
-Remove the specified employee from storage.
+## Overview
+
+Deactivate or delete a technician from the roster.
+
+## How it Works
+
+Removes employee records and archives their history logs securely.
+
+## How to Use
+
+Press "Deactivate Staff" on the profile page and confirm.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees/{employee}` |
-| **HTTP Methods** | `DELETE` |
+| **URL Path** | `/employees/{employee}` |
+| **HTTP Method** | `DELETE` |
 | **Route Name** | `employees.destroy` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@destroy` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@destroy` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Deletes records or models from the database.
-
-## How to Use
-
-Perform an HTTP DELETE request with the required payload parameters.

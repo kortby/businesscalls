@@ -1,4 +1,4 @@
-# Route: POST /api/billing/checkout
+# API Reference: POST /api/billing/checkout
 
 Generate a Stripe Checkout Session redirect URL for plan upgrades.
 
@@ -14,7 +14,7 @@ Generate a Stripe Checkout Session redirect URL for plan upgrades.
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
+Saves models updates. Applies tenant isolation scoping rules.
 
 ## Request Parameters
 
@@ -24,7 +24,7 @@ Stores or persists model state to the database. Applies tenant isolation scoping
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.
 
 ### Example Request Body
 

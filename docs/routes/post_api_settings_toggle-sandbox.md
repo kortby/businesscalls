@@ -1,4 +1,4 @@
-# Route: POST /api/settings/toggle-sandbox
+# API Reference: POST /api/settings/toggle-sandbox
 
 Toggle the sandbox/test mode state of the active tenant.
 
@@ -14,8 +14,8 @@ Toggle the sandbox/test mode state of the active tenant.
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
+Saves models updates. Applies tenant isolation scoping rules.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

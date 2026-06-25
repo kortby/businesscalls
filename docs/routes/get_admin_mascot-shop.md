@@ -1,22 +1,23 @@
-# Route: GET /admin/mascot-shop
+# AI Receptionist Mascot Avatar skins
 
-Display the playful Mascot Customization Shop.
+## Overview
+
+Dispatcher shop to personalize your receptionist avatar skin.
+
+## How it Works
+
+Lets users spend points earned from booking achievements to unlock custom skins.
+
+## How to Use
+
+Browse available avatar designs, click "Purchase" using earned points, and equip skins.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/mascot-shop` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/mascot-shop` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.mascot-shop` |
-| **Controller Action** | `App\Http\Controllers\AdminController@mascotShop` |
+| **Action Code** | `App\Http\Controllers\AdminController@mascotShop` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/MascotShop` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/MascotShop`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

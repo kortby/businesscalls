@@ -1,21 +1,23 @@
-# Route: DELETE /bookings/{booking}
+# Cancel Customer Bookings
 
-Remove the specified booking from storage.
+## Overview
+
+Cancel an appointment and clear the technician's schedule.
+
+## How it Works
+
+Deletes the booking from the database and updates metrics instantly.
+
+## How to Use
+
+Click on a booking, press the "Cancel Booking" button, and confirm.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/bookings/{booking}` |
-| **HTTP Methods** | `DELETE` |
+| **URL Path** | `/bookings/{booking}` |
+| **HTTP Method** | `DELETE` |
 | **Route Name** | `bookings.destroy` |
-| **Controller Action** | `App\Http\Controllers\BookingController@destroy` |
+| **Action Code** | `App\Http\Controllers\BookingController@destroy` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Deletes records or models from the database. Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
-
-## How to Use
-
-Perform an HTTP DELETE request with the required payload parameters.

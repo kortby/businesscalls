@@ -1,22 +1,23 @@
-# Route: GET /admin/achievements
+# Achievements & Milestones
 
-Display the achievements panel.
+## Overview
+
+Track dispatcher operational milestones.
+
+## How it Works
+
+Awards badges (like "Booking Streak Master" or "Response Hero") based on metrics.
+
+## How to Use
+
+View unlocked achievements to encourage dispatch team performance.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/achievements` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/achievements` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.achievements` |
-| **Controller Action** | `App\Http\Controllers\AdminController@achievements` |
+| **Action Code** | `App\Http\Controllers\AdminController@achievements` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/Achievements` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/Achievements`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

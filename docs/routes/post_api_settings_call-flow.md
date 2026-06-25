@@ -1,4 +1,4 @@
-# Route: POST /api/settings/call-flow
+# API Reference: POST /api/settings/call-flow
 
 Store/update the tenant's visual call flow tree.
 
@@ -14,8 +14,8 @@ Store/update the tenant's visual call flow tree.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

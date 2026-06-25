@@ -1,6 +1,6 @@
-# Route: POST /two-factor-challenge
+# API Reference: POST /two-factor-challenge
 
-Validates two-factor OTP credentials.
+Attempt to authenticate a new session using the two factor authentication code.
 
 ## Technical Details
 
@@ -14,20 +14,8 @@ Validates two-factor OTP credentials.
 
 ## How it Works
 
-POST: Validates either the 2FA one-time code or a backup recovery code against the user's encrypted database record.
+Triggers WebSocket broadcasts.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "code": "123456"
-}
-```
-Or with recovery code:
-```json
-{
-  "recovery_code": "abcd-efgh-ijkl"
-}
-```
+Send HTTP request calls.

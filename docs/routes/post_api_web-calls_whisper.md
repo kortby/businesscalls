@@ -1,4 +1,4 @@
-# Route: POST /api/web-calls/whisper
+# API Reference: POST /api/web-calls/whisper
 
 Broadcast a supervisor whisper coaching event to the active technician.
 
@@ -14,8 +14,8 @@ Broadcast a supervisor whisper coaching event to the active technician.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
+Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

@@ -1,22 +1,23 @@
-# Route: GET /admin/experiments
+# AI Prompt Playground & Denoising
 
-Display the Conversational A/B Prompt Split-Testing Experiments Panel.
+## Overview
+
+Toggle experimental features and run prompt A/B tests.
+
+## How it Works
+
+Configures prompt variations and toggles background noise cancellation settings.
+
+## How to Use
+
+Toggle noise filters or test new prompt greetings, and review success rate statistics.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/experiments` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/experiments` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.experiments` |
-| **Controller Action** | `App\Http\Controllers\AdminController@experiments` |
+| **Action Code** | `App\Http\Controllers\AdminController@experiments` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/Experiments` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/Experiments`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

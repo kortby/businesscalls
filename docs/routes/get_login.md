@@ -1,6 +1,6 @@
-# Route: GET /login
+# API Reference: GET /login
 
-Renders the login UI page or processes authentication credentials.
+Show the login view.
 
 ## Technical Details
 
@@ -14,15 +14,8 @@ Renders the login UI page or processes authentication credentials.
 
 ## How it Works
 
-GET: Renders the Inertia Welcome page or login form. POST: Validates the request credentials (email, password) and logs the user in using Fortify's session authentication.
+Processes request triggers.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "email": "user@example.com",
-  "password": "secret_password"
-}
-```
+Send HTTP request calls.

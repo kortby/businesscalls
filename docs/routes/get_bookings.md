@@ -1,22 +1,23 @@
-# Route: GET /bookings
+# Booking Calendar & Appointments
 
-Display a listing of appointments.
+## Overview
+
+The centralized dispatch board displaying all customer bookings and appointments.
+
+## How it Works
+
+Enforces travel buffers of 1.5 hours between bookings automatically to ensure technicians can arrive on time without overlap.
+
+## How to Use
+
+Browse jobs on the calendar by day, week, or month. Click any booking to inspect notes or coordinate manual dispatches.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/bookings` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/bookings` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `bookings.index` |
-| **Controller Action** | `App\Http\Controllers\BookingController@index` |
+| **Action Code** | `App\Http\Controllers\BookingController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Bookings` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Bookings`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

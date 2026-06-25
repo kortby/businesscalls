@@ -1,6 +1,6 @@
-# Route: GET /passkeys/confirm/options
+# API Reference: GET /passkeys/confirm/options
 
-Retrieves credentials verification challenge options for passkeys.
+Get passkey confirmation options for the authenticated user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves credentials verification challenge options for passkeys.
 
 ## How it Works
 
-GET: Generates and stores verification challenge details for WebAuthn API call.
+Processes request triggers.
 
 ## How to Use
 
-Retrieve challenge configuration settings.
+Send HTTP request calls.

@@ -1,22 +1,23 @@
-# Route: GET /admin/health
+# System Connection Health
 
-Display the system health telemetry panel.
+## Overview
+
+Monitor incoming webhook reliability, deduplication, and telephony API statuses.
+
+## How it Works
+
+Logs webhook events to check for duplicates, errors, and system recovery.
+
+## How to Use
+
+Review logs to debug call dropouts or connection problems with external providers.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/health` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/health` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.health` |
-| **Controller Action** | `App\Http\Controllers\AdminController@health` |
+| **Action Code** | `App\Http\Controllers\AdminController@health` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/SystemHealth` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/SystemHealth`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

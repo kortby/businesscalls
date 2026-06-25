@@ -1,22 +1,23 @@
-# Route: GET /admin/audit-logs
+# Administrative Audit compliance log
 
-Display the playful admin audit logs terminal view.
+## Overview
+
+Verify administrative logs for security compliance audits.
+
+## How it Works
+
+Logs all system events, technician edits, call fallbacks, and configuration changes.
+
+## How to Use
+
+Search and filter logs by action type or date to verify system audit trail compliance.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/audit-logs` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/audit-logs` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.audit-logs` |
-| **Controller Action** | `App\Http\Controllers\AdminController@auditLogs` |
+| **Action Code** | `App\Http\Controllers\AdminController@auditLogs` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/AuditLogs` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/AuditLogs`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

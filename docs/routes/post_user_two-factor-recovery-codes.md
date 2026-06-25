@@ -1,6 +1,6 @@
-# Route: POST /user/two-factor-recovery-codes
+# API Reference: POST /user/two-factor-recovery-codes
 
-Regenerates a new set of two-factor recovery codes.
+Generate a fresh set of two factor authentication recovery codes.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Regenerates a new set of two-factor recovery codes.
 
 ## How it Works
 
-POST: Generates, encrypts, and saves 8 new recovery codes to replace the old ones.
+Processes request triggers.
 
 ## How to Use
 
-Send a POST request to `/user/two-factor-recovery-codes`.
+Send HTTP request calls.

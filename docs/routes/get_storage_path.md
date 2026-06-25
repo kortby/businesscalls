@@ -1,6 +1,6 @@
-# Route: GET /storage/{path}
+# API Reference: GET /storage/{path}
 
-Serves local storage files.
+Developer API endpoint.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Serves local storage files.
 
 ## How it Works
 
-Maps storage URL requests to local filesystem files.
+Processes request triggers.
 
 ## How to Use
 
-Request files using their public URL.
+Send HTTP request calls.

@@ -1,6 +1,6 @@
-# Route: POST /user/confirm-password
+# API Reference: POST /user/confirm-password
 
-Validates the password confirmation request.
+Confirm the user's password.
 
 ## Technical Details
 
@@ -14,14 +14,8 @@ Validates the password confirmation request.
 
 ## How it Works
 
-POST: Validates the password, stores confirmation timestamp in session, and redirects to target route.
+Processes request triggers.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "password": "secret_password"
-}
-```
+Send HTTP request calls.

@@ -1,4 +1,4 @@
-# Route: GET|POST /api/mcp
+# API Reference: GET|POST /api/mcp
 
 Handle incoming Model Context Protocol (MCP) server requests.
 
@@ -14,8 +14,8 @@ Handle incoming Model Context Protocol (MCP) server requests.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data.
+Applies tenant isolation scoping rules.
 
 ## How to Use
 
-Perform an HTTP GET|POST request with the required payload parameters.
+Send HTTP request calls.

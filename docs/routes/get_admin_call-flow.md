@@ -1,22 +1,23 @@
-# Route: GET /admin/call-flow
+# Voice Interactive Planner
 
-Display the visual drag-and-drop call flow builder.
+## Overview
+
+Visual editor to configure voice response routing rules.
+
+## How it Works
+
+Sets call answering behavior, keypress triggers, and emergency fallback numbers.
+
+## How to Use
+
+Use the drag-and-drop tree to change voice prompts, key triggers, or fallback routing rules.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/call-flow` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/call-flow` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.callflow` |
-| **Controller Action** | `App\Http\Controllers\AdminController@callFlow` |
+| **Action Code** | `App\Http\Controllers\AdminController@callFlow` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/CallFlowBuilder` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/CallFlowBuilder`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

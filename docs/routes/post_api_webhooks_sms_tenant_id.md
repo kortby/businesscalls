@@ -1,4 +1,4 @@
-# Route: POST /api/webhooks/sms/{tenant_id?}
+# API Reference: POST /api/webhooks/sms/{tenant_id?}
 
 Handle incoming SMS webhooks (from Twilio or other providers).
 
@@ -14,8 +14,8 @@ Handle incoming SMS webhooks (from Twilio or other providers).
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
+Saves models updates. Applies tenant isolation scoping rules. Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

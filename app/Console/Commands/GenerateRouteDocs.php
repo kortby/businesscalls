@@ -21,166 +21,413 @@ class GenerateRouteDocs extends Command
      *
      * @var string
      */
-    protected $description = 'Generates comprehensive markdown documentation for all registered application routes';
+    protected $description = 'Generates comprehensive markdown user guides for all registered application routes';
 
     /**
-     * Predefined documentation details for vendor or framework-defined routes.
+     * User-oriented guides for all core user-facing UI screens.
      */
-    protected array $vendorRouteDocs = [
-        'sanctum.csrf-cookie' => [
-            'description' => 'Retrieve the CSRF protection cookie for Sanctum-authenticated SPA clients.',
-            'how_it_works' => 'Initiates a stateful session and sets the HTTP-only cookie (`XSRF-TOKEN`) required for subsequent state-mutating requests (POST, PUT, DELETE) to protect against Cross-Site Request Forgery.',
-            'how_to_use' => "Make a GET request to `/sanctum/csrf-cookie` before sending any authentication requests (such as login or register).\n\n```bash\ncurl -X GET http://localhost/sanctum/csrf-cookie -i\n```",
+    protected array $userGuides = [
+        'home' => [
+            'title' => 'Welcome Page',
+            'overview' => 'The public-facing landing page of the businesscalls platform.',
+            'how_it_works' => 'Displays general product options, branding messages, and provides links to register or log into the application portal.',
+            'how_to_use' => 'Navigate to the root URL (/) of the application in your browser to view the greeting layout.',
         ],
-        'login' => [
-            'description' => 'Renders the login UI page or processes authentication credentials.',
-            'how_it_works' => 'GET: Renders the Inertia Welcome page or login form. POST: Validates the request credentials (email, password) and logs the user in using Fortify\'s session authentication.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"email\": \"user@example.com\",\n  \"password\": \"secret_password\"\n}\n```",
+        'about' => [
+            'title' => 'About Us Information',
+            'overview' => 'Public information page describing the mission and technology of businesscalls.',
+            'how_it_works' => 'Explains our real-time AI scheduling algorithms, team backgrounds, and customer success principles.',
+            'how_to_use' => 'Click the "About" link in the navbar or go directly to the `/about` URL path.',
         ],
-        'logout' => [
-            'description' => 'Destroys the authenticated session and logs the user out.',
-            'how_it_works' => 'POST: Clears the authenticated session cookie, invalidates the session, and redirects the user to the home page.',
-            'how_to_use' => 'Send a POST request to `/logout` with a valid CSRF token header/cookie.',
+        'pricing' => [
+            'title' => 'Subscription Pricing Plans',
+            'overview' => 'Review active plan options, price structures, and custom feature tiers.',
+            'how_it_works' => 'Presents tiered business options (Starter, Professional, Enterprise) and active features like CQS analysis, Reverb channels, and Twilio support.',
+            'how_to_use' => 'Navigate to `/pricing` in your web browser to compare plans.',
         ],
-        'register' => [
-            'description' => 'Renders the registration form or registers a new tenant user.',
-            'how_it_works' => 'GET: Renders the Inertia user registration page. POST: Validates inputs (name, email, password, password_confirmation), creates a new User model, registers a corresponding default tenant organization, and logs the user in.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"password_confirmation\": \"password123\"\n}\n```",
+        'contact' => [
+            'title' => 'Contact & Support Request',
+            'overview' => 'Send messages or support queries directly to the businesscalls service administrators.',
+            'how_it_works' => 'Provides client details form fields to capture name, email, text notes, and logs queries.',
+            'how_to_use' => 'Fill out the contact form fields and press "Send Inquiry".',
         ],
-        'password.request' => [
-            'description' => 'Renders the password reset request prompt page.',
-            'how_it_works' => 'GET: Renders the password recovery view where users input their email address to receive recovery links.',
-            'how_to_use' => 'Navigate to `/forgot-password` in the web browser.',
+        'dashboard' => [
+            'title' => 'Operations Control Dashboard',
+            'overview' => 'The central management control center for business owners and dispatchers.',
+            'how_it_works' => 'Aggregates real-time statistics including Call Quality Score (CQS), Booking Streak, open dispatches, and logs recent technician bookings dynamically via Pusher Reverb.',
+            'how_to_use' => 'Monitor booking metrics, browse active technician schedules, and click logs rows to inspect job details.',
         ],
-        'password.email' => [
-            'description' => 'Sends a password reset link to the specified user email address.',
-            'how_it_works' => 'POST: Validates the email address, generates a unique secure token, and dispatches a password recovery email notifications.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"email\": \"user@example.com\"\n}\n```",
+        'availabilities.index' => [
+            'title' => 'Technician Availabilities List',
+            'overview' => 'View active shift schedules and hours for all registered technicians.',
+            'how_it_works' => 'Displays weekly availability grids grouped by technician. Overlapping shift windows are prevented automatically.',
+            'how_to_use' => 'Review the calendar grid to verify technician coverage for the upcoming week.',
         ],
-        'password.reset' => [
-            'description' => 'Renders the password update/reset form.',
-            'how_it_works' => 'GET: Validates the password reset token in the URI and renders the Inertia view to input a new password.',
-            'how_to_use' => 'Navigate to `/reset-password/{token}` containing the reset token received in the email.',
+        'availabilities.store' => [
+            'title' => 'Schedule Technician Shifts',
+            'overview' => 'Assign weekly shift hours to individual technicians.',
+            'how_it_works' => 'Validates shift parameters and creates active schedule blocks. Blocks overlapping shifts.',
+            'how_to_use' => 'Select a technician, choose the day of the week, input shift start and end times, and click "Save Shift".',
         ],
-        'password.update' => [
-            'description' => 'Performs the password reset operation.',
-            'how_it_works' => 'POST: Validates the token, email, and new passwords, updates the user\'s record in the database, and redirects to the login page.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"token\": \"secret-reset-token\",\n  \"email\": \"user@example.com\",\n  \"password\": \"new_password\",\n  \"password_confirmation\": \"new_password\"\n}\n```",
+        'availabilities.update' => [
+            'title' => 'Edit Technician Shift Hours',
+            'overview' => 'Update or adjust existing work hours for technicians.',
+            'how_it_works' => 'Re-validates shift parameters and checks for schedule conflicts before updating the database.',
+            'how_to_use' => 'Click on an existing shift box, modify the hours, and click "Update".',
         ],
-        'verification.notice' => [
-            'description' => 'Renders the email verification prompt view.',
-            'how_it_works' => 'GET: Renders the verification notice requesting the user to confirm their email address before accessing features.',
-            'how_to_use' => 'Navigate to `/email/verify` in the web browser.',
+        'availabilities.destroy' => [
+            'title' => 'Remove Technician Shifts',
+            'overview' => 'Delete scheduled shifts from a technician\'s calendar.',
+            'how_it_works' => 'Removes availability blocks immediately, freeing up slots for rescheduling.',
+            'how_to_use' => 'Click the "Delete" trash icon next to a shift block and confirm.',
         ],
-        'verification.verify' => [
-            'description' => 'Performs email verification validation.',
-            'how_it_works' => 'GET: Validates the signed URL signature containing the user id and email hash, marks the email as verified in the DB, and redirects to dashboard.',
-            'how_to_use' => 'Accessed by clicking the verification link sent via email.',
+        'bookings.index' => [
+            'title' => 'Booking Calendar & Appointments',
+            'overview' => 'The centralized dispatch board displaying all customer bookings and appointments.',
+            'how_it_works' => 'Enforces travel buffers of 1.5 hours between bookings automatically to ensure technicians can arrive on time without overlap.',
+            'how_to_use' => 'Browse jobs on the calendar by day, week, or month. Click any booking to inspect notes or coordinate manual dispatches.',
         ],
-        'verification.send' => [
-            'description' => 'Resends the email verification notification.',
-            'how_it_works' => 'POST: Throttles request rates and triggers a new email verification notification flow.',
-            'how_to_use' => 'Send a POST request to `/email/verification-notification`.',
+        'bookings.store' => [
+            'title' => 'Log New Manual Bookings',
+            'overview' => 'Log a customer booking manually when receiving calls directly.',
+            'how_it_works' => 'Validates technician availability, parses trade skills, checks for conflicts, and enforces the 1.5-hour buffer.',
+            'how_to_use' => 'Click "New Booking", input the customer phone number, select the technician, choose a slot, and type the service job details.',
         ],
-        'two-factor.login' => [
-            'description' => 'Renders the two-factor authentication OTP login form.',
-            'how_it_works' => 'GET: Displays the interface to input a two-factor authentication code or recovery code.',
-            'how_to_use' => 'Redirected automatically if 2FA is active for the logging-in account.',
+        'bookings.update' => [
+            'title' => 'Reschedule Service Bookings',
+            'overview' => 'Reschedule or edit service details of logged appointments.',
+            'how_it_works' => 'Checks scheduling rules for conflicts and updates booking information in the database.',
+            'how_to_use' => 'Double click an appointment, modify the date/time or comments, and click "Save Changes".',
         ],
-        'two-factor.login.store' => [
-            'description' => 'Validates two-factor OTP credentials.',
-            'how_it_works' => 'POST: Validates either the 2FA one-time code or a backup recovery code against the user\'s encrypted database record.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"code\": \"123456\"\n}\n```\nOr with recovery code:\n```json\n{\n  \"recovery_code\": \"abcd-efgh-ijkl\"\n}\n```",
+        'bookings.destroy' => [
+            'title' => 'Cancel Customer Bookings',
+            'overview' => 'Cancel an appointment and clear the technician\'s schedule.',
+            'how_it_works' => 'Deletes the booking from the database and updates metrics instantly.',
+            'how_to_use' => 'Click on a booking, press the "Cancel Booking" button, and confirm.',
         ],
-        'two-factor.enable' => [
-            'description' => 'Enables two-factor authentication for the authenticated user.',
-            'how_it_works' => 'POST: Generates a 2FA secret key, recovery codes, and updates the user model state to active.',
-            'how_to_use' => 'Requires password confirmation before enabling.',
+        'conversations.index' => [
+            'title' => 'Client Conversations History',
+            'overview' => 'View transcripts, recordings, and SMS messages between customer clients and the AI receptionist.',
+            'how_it_works' => 'Logs live call events, analyzes customer intent, scores call quality (CQS), and compiles dialogue streams.',
+            'how_to_use' => 'Browse active chat and call threads. Click on any contact name to review their full transcript logs or play back call recordings.',
         ],
-        'two-factor.disable' => [
-            'description' => 'Disables two-factor authentication for the authenticated user.',
-            'how_it_works' => 'DELETE: Clears the user\'s two-factor secret key, recovery codes, and deactivates 2FA.',
-            'how_to_use' => 'Requires password confirmation before disabling.',
+        'conversations.messages.store' => [
+            'title' => 'Send Manual SMS Responses',
+            'overview' => 'Send text messages to clients directly from the dashboard.',
+            'how_it_works' => 'Saves and pushes messages via Reverb websocket channels to synchronize dialogue instantly.',
+            'how_to_use' => 'Type your message into the text field at the bottom of the conversation thread and click "Send".',
         ],
-        'two-factor.qr-code' => [
-            'description' => 'Retrieves the two-factor QR code SVG.',
-            'how_it_works' => 'GET: Returns the JSON response containing the SVG string of the QR code to sync with Google Authenticator.',
-            'how_to_use' => 'Retrieve SVG representation to display in frontend configuration.',
+        'employees.index' => [
+            'title' => 'Technicians & Staff Directory',
+            'overview' => 'View all registered technicians, their details, and trade skills.',
+            'how_it_works' => 'Groups staff details, links shift schedules, and compiles skill specializations.',
+            'how_to_use' => 'Search technicians by name. Click "View Profile" to check their active schedule or edit records.',
         ],
-        'two-factor.secret-key' => [
-            'description' => 'Retrieves the raw text two-factor secret key.',
-            'how_it_works' => 'GET: Decrypts and returns the raw secret key for manual OTP enrollment.',
-            'how_to_use' => 'Retrieve raw key string value for display.',
+        'employees.store' => [
+            'title' => 'Register New Technicians',
+            'overview' => 'Add new staff members to your team.',
+            'how_it_works' => 'Creates a technician profile, registers skill tags, and optionally generates login credentials.',
+            'how_to_use' => 'Click "Add Staff", enter first name, last name, phone, trade skills (e.g. plumbing, HVAC), notification preference, and click "Save".',
         ],
-        'two-factor.recovery-codes' => [
-            'description' => 'Retrieves the active two-factor recovery codes.',
-            'how_it_works' => 'GET: Decrypts and returns the collection of recovery codes.',
-            'how_to_use' => 'Retrieve codes collection array.',
+        'employees.create' => [
+            'title' => 'Create Technician Form Page',
+            'overview' => 'Form interface to add new staff members.',
+            'how_it_works' => 'Renders the team registration input interface.',
+            'how_to_use' => 'Fill out employee contact details and submit.',
         ],
-        'two-factor.regenerate-recovery-codes' => [
-            'description' => 'Regenerates a new set of two-factor recovery codes.',
-            'how_it_works' => 'POST: Generates, encrypts, and saves 8 new recovery codes to replace the old ones.',
-            'how_to_use' => 'Send a POST request to `/user/two-factor-recovery-codes`.',
+        'employees.show' => [
+            'title' => 'Technician Profile Details',
+            'overview' => 'Detailed view of an individual technician\'s performance and shifts.',
+            'how_it_works' => 'Displays contact logs, active skills, calendar shifts, and job history charts.',
+            'how_to_use' => 'Click on any technician to view their full profile panel.',
         ],
-        'password.confirm' => [
-            'description' => 'Renders password confirmation view.',
-            'how_it_works' => 'GET: Displays the prompt requiring password verification before performing administrative actions.',
-            'how_to_use' => 'Navigate to `/user/confirm-password` in the browser.',
+        'employees.update' => [
+            'title' => 'Update Technician Records',
+            'overview' => 'Modify contact info, skills, or notification preferences of existing technicians.',
+            'how_it_works' => 'Updates employee record values in the database.',
+            'how_to_use' => 'Click "Edit Profile", update fields, and click "Save Updates".',
         ],
-        'password.confirm.store' => [
-            'description' => 'Validates the password confirmation request.',
-            'how_it_works' => 'POST: Validates the password, stores confirmation timestamp in session, and redirects to target route.',
-            'how_to_use' => "POST request payload:\n\n```json\n{\n  \"password\": \"secret_password\"\n}\n```",
+        'employees.destroy' => [
+            'title' => 'Deactivate Technician Profiles',
+            'overview' => 'Deactivate or delete a technician from the roster.',
+            'how_it_works' => 'Removes employee records and archives their history logs securely.',
+            'how_to_use' => 'Press "Deactivate Staff" on the profile page and confirm.',
         ],
-        'password.confirmation' => [
-            'description' => 'Checks the password confirmation timeout status.',
-            'how_it_works' => 'GET: Returns a JSON response indicating whether the user\'s password has been confirmed within the timeout limit.',
-            'how_to_use' => 'Perform GET request to check status.',
+        'employees.edit' => [
+            'title' => 'Edit Technician Form Page',
+            'overview' => 'Form interface to edit existing employee records.',
+            'how_it_works' => 'Pre-populates values of employee records into input fields.',
+            'how_to_use' => 'Edit fields and submit updates.',
         ],
-        'passkey.confirm' => [
-            'description' => 'Validates user credentials via passkey signature confirmation.',
-            'how_it_works' => 'POST: Verifies a passkey assertion signature for high-security actions.',
-            'how_to_use' => 'Sends the WebAuthn signature response payload.',
+        'customers.index' => [
+            'title' => 'Customer CRM Directory',
+            'overview' => 'Manage customer profiles and client histories.',
+            'how_it_works' => 'Compiles customer profiles automatically when calls are processed.',
+            'how_to_use' => 'Search client entries by name or phone. Review recent job tickets associated with each client.',
         ],
-        'passkey.confirm-options' => [
-            'description' => 'Retrieves credentials verification challenge options for passkeys.',
-            'how_it_works' => 'GET: Generates and stores verification challenge details for WebAuthn API call.',
-            'how_to_use' => 'Retrieve challenge configuration settings.',
+        'customers.store' => [
+            'title' => 'Add Customer Profile',
+            'overview' => 'Manually register a new client contact.',
+            'how_it_works' => 'Inserts a new customer record into the tenant scoped database.',
+            'how_to_use' => 'Click "New Customer", input phone number, name, email, and click "Save".',
         ],
-        'passkey.login' => [
-            'description' => 'Authenticates user login sessions via passkey verification.',
-            'how_it_works' => 'POST: Validates the WebAuthn passkey assertion signature and logs the user in.',
-            'how_to_use' => 'Sends assertion signature payload.',
+        'customers.import' => [
+            'title' => 'Import Client Databases (CSV)',
+            'overview' => 'Bulk upload customer lists from spreadsheets or CRM exports.',
+            'how_it_works' => 'Parses CSV formats, matches phone logs, and bulk-inserts records securely.',
+            'how_to_use' => 'Select a CSV file from your computer, match columns (Name, Phone), and click "Import Database".',
         ],
-        'passkey.login-options' => [
-            'description' => 'Retrieves login challenge options for passkeys.',
-            'how_it_works' => 'GET: Generates login challenge config details.',
-            'how_to_use' => 'Fetch login challenge values.',
+        'jobs.index' => [
+            'title' => 'Service Jobs Board',
+            'overview' => 'Track active work tickets and job details.',
+            'how_it_works' => 'Groups job descriptions, assigned technicians, dates, and billing amounts.',
+            'how_to_use' => 'Browse open jobs and monitor status cards from creation to completion.',
         ],
-        'passkey.store' => [
-            'description' => 'Registers a new passkey credential linked to the user.',
-            'how_it_works' => 'POST: Validates WebAuthn registration response details and stores public key credentials.',
-            'how_to_use' => 'Sends WebAuthn registration payload.',
+        'jobs.store' => [
+            'title' => 'Create Service Jobs',
+            'overview' => 'Log new work orders and link them to clients.',
+            'how_it_works' => 'Creates a service job ticket and logs administrative compliance records.',
+            'how_to_use' => 'Click "New Job", input job description, link to a customer booking, select technician, and save.',
         ],
-        'passkey.registration-options' => [
-            'description' => 'Retrieves registration options for passkeys.',
-            'how_it_works' => 'GET: Generates registration challenge config details.',
-            'how_to_use' => 'Fetch registration options values.',
+        'jobs.create' => [
+            'title' => 'Create Job Form Page',
+            'overview' => 'Form interface to log new work orders.',
+            'how_it_works' => 'Renders the job ticket input interface.',
+            'how_to_use' => 'Fill out service details and submit.',
         ],
-        'passkey.destroy' => [
-            'description' => 'Removes a registered passkey credential.',
-            'how_it_works' => 'DELETE: Locates and deletes the specified passkey record from the database.',
-            'how_to_use' => 'Send DELETE request to `/user/passkeys/{passkey_id}`.',
+        'jobs.show' => [
+            'title' => 'Service Job Details',
+            'overview' => 'Detailed view of an individual job ticket.',
+            'how_it_works' => 'Compiles history logs, customer details, assigned technicians, and billing amounts.',
+            'how_to_use' => 'Click on any job ID to view the full details panel.',
         ],
-        'cashier.payment' => [
-            'description' => 'Displays the Stripe payment confirmation page.',
-            'how_it_works' => 'GET: Renders a payment confirmation template for resolving 3D secure payments.',
-            'how_to_use' => 'Redirect target from checkout flows.',
+        'jobs.update' => [
+            'title' => 'Update Job Details',
+            'overview' => 'Modify service descriptions, pricing, or status parameters of a job.',
+            'how_it_works' => 'Updates job record values in the database.',
+            'how_to_use' => 'Click "Edit Job", update comments or details, and click "Save Updates".',
         ],
-        'cashier.webhook' => [
-            'description' => 'Handles incoming Stripe billing events.',
-            'how_it_works' => 'POST: Validates the Stripe webhook signature, routes the event type, and triggers corresponding handlers (such as updating subscriber states).',
-            'how_to_use' => 'Configured in the Stripe dashboard to forward webhook events.',
+        'jobs.destroy' => [
+            'title' => 'Cancel Service Jobs',
+            'overview' => 'Archive or cancel service tickets.',
+            'how_it_works' => 'Deletes the job ticket and logs compliance events.',
+            'how_to_use' => 'Press "Cancel Job" and confirm.',
+        ],
+        'jobs.edit' => [
+            'title' => 'Edit Job Form Page',
+            'overview' => 'Form interface to modify existing job tickets.',
+            'how_it_works' => 'Pre-populates values of job records into input fields.',
+            'how_to_use' => 'Edit fields and submit updates.',
+        ],
+        'admin.diagnostics' => [
+            'title' => 'Live Diagnostics HUD',
+            'overview' => 'Infrastructure telemetry panel tracking server vitals.',
+            'how_it_works' => 'Displays active WebSocket Reverb connections, queue load metrics, database latency, and average conversational latency.',
+            'how_to_use' => 'Monitor system parameters to ensure high performance and low conversational delay times.',
+        ],
+        'admin.loyalty' => [
+            'title' => 'Customer Loyalty Analytics',
+            'overview' => 'Monitor customer retention and VIP dispatches.',
+            'how_it_works' => 'Calculates loyalty metrics, streaks, and billing statuses from customer booking history logs.',
+            'how_to_use' => 'Review the loyalty graphs to spot top customers and target VIP accounts.',
+        ],
+        'admin.health' => [
+            'title' => 'System Connection Health',
+            'overview' => 'Monitor incoming webhook reliability, deduplication, and telephony API statuses.',
+            'how_it_works' => 'Logs webhook events to check for duplicates, errors, and system recovery.',
+            'how_to_use' => 'Review logs to debug call dropouts or connection problems with external providers.',
+        ],
+        'admin.callflow' => [
+            'title' => 'Voice Interactive Planner',
+            'overview' => 'Visual editor to configure voice response routing rules.',
+            'how_it_works' => 'Sets call answering behavior, keypress triggers, and emergency fallback numbers.',
+            'how_to_use' => 'Use the drag-and-drop tree to change voice prompts, key triggers, or fallback routing rules.',
+        ],
+        'admin.reports' => [
+            'title' => 'Executive Performance Reports',
+            'overview' => 'Summarize call activities, booking conversion rates, and metrics.',
+            'how_it_works' => 'Generates summaries of call counts, booking rates, and technician performance.',
+            'how_to_use' => 'Choose a reporting date range and click "Download Report" to export a PDF summary.',
+        ],
+        'admin.report.download' => [
+            'title' => 'Download Performance Reports',
+            'overview' => 'Export performance summaries directly.',
+            'how_it_works' => 'Generates and downloads PDF documents directly.',
+            'how_to_use' => 'Triggered automatically when downloading reports.',
+        ],
+        'admin.preflight' => [
+            'title' => 'Pre-Flight System Check',
+            'overview' => 'Run connection tests on third-party service APIs.',
+            'how_it_works' => 'Tests Twilio integration, Stripe API keys, Pusher connection, and database status.',
+            'how_to_use' => 'Click "Run Verification" to check if the system is fully configured and ready for production calls.',
+        ],
+        'admin.achievements' => [
+            'title' => 'Achievements & Milestones',
+            'overview' => 'Track dispatcher operational milestones.',
+            'how_it_works' => 'Awards badges (like "Booking Streak Master" or "Response Hero") based on metrics.',
+            'how_to_use' => 'View unlocked achievements to encourage dispatch team performance.',
+        ],
+        'admin.onboarding' => [
+            'title' => 'Interactive Onboarding Guide',
+            'overview' => 'Interactive step-by-step checklist to configure businesscalls.',
+            'how_it_works' => 'Tracks progress through necessary setup steps (Add technician, define shifts, link Twilio).',
+            'how_to_use' => 'Complete each item on the quest checklist to move the account from sandbox to live production mode.',
+        ],
+        'admin.onboarding-setup' => [
+            'title' => 'Onboarding Status Reset',
+            'overview' => 'Reset onboarding steps for testing.',
+            'how_it_works' => 'Clears onboarding checkmarks to restart the setup walkthrough.',
+            'how_to_use' => 'Click "Reset Setup" in settings to restart onboarding.',
+        ],
+        'admin.dispatch-map' => [
+            'title' => 'Interactive Dispatch Map',
+            'overview' => 'Visual map coordinates tracking active service locations.',
+            'how_it_works' => 'Embeds coordinates of technician job bookings and visualizes them on a maps interface.',
+            'how_to_use' => 'Zoom and drag the map to monitor technician travel routes and coordinate quick emergency dispatches.',
+        ],
+        'admin.leaderboard' => [
+            'title' => 'Dispatcher Rankings',
+            'overview' => 'Review rankings of team members based on booking success.',
+            'how_it_works' => 'Calculates ranking positions based on successful call booking conversion rates.',
+            'how_to_use' => 'Use rank lists to motivate and optimize team booking performance.',
+        ],
+        'admin.mascot-shop' => [
+            'title' => 'AI Receptionist Mascot Avatar skins',
+            'overview' => 'Dispatcher shop to personalize your receptionist avatar skin.',
+            'how_it_works' => 'Lets users spend points earned from booking achievements to unlock custom skins.',
+            'how_to_use' => 'Browse available avatar designs, click "Purchase" using earned points, and equip skins.',
+        ],
+        'admin.mascot-shop.purchase' => [
+            'title' => 'Purchase Mascot Avatar Skins',
+            'overview' => 'Unlock custom skins using earned points.',
+            'how_it_works' => 'Deducts dispatcher points and unlocks custom avatar skins.',
+            'how_to_use' => 'Click "Purchase" on your desired skin inside the mascot shop.',
+        ],
+        'admin.integrations' => [
+            'title' => 'Third-Party Integration Hub',
+            'overview' => 'Connect external CRM, invoicing, and messaging providers.',
+            'how_it_works' => 'Saves API credentials and synchronization keys securely.',
+            'how_to_use' => 'Enter API tokens for Twilio, ServiceTitan, or Housecall Pro to link calendars.',
+        ],
+        'admin.integrations.save' => [
+            'title' => 'Save CRM Credentials',
+            'overview' => 'Save external CRM credentials.',
+            'how_it_works' => 'Saves CRM keys to securely link client databases.',
+            'how_to_use' => 'Click "Save Integration" after inputting API credentials.',
+        ],
+        'admin.integrations.timing' => [
+            'title' => 'Save Sync Timing Settings',
+            'overview' => 'Configure sync intervals for external CRMs.',
+            'how_it_works' => 'Saves cron sync schedules.',
+            'how_to_use' => 'Select sync timing frequency (e.g. hourly, daily) and save.',
+        ],
+        'admin.call-monitor' => [
+            'title' => 'Live Call Listening Panel',
+            'overview' => 'Listen in real time to customer calls answered by the AI receptionist.',
+            'how_it_works' => 'Connects to active WebRTC audio streams of active voice calls.',
+            'how_to_use' => 'View active calls list and click "Listen" to monitor audio in real time.',
+        ],
+        'admin.supervisor-hud' => [
+            'title' => 'Supervisor HUD coaching panel',
+            'overview' => 'Advanced coaching controls for active customer calls.',
+            'how_it_works' => 'Connects WebRTC streams and supports two-way whispering or full barging overrides.',
+            'how_to_use' => 'During a live call, click "Whisper" to coach the agent silently, or "Barge In" to speak directly to the customer.',
+        ],
+        'admin.status-hud' => [
+            'title' => 'System Status Monitor HUD',
+            'overview' => 'Overview of server uptime and active webhook queues.',
+            'how_it_works' => 'Checks response latency and monitors system health state.',
+            'how_to_use' => 'Review status lights to ensure all services are fully operational.',
+        ],
+        'admin.audit-logs' => [
+            'title' => 'Administrative Audit compliance log',
+            'overview' => 'Verify administrative logs for security compliance audits.',
+            'how_it_works' => 'Logs all system events, technician edits, call fallbacks, and configuration changes.',
+            'how_to_use' => 'Search and filter logs by action type or date to verify system audit trail compliance.',
+        ],
+        'admin.experiments' => [
+            'title' => 'AI Prompt Playground & Denoising',
+            'overview' => 'Toggle experimental features and run prompt A/B tests.',
+            'how_it_works' => 'Configures prompt variations and toggles background noise cancellation settings.',
+            'how_to_use' => 'Toggle noise filters or test new prompt greetings, and review success rate statistics.',
+        ],
+        'admin.experiments.denoising' => [
+            'title' => 'Toggle Call Noise Cancellation',
+            'overview' => 'Enable or disable AI call noise cancellation filters.',
+            'how_it_works' => 'Toggles raw audio cleanup processing models.',
+            'how_to_use' => 'Click "Toggle Denoising" to enable or disable background audio cleaning.',
+        ],
+        'admin.experiments.save' => [
+            'title' => 'Save Prompt A/B Test Variations',
+            'overview' => 'Save prompt greetings to A/B test groups.',
+            'how_it_works' => 'Saves test variations.',
+            'how_to_use' => 'Type your new greeting variant and click "Save Experiment".',
+        ],
+        'technician.dashboard' => [
+            'title' => 'Technician Mobile App',
+            'overview' => 'Mobile portal for technicians to check schedules and update jobs.',
+            'how_it_works' => 'Displays shift calendar and assigned bookings scoped to the technician.',
+            'how_to_use' => 'Log in on a mobile browser. View your daily route, tap "En Route" when heading to a job, "On Site" when you arrive, and "Completed" to log notes and billing amounts.',
+        ],
+        'technician.login' => [
+            'title' => 'Technician Login Screen',
+            'overview' => 'Login portal for road technicians.',
+            'how_it_works' => 'Verifies credentials or biometric passkey checks.',
+            'how_to_use' => 'Log in using your password or registered biometric passkey.',
+        ],
+        'profile.edit' => [
+            'title' => 'User Profile Settings',
+            'overview' => 'Manage personal contact information.',
+            'how_it_works' => 'Renders form to edit user account settings.',
+            'how_to_use' => 'Modify your name, email, or telephone and click "Save Changes".',
+        ],
+        'profile.update' => [
+            'title' => 'Update Profile Records',
+            'overview' => 'Save changes to personal account details.',
+            'how_it_works' => 'Updates account details in the database.',
+            'how_to_use' => 'Modify fields and submit updates.',
+        ],
+        'profile.destroy' => [
+            'title' => 'Deactivate Account Profile',
+            'overview' => 'Deactivate or delete your user account profile.',
+            'how_it_works' => 'Removes user records and log sessions.',
+            'how_to_use' => 'Press "Deactivate Profile" and confirm.',
+        ],
+        'security.edit' => [
+            'title' => 'MFA, Password, & Passkeys security panel',
+            'overview' => 'Configure multi-factor security and biometric passkeys.',
+            'how_it_works' => 'Enforces secure passwords, registers WebAuthn keys, and generates 2FA QR secrets.',
+            'how_to_use' => 'Toggle Multi-Factor Authentication. Scan the QR code, or click "Register Passkey" to log in with touch ID/face ID.',
+        ],
+        'user-password.update' => [
+            'title' => 'Change Account Password',
+            'overview' => 'Update your login password.',
+            'how_it_works' => 'Validates your old password and saves a new secure hash.',
+            'how_to_use' => 'Input your current password, type the new password, and click "Save Password".',
+        ],
+        'appearance.edit' => [
+            'title' => 'Branding Accent & Theme settings',
+            'overview' => 'Set theme settings or branding brand accent colors.',
+            'how_it_works' => 'Configures light, dark, or system mode styles and accent tokens.',
+            'how_to_use' => 'Toggle between Light, Dark, or System mode, and select accent colors to brand the portal.',
+        ],
+        'settings.prompt.edit' => [
+            'title' => 'AI Receptionist Voice Instructions',
+            'overview' => 'Set greeting prompts and rules for the AI receptionist.',
+            'how_it_works' => 'Configures the LLM instruction prompts used during customer call dialogues.',
+            'how_to_use' => 'Edit the text prompt field to change how the AI answers (tone, questions to ask, pricing rules) and click "Update Prompt".',
+        ],
+        'settings.prompt.update' => [
+            'title' => 'Save AI Receptionist Prompt',
+            'overview' => 'Update the AI greeting and operational guidelines.',
+            'how_it_works' => 'Saves new instructions to tenant configurations.',
+            'how_to_use' => 'Click "Update Prompt" after modifying prompt text.',
+        ],
+        'settings.billing.index' => [
+            'title' => 'Invoice Billing & Card Payments',
+            'overview' => 'Manage Stripe subscription details, billing cards, and checkout.',
+            'how_it_works' => 'Connects to the Stripe customer billing portal safely.',
+            'how_to_use' => 'View current subscription details, click "Update Payment Method" or "View Invoices" to redirect to Stripe, or click "Upgrade Plan" to initiate checkout.',
         ],
     ];
 
@@ -189,7 +436,7 @@ class GenerateRouteDocs extends Command
      */
     public function handle()
     {
-        $this->info('Starting route documentation generation...');
+        $this->info('Starting route user guides generation...');
 
         $routes = Route::getRoutes();
         $docsDir = base_path('docs/routes');
@@ -211,12 +458,11 @@ class GenerateRouteDocs extends Command
             $name = $route->getName();
             $middleware = $route->middleware();
 
-            // Determine Group/Category
             $category = $this->determineCategory($uri, $name);
             $fileName = $this->generateFileName($methods, $uri);
             $filePath = $docsDir.'/'.$fileName;
 
-            // Generate Content details
+            // Generate content
             $details = $this->parseRouteDetails($route, $methods, $uri, $action, $name, $middleware);
 
             // Write File
@@ -229,6 +475,7 @@ class GenerateRouteDocs extends Command
                 'methods' => $methods,
                 'name' => $name,
                 'file' => 'routes/'.$fileName,
+                'title' => $details['title'],
                 'description' => $details['description'],
             ];
         }
@@ -236,7 +483,7 @@ class GenerateRouteDocs extends Command
         // Generate README.md Table of Contents
         $this->generateReadme($groupedRoutes);
 
-        $this->info("Successfully generated {$generatedCount} route documentation files in docs/routes/");
+        $this->info("Successfully generated {$generatedCount} route user guides in docs/routes/");
         $this->info('Central index generated at docs/README.md');
 
         return self::SUCCESS;
@@ -247,29 +494,65 @@ class GenerateRouteDocs extends Command
      */
     protected function determineCategory(string $uri, ?string $name): string
     {
-        if (str_starts_with($uri, 'admin/')) {
-            return 'Admin Panel';
-        }
-        if (str_starts_with($uri, 'api/webhooks/') || str_starts_with($uri, 'api/telephony/') || str_starts_with($uri, 'api/telemetry/')) {
-            return 'Core Webhooks & Fallbacks';
-        }
-        if (str_starts_with($uri, 'api/')) {
-            return 'Core API Endpoints';
-        }
-        if (str_starts_with($uri, 'settings/') || str_contains($uri, '/settings/')) {
-            return 'Settings & Configuration';
-        }
-        if (str_starts_with($uri, 'stripe/')) {
-            return 'Billing & Subscriptions';
-        }
-        if (preg_match('/^(login|logout|register|forgot-password|reset-password|two-factor|passkeys|user\/two-factor|user\/passkeys|user\/confirm-password)/', $uri) || ($name && (str_starts_with($name, 'password.') || str_starts_with($name, 'two-factor.') || str_starts_with($name, 'passkey.')))) {
-            return 'Authentication & Security';
-        }
-        if (preg_match('/^(availabilities|bookings|employees|jobs|customers|conversations)/', $uri)) {
-            return 'Resource & Operations Management';
+        // Check if the route corresponds to a user guide
+        $guideKey = $this->findGuideKey($uri, $name);
+        if ($guideKey) {
+            if ($uri === '/' || $uri === 'about' || $uri === 'pricing' || $uri === 'contact' || $uri === 'admin/onboarding') {
+                return 'User Guide: Get Started';
+            }
+            if ($uri === 'dashboard') {
+                return 'User Guide: Operations Dashboard';
+            }
+            if (str_starts_with($uri, 'availabilities') || str_starts_with($uri, 'bookings')) {
+                return 'User Guide: Availability & Scheduling';
+            }
+            if (str_starts_with($uri, 'conversations')) {
+                return 'User Guide: Communications';
+            }
+            if (str_starts_with($uri, 'employees') || str_starts_with($uri, 'customers') || str_starts_with($uri, 'jobs')) {
+                return 'User Guide: Records Management';
+            }
+            if (str_starts_with($uri, 'admin/')) {
+                return 'User Guide: Advanced Dispatch Tools';
+            }
+            if (str_starts_with($uri, 'settings/') || str_contains($uri, '/settings/')) {
+                return 'User Guide: Account & Settings';
+            }
+            if (str_starts_with($uri, 'technician/')) {
+                return 'User Guide: Technician Mobile App';
+            }
         }
 
-        return 'General / Public Pages';
+        return 'Developer API Reference';
+    }
+
+    /**
+     * Locate the guide key based on the name or URI pattern.
+     */
+    protected function findGuideKey(string $uri, ?string $name): ?string
+    {
+        if ($name && isset($this->userGuides[$name])) {
+            return $name;
+        }
+
+        // Fallback checks on URI patterns
+        if ($uri === '/') {
+            return 'home';
+        }
+        if ($uri === 'about') {
+            return 'about';
+        }
+        if ($uri === 'pricing') {
+            return 'pricing';
+        }
+        if ($uri === 'contact') {
+            return 'contact';
+        }
+        if ($uri === 'dashboard') {
+            return 'dashboard';
+        }
+
+        return null;
     }
 
     /**
@@ -294,31 +577,45 @@ class GenerateRouteDocs extends Command
      */
     protected function parseRouteDetails($route, string $methods, string $uri, string $action, ?string $name, array $middleware): array
     {
-        $description = 'No description available.';
-        $howItWorks = 'Standard routing endpoint.';
-        $howToUse = 'Access via the specified HTTP method.';
+        $guideKey = $this->findGuideKey($uri, $name);
+
+        if ($guideKey) {
+            $guide = $this->userGuides[$guideKey];
+
+            return [
+                'is_guide' => true,
+                'title' => $guide['title'],
+                'methods' => $methods,
+                'uri' => $uri,
+                'action' => $action,
+                'name' => $name ?? 'None',
+                'middleware' => $middleware,
+                'description' => $guide['overview'],
+                'how_it_works' => $guide['how_it_works'],
+                'how_to_use' => $guide['how_to_use'],
+                'parameters' => [],
+                'renders_component' => null,
+            ];
+        }
+
+        // Fallback to Developer Reference details
+        $description = 'Developer API endpoint.';
+        $howItWorks = 'Processes request triggers.';
+        $howToUse = 'Send HTTP request calls.';
         $parameters = [];
         $rendersComponent = null;
 
-        // Try predefined documentation for vendor routes
-        if ($name && isset($this->vendorRouteDocs[$name])) {
-            $description = $this->vendorRouteDocs[$name]['description'];
-            $howItWorks = $this->vendorRouteDocs[$name]['how_it_works'];
-            $howToUse = $this->vendorRouteDocs[$name]['how_to_use'];
-        } elseif ($action !== 'Closure' && str_contains($action, '@')) {
+        if ($action !== 'Closure' && str_contains($action, '@')) {
             [$controllerClass, $methodName] = explode('@', $action);
-
             if (class_exists($controllerClass) && method_exists($controllerClass, $methodName)) {
                 $refClass = new ReflectionClass($controllerClass);
                 $refMethod = new ReflectionMethod($controllerClass, $methodName);
 
-                // 1. Get doc comment
                 $docComment = $refMethod->getDocComment();
                 if ($docComment) {
                     $description = $this->cleanDocComment($docComment);
                 }
 
-                // 2. Read source code
                 $fileName = $refMethod->getFileName();
                 $startLine = $refMethod->getStartLine();
                 $endLine = $refMethod->getEndLine();
@@ -327,15 +624,12 @@ class GenerateRouteDocs extends Command
                     $lines = file($fileName);
                     $methodCode = implode('', array_slice($lines, $startLine - 1, $endLine - $startLine + 1));
 
-                    // Inspect validation rules
                     if (preg_match('/\$request->validate\(\[\s*(.*?)\s*\]\)/s', $methodCode, $matches)) {
                         $validationContent = $matches[1];
                         preg_match_all("/['\"]([^'\"]+)['\"]\s*=>\s*\[\s*([^\]]+)\]/", $validationContent, $ruleMatches, PREG_SET_ORDER);
-
                         foreach ($ruleMatches as $ruleMatch) {
                             $paramName = $ruleMatch[1];
                             $rulesRaw = $ruleMatch[2];
-                            // clean up quotes and whitespace in rules
                             $rulesClean = preg_replace('/[\'\"\s]/', '', $rulesRaw);
                             $parameters[] = [
                                 'name' => $paramName,
@@ -346,58 +640,37 @@ class GenerateRouteDocs extends Command
                         }
                     }
 
-                    // Inspect Inertia render component
                     if (preg_match("/Inertia::render\(\s*['\"]([^'\"]+)['\"]/i", $methodCode, $matches)) {
                         $rendersComponent = $matches[1];
                     }
 
-                    // Formulate 'how it works' based on code content
                     $logicSummary = [];
                     if ($rendersComponent) {
-                        $logicSummary[] = "Renders the Inertia SPA view: `{$rendersComponent}`.";
+                        $logicSummary[] = "Renders Inertia view: `{$rendersComponent}`.";
                     }
                     if (str_contains($methodCode, '::create(') || str_contains($methodCode, '::save(')) {
-                        $logicSummary[] = 'Stores or persists model state to the database.';
+                        $logicSummary[] = 'Saves models updates.';
                     }
                     if (str_contains($methodCode, '::delete(') || str_contains($methodCode, '->delete(')) {
-                        $logicSummary[] = 'Deletes records or models from the database.';
+                        $logicSummary[] = 'Deletes records.';
                     }
-                    if (str_contains($methodCode, 'TenantScope::') || str_contains($methodCode, 'tenant_id')) {
-                        $logicSummary[] = 'Applies tenant isolation scoping rules to isolate company data.';
+                    if (str_contains($methodCode, 'TenantScope::')) {
+                        $logicSummary[] = 'Applies tenant isolation scoping rules.';
                     }
-                    if (str_contains($methodCode, 'event(new') || str_contains($methodCode, '::dispatch(')) {
-                        $logicSummary[] = 'Dispatches real-time broadcast events or queued jobs.';
+                    if (str_contains($methodCode, 'event(new')) {
+                        $logicSummary[] = 'Triggers WebSocket broadcasts.';
                     }
 
                     if (! empty($logicSummary)) {
                         $howItWorks = implode(' ', $logicSummary);
-                    } else {
-                        $howItWorks = 'Processes request through the controller action.';
-                    }
-
-                    // Formulate 'how to use' based on type of route
-                    if ($methods === 'GET') {
-                        if ($rendersComponent) {
-                            $howToUse = 'Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.';
-                        } else {
-                            $howToUse = 'Perform an HTTP GET request to retrieve the requested resource data.';
-                        }
-                    } else {
-                        $howToUse = "Perform an HTTP {$methods} request with the required payload parameters.";
                     }
                 }
             }
-        } elseif ($action === 'Closure' && str_contains($uri, 'storage')) {
-            $description = 'Serves local storage files.';
-            $howItWorks = 'Maps storage URL requests to local filesystem files.';
-            $howToUse = 'Request files using their public URL.';
-        } elseif ($action === 'Closure' && $uri === 'up') {
-            $description = 'Application health status endpoint.';
-            $howItWorks = 'Returns a basic HTTP response if the application is booted, signifying the server is active.';
-            $howToUse = 'Send a GET request to `/up`. Used for server uptime check monitoring.';
         }
 
         return [
+            'is_guide' => false,
+            'title' => "API Reference: {$methods} /{$uri}",
             'methods' => $methods,
             'uri' => $uri,
             'action' => $action,
@@ -418,7 +691,6 @@ class GenerateRouteDocs extends Command
     {
         $lines = explode("\n", $docComment);
         $cleanLines = [];
-
         foreach ($lines as $line) {
             $trimmed = trim($line);
             if ($trimmed === '/**' || $trimmed === '*/') {
@@ -441,55 +713,75 @@ class GenerateRouteDocs extends Command
     {
         $middlewareStr = empty($details['middleware']) ? '*None*' : implode(', ', array_map(fn ($m) => "`{$m}`", $details['middleware']));
 
-        $content = "# Route: {$details['methods']} /{$details['uri']}\n\n";
-        $content .= "{$details['description']}\n\n";
+        $content = "# {$details['title']}\n\n";
 
-        $content .= "## Technical Details\n\n";
-        $content .= "| Property | Value |\n";
-        $content .= "| --- | --- |\n";
-        $content .= "| **URI** | `/{$details['uri']}` |\n";
-        $content .= "| **HTTP Methods** | `{$details['methods']}` |\n";
-        $content .= '| **Route Name** | '.($details['name'] !== 'None' ? "`{$details['name']}`" : '*None*')." |\n";
-        $content .= "| **Controller Action** | `{$details['action']}` |\n";
-        $content .= "| **Middleware** | {$middlewareStr} |\n";
-        if ($details['renders_component']) {
-            $content .= "| **Inertia Page Component** | `{$details['renders_component']}` |\n";
-        }
-        $content .= "\n";
+        if ($details['is_guide']) {
+            $content .= "## Overview\n\n";
+            $content .= "{$details['description']}\n\n";
 
-        $content .= "## How it Works\n\n";
-        $content .= "{$details['how_it_works']}\n\n";
+            $content .= "## How it Works\n\n";
+            $content .= "{$details['how_it_works']}\n\n";
 
-        if (! empty($details['parameters'])) {
-            $content .= "## Request Parameters\n\n";
-            $content .= "| Parameter | Type | Required | Rules / Constraints |\n";
-            $content .= "| --- | --- | --- | --- |\n";
-            foreach ($details['parameters'] as $param) {
-                $content .= "| `{$param['name']}` | `{$param['type']}` | {$param['required']} | `{$param['rules']}` |\n";
+            $content .= "## How to Use\n\n";
+            $content .= "{$details['how_to_use']}\n\n";
+
+            $content .= "## Technical Details\n\n";
+            $content .= "| Property | Value |\n";
+            $content .= "| --- | --- |\n";
+            $content .= "| **URL Path** | `/{$details['uri']}` |\n";
+            $content .= "| **HTTP Method** | `{$details['methods']}` |\n";
+            $content .= '| **Route Name** | '.($details['name'] !== 'None' ? "`{$details['name']}`" : '*None*')." |\n";
+            $content .= "| **Action Code** | `{$details['action']}` |\n";
+            $content .= "| **Middleware** | {$middlewareStr} |\n";
+        } else {
+            $content .= "{$details['description']}\n\n";
+            $content .= "## Technical Details\n\n";
+            $content .= "| Property | Value |\n";
+            $content .= "| --- | --- |\n";
+            $content .= "| **URI** | `/{$details['uri']}` |\n";
+            $content .= "| **HTTP Methods** | `{$details['methods']}` |\n";
+            $content .= '| **Route Name** | '.($details['name'] !== 'None' ? "`{$details['name']}`" : '*None*')." |\n";
+            $content .= "| **Controller Action** | `{$details['action']}` |\n";
+            $content .= "| **Middleware** | {$middlewareStr} |\n";
+            if ($details['renders_component']) {
+                $content .= "| **Inertia Page Component** | `{$details['renders_component']}` |\n";
             }
             $content .= "\n";
-        }
 
-        $content .= "## How to Use\n\n";
-        $content .= "{$details['how_to_use']}\n";
+            $content .= "## How it Works\n\n";
+            $content .= "{$details['how_it_works']}\n\n";
 
-        if (! empty($details['parameters']) && in_array($details['methods'], ['POST', 'PUT', 'PATCH'])) {
-            $payload = [];
-            foreach ($details['parameters'] as $param) {
-                if ($param['type'] === 'integer') {
-                    $payload[$param['name']] = 1;
-                } elseif ($param['type'] === 'numeric') {
-                    $payload[$param['name']] = 99.99;
-                } elseif ($param['type'] === 'boolean') {
-                    $payload[$param['name']] = true;
-                } elseif ($param['type'] === 'array') {
-                    $payload[$param['name']] = [];
-                } else {
-                    $payload[$param['name']] = 'value';
+            if (! empty($details['parameters'])) {
+                $content .= "## Request Parameters\n\n";
+                $content .= "| Parameter | Type | Required | Rules / Constraints |\n";
+                $content .= "| --- | --- | --- | --- |\n";
+                foreach ($details['parameters'] as $param) {
+                    $content .= "| `{$param['name']}` | `{$param['type']}` | {$param['required']} | `{$param['rules']}` |\n";
                 }
+                $content .= "\n";
             }
-            $jsonPayload = json_encode($payload, JSON_PRETTY_PRINT);
-            $content .= "\n### Example Request Body\n\n```json\n{$jsonPayload}\n```\n";
+
+            $content .= "## How to Use\n\n";
+            $content .= "{$details['how_to_use']}\n";
+
+            if (! empty($details['parameters']) && in_array($details['methods'], ['POST', 'PUT', 'PATCH'])) {
+                $payload = [];
+                foreach ($details['parameters'] as $param) {
+                    if ($param['type'] === 'integer') {
+                        $payload[$param['name']] = 1;
+                    } elseif ($param['type'] === 'numeric') {
+                        $payload[$param['name']] = 99.99;
+                    } elseif ($param['type'] === 'boolean') {
+                        $payload[$param['name']] = true;
+                    } elseif ($param['type'] === 'array') {
+                        $payload[$param['name']] = [];
+                    } else {
+                        $payload[$param['name']] = 'value';
+                    }
+                }
+                $jsonPayload = json_encode($payload, JSON_PRETTY_PRINT);
+                $content .= "\n### Example Request Body\n\n```json\n{$jsonPayload}\n```\n";
+            }
         }
 
         return $content;
@@ -522,9 +814,7 @@ class GenerateRouteDocs extends Command
             $content .= "| Method | URI | Route Name | Description |\n";
             $content .= "| --- | --- | --- | --- |\n";
 
-            // Sort routes by URI for cleaner presentation
             usort($routes, fn ($a, $b) => strcmp($a['uri'], $b['uri']));
-
             foreach ($routes as $route) {
                 $routeNameStr = $route['name'] && $route['name'] !== 'None' ? "`{$route['name']}`" : '*None*';
                 $content .= "| `{$route['methods']}` | [`/{$route['uri']}`]({$route['file']}) | {$routeNameStr} | {$route['description']} |\n";

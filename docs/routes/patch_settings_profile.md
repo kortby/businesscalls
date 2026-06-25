@@ -1,21 +1,23 @@
-# Route: PATCH /settings/profile
+# Update Profile Records
 
-Update the user's profile information.
+## Overview
+
+Save changes to personal account details.
+
+## How it Works
+
+Updates account details in the database.
+
+## How to Use
+
+Modify fields and submit updates.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/profile` |
-| **HTTP Methods** | `PATCH` |
+| **URL Path** | `/settings/profile` |
+| **HTTP Method** | `PATCH` |
 | **Route Name** | `profile.update` |
-| **Controller Action** | `App\Http\Controllers\Settings\ProfileController@update` |
+| **Action Code** | `App\Http\Controllers\Settings\ProfileController@update` |
 | **Middleware** | `web`, `auth` |
-
-## How it Works
-
-Processes request through the controller action.
-
-## How to Use
-
-Perform an HTTP PATCH request with the required payload parameters.

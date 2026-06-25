@@ -1,6 +1,6 @@
-# Route: POST /logout
+# API Reference: POST /logout
 
-Destroys the authenticated session and logs the user out.
+Destroy an authenticated session.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Destroys the authenticated session and logs the user out.
 
 ## How it Works
 
-POST: Clears the authenticated session cookie, invalidates the session, and redirects the user to the home page.
+Processes request triggers.
 
 ## How to Use
 
-Send a POST request to `/logout` with a valid CSRF token header/cookie.
+Send HTTP request calls.

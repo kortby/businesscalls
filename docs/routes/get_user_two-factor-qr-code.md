@@ -1,6 +1,6 @@
-# Route: GET /user/two-factor-qr-code
+# API Reference: GET /user/two-factor-qr-code
 
-Retrieves the two-factor QR code SVG.
+Get the SVG element for the user's two factor authentication QR code.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves the two-factor QR code SVG.
 
 ## How it Works
 
-GET: Returns the JSON response containing the SVG string of the QR code to sync with Google Authenticator.
+Processes request triggers.
 
 ## How to Use
 
-Retrieve SVG representation to display in frontend configuration.
+Send HTTP request calls.

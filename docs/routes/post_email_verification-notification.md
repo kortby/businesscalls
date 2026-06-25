@@ -1,6 +1,6 @@
-# Route: POST /email/verification-notification
+# API Reference: POST /email/verification-notification
 
-Resends the email verification notification.
+Send a new email verification notification.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Resends the email verification notification.
 
 ## How it Works
 
-POST: Throttles request rates and triggers a new email verification notification flow.
+Processes request triggers.
 
 ## How to Use
 
-Send a POST request to `/email/verification-notification`.
+Send HTTP request calls.

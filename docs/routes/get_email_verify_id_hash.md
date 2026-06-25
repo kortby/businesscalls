@@ -1,6 +1,6 @@
-# Route: GET /email/verify/{id}/{hash}
+# API Reference: GET /email/verify/{id}/{hash}
 
-Performs email verification validation.
+Mark the authenticated user's email address as verified.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Performs email verification validation.
 
 ## How it Works
 
-GET: Validates the signed URL signature containing the user id and email hash, marks the email as verified in the DB, and redirects to dashboard.
+Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Accessed by clicking the verification link sent via email.
+Send HTTP request calls.

@@ -1,21 +1,23 @@
-# Route: GET /jobs/create
+# Create Job Form Page
 
-No description available.
+## Overview
+
+Form interface to log new work orders.
+
+## How it Works
+
+Renders the job ticket input interface.
+
+## How to Use
+
+Fill out service details and submit.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/jobs/create` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/jobs/create` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `jobs.create` |
-| **Controller Action** | `App\Http\Controllers\ServiceJobController@create` |
+| **Action Code** | `App\Http\Controllers\ServiceJobController@create` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

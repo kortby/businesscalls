@@ -1,6 +1,6 @@
-# Route: POST /user/passkeys
+# API Reference: POST /user/passkeys
 
-Registers a new passkey credential linked to the user.
+Store a new passkey for the authenticated user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Registers a new passkey credential linked to the user.
 
 ## How it Works
 
-POST: Validates WebAuthn registration response details and stores public key credentials.
+Processes request triggers.
 
 ## How to Use
 
-Sends WebAuthn registration payload.
+Send HTTP request calls.

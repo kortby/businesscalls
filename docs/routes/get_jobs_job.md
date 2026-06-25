@@ -1,21 +1,23 @@
-# Route: GET /jobs/{job}
+# Service Job Details
 
-No description available.
+## Overview
+
+Detailed view of an individual job ticket.
+
+## How it Works
+
+Compiles history logs, customer details, assigned technicians, and billing amounts.
+
+## How to Use
+
+Click on any job ID to view the full details panel.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/jobs/{job}` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/jobs/{job}` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `jobs.show` |
-| **Controller Action** | `App\Http\Controllers\ServiceJobController@show` |
+| **Action Code** | `App\Http\Controllers\ServiceJobController@show` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

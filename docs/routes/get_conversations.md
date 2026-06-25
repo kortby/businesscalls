@@ -1,22 +1,23 @@
-# Route: GET /conversations
+# Client Conversations History
 
-Display a list of the conversations.
+## Overview
+
+View transcripts, recordings, and SMS messages between customer clients and the AI receptionist.
+
+## How it Works
+
+Logs live call events, analyzes customer intent, scores call quality (CQS), and compiles dialogue streams.
+
+## How to Use
+
+Browse active chat and call threads. Click on any contact name to review their full transcript logs or play back call recordings.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/conversations` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/conversations` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `conversations.index` |
-| **Controller Action** | `App\Http\Controllers\ConversationsController@index` |
+| **Action Code** | `App\Http\Controllers\ConversationsController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Conversations/Index` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Conversations/Index`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

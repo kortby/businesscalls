@@ -1,6 +1,6 @@
-# Route: GET /two-factor-challenge
+# API Reference: GET /two-factor-challenge
 
-Renders the two-factor authentication OTP login form.
+Show the two factor authentication challenge view.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Renders the two-factor authentication OTP login form.
 
 ## How it Works
 
-GET: Displays the interface to input a two-factor authentication code or recovery code.
+Processes request triggers.
 
 ## How to Use
 
-Redirected automatically if 2FA is active for the logging-in account.
+Send HTTP request calls.

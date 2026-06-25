@@ -1,4 +1,4 @@
-# Route: GET /api/settings/specialized-keywords
+# API Reference: GET /api/settings/specialized-keywords
 
 Get the registered specialized trade keywords for the active tenant.
 
@@ -14,8 +14,8 @@ Get the registered specialized trade keywords for the active tenant.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP GET request to retrieve the requested resource data.
+Send HTTP request calls.

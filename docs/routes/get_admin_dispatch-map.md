@@ -1,22 +1,23 @@
-# Route: GET /admin/dispatch-map
+# Interactive Dispatch Map
 
-Display the playful animated Live Dispatch Map (Duolingo style UI).
+## Overview
+
+Visual map coordinates tracking active service locations.
+
+## How it Works
+
+Embeds coordinates of technician job bookings and visualizes them on a maps interface.
+
+## How to Use
+
+Zoom and drag the map to monitor technician travel routes and coordinate quick emergency dispatches.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/dispatch-map` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/dispatch-map` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.dispatch-map` |
-| **Controller Action** | `App\Http\Controllers\AdminController@dispatchMap` |
+| **Action Code** | `App\Http\Controllers\AdminController@dispatchMap` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/LiveDispatchMap` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/LiveDispatchMap`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

@@ -1,6 +1,6 @@
-# Route: GET /user/confirmed-password-status
+# API Reference: GET /user/confirmed-password-status
 
-Checks the password confirmation timeout status.
+Get the password confirmation status.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Checks the password confirmation timeout status.
 
 ## How it Works
 
-GET: Returns a JSON response indicating whether the user's password has been confirmed within the timeout limit.
+Processes request triggers.
 
 ## How to Use
 
-Perform GET request to check status.
+Send HTTP request calls.

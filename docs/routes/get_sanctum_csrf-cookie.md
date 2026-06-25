@@ -1,6 +1,6 @@
-# Route: GET /sanctum/csrf-cookie
+# API Reference: GET /sanctum/csrf-cookie
 
-Retrieve the CSRF protection cookie for Sanctum-authenticated SPA clients.
+Return an empty response simply to trigger the storage of the CSRF cookie in the browser.
 
 ## Technical Details
 
@@ -14,12 +14,8 @@ Retrieve the CSRF protection cookie for Sanctum-authenticated SPA clients.
 
 ## How it Works
 
-Initiates a stateful session and sets the HTTP-only cookie (`XSRF-TOKEN`) required for subsequent state-mutating requests (POST, PUT, DELETE) to protect against Cross-Site Request Forgery.
+Processes request triggers.
 
 ## How to Use
 
-Make a GET request to `/sanctum/csrf-cookie` before sending any authentication requests (such as login or register).
-
-```bash
-curl -X GET http://localhost/sanctum/csrf-cookie -i
-```
+Send HTTP request calls.

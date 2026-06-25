@@ -1,4 +1,4 @@
-# Route: GET /api/billing/portal
+# API Reference: GET /api/billing/portal
 
 Generate a Stripe Customer Portal redirect URL.
 
@@ -14,8 +14,8 @@ Generate a Stripe Customer Portal redirect URL.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data.
+Applies tenant isolation scoping rules.
 
 ## How to Use
 
-Perform an HTTP GET request to retrieve the requested resource data.
+Send HTTP request calls.

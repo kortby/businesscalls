@@ -1,4 +1,4 @@
-# Route: PUT /api/bookings/{booking}/status
+# API Reference: PUT /api/bookings/{booking}/status
 
 Update the dispatch booking status dynamically.
 
@@ -14,7 +14,7 @@ Update the dispatch booking status dynamically.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
+Applies tenant isolation scoping rules. Triggers WebSocket broadcasts.
 
 ## Request Parameters
 
@@ -26,7 +26,7 @@ Applies tenant isolation scoping rules to isolate company data. Dispatches real-
 
 ## How to Use
 
-Perform an HTTP PUT request with the required payload parameters.
+Send HTTP request calls.
 
 ### Example Request Body
 

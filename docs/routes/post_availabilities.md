@@ -1,43 +1,23 @@
-# Route: POST /availabilities
+# Schedule Technician Shifts
 
-Store a newly created availability shift in storage.
+## Overview
+
+Assign weekly shift hours to individual technicians.
+
+## How it Works
+
+Validates shift parameters and creates active schedule blocks. Blocks overlapping shifts.
+
+## How to Use
+
+Select a technician, choose the day of the week, input shift start and end times, and click "Save Shift".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/availabilities` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/availabilities` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `availabilities.store` |
-| **Controller Action** | `App\Http\Controllers\AvailabilityController@store` |
+| **Action Code** | `App\Http\Controllers\AvailabilityController@store` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
-
-## Request Parameters
-
-| Parameter | Type | Required | Rules / Constraints |
-| --- | --- | --- | --- |
-| `employee_id` | `string` | Yes | `required, Rule::exists(employees, id)->where(tenant_id, auth()->user()->tenant_id), ` |
-| `day_of_week` | `integer` | Yes | `required, integer, min:0, max:6` |
-| `start_time` | `string` | Yes | `required, date_format:H:i` |
-| `end_time` | `string` | Yes | `required, date_format:H:i, after:start_time` |
-| `is_active` | `boolean` | No | `boolean` |
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.
-
-### Example Request Body
-
-```json
-{
-    "employee_id": "value",
-    "day_of_week": 1,
-    "start_time": "value",
-    "end_time": "value",
-    "is_active": true
-}
-```

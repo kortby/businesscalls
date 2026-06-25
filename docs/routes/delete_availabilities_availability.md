@@ -1,21 +1,23 @@
-# Route: DELETE /availabilities/{availability}
+# Remove Technician Shifts
 
-Remove the specified availability shift from storage.
+## Overview
+
+Delete scheduled shifts from a technician's calendar.
+
+## How it Works
+
+Removes availability blocks immediately, freeing up slots for rescheduling.
+
+## How to Use
+
+Click the "Delete" trash icon next to a shift block and confirm.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/availabilities/{availability}` |
-| **HTTP Methods** | `DELETE` |
+| **URL Path** | `/availabilities/{availability}` |
+| **HTTP Method** | `DELETE` |
 | **Route Name** | `availabilities.destroy` |
-| **Controller Action** | `App\Http\Controllers\AvailabilityController@destroy` |
+| **Action Code** | `App\Http\Controllers\AvailabilityController@destroy` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Deletes records or models from the database.
-
-## How to Use
-
-Perform an HTTP DELETE request with the required payload parameters.

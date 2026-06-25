@@ -175,7 +175,72 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
     Route::resource('jobs', ServiceJobController::class);
-    Route::inertia('docs', 'Docs/Index')->name('docs');
+    Route::get('docs', function () {
+        $routeArticles = [];
+        $routesDir = base_path('docs/routes');
+        if (is_dir($routesDir)) {
+            $files = scandir($routesDir);
+            foreach ($files as $file) {
+                if ($file === '.' || $file === '..' || ! str_ends_with($file, '.md')) {
+                    continue;
+                }
+                $filePath = $routesDir.'/'.$file;
+                $content = file_get_contents($filePath);
+                $id = str_replace('.md', '', $file);
+
+                // Extract title (first line # Route: ... or similar)
+                $title = $id;
+                if (preg_match('/^#\s+(.*)$/m', $content, $m)) {
+                    $title = $m[1];
+                }
+
+                // Extract summary
+                $summary = 'Detailed guide for '.$title;
+                $lines = explode("\n", $content);
+                foreach ($lines as $line) {
+                    $trimmed = trim($line);
+                    if (! empty($trimmed) && ! str_starts_with($trimmed, '#') && ! str_starts_with($trimmed, '|') && ! str_starts_with($trimmed, '-')) {
+                        $summary = $trimmed;
+                        break;
+                    }
+                }
+
+                // Determine category based on prefix and filename matches
+                $category = 'Developer API Reference';
+                if ($id === 'get_root' || $id === 'get_about' || $id === 'get_pricing' || $id === 'get_contact' || $id === 'get_admin_onboarding') {
+                    $category = 'User Guide: Get Started';
+                } elseif ($id === 'get_dashboard') {
+                    $category = 'User Guide: Operations Dashboard';
+                } elseif (str_starts_with($id, 'get_availabilities') || str_starts_with($id, 'post_availabilities') || str_starts_with($id, 'put_availabilities') || str_starts_with($id, 'delete_availabilities') || str_starts_with($id, 'get_bookings') || str_starts_with($id, 'post_bookings') || str_starts_with($id, 'put_bookings') || str_starts_with($id, 'delete_bookings')) {
+                    $category = 'User Guide: Availability & Scheduling';
+                } elseif (str_starts_with($id, 'get_conversations') || str_starts_with($id, 'post_conversations')) {
+                    $category = 'User Guide: Communications';
+                } elseif (str_starts_with($id, 'get_employees') || str_starts_with($id, 'post_employees') || str_starts_with($id, 'put_employees') || str_starts_with($id, 'delete_employees') || str_starts_with($id, 'get_customers') || str_starts_with($id, 'post_customers') || str_starts_with($id, 'get_jobs') || str_starts_with($id, 'post_jobs') || str_starts_with($id, 'put_jobs') || str_starts_with($id, 'delete_jobs')) {
+                    $category = 'User Guide: Records Management';
+                } elseif (str_starts_with($id, 'get_admin_') || str_starts_with($id, 'post_admin_')) {
+                    $category = 'User Guide: Advanced Dispatch Tools';
+                } elseif (str_starts_with($id, 'get_settings_') || str_starts_with($id, 'patch_settings_') || str_starts_with($id, 'delete_settings_') || str_starts_with($id, 'put_settings_') || str_starts_with($id, 'get_appearance') || str_starts_with($id, 'get_profile') || str_starts_with($id, 'patch_profile') || str_starts_with($id, 'delete_profile') || str_starts_with($id, 'get_security') || str_starts_with($id, 'put_user_password')) {
+                    $category = 'User Guide: Account & Settings';
+                } elseif (str_starts_with($id, 'get_technician_') || str_starts_with($id, 'post_technician_')) {
+                    $category = 'User Guide: Technician Mobile App';
+                }
+
+                $routeArticles[] = [
+                    'id' => $id,
+                    'category' => $category,
+                    'title' => $title,
+                    'icon' => str_contains($id, 'get_') ? 'BookOpen' : 'Terminal',
+                    'summary' => $summary,
+                    'content' => $content,
+                    'tags' => ['route', 'user guide', str_replace('_', ' ', $id)],
+                ];
+            }
+        }
+
+        return Inertia::render('Docs/Index', [
+            'routeArticles' => $routeArticles,
+        ]);
+    })->name('docs');
 });
 
 Route::post('stripe/webhook', [StripeWebhookController::class, 'handleWebhook'])->name('cashier.webhook');

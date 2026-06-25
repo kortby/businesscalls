@@ -1,6 +1,6 @@
-# Route: GET /user/confirm-password
+# API Reference: GET /user/confirm-password
 
-Renders password confirmation view.
+Show the confirm password view.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Renders password confirmation view.
 
 ## How it Works
 
-GET: Displays the prompt requiring password verification before performing administrative actions.
+Processes request triggers.
 
 ## How to Use
 
-Navigate to `/user/confirm-password` in the browser.
+Send HTTP request calls.

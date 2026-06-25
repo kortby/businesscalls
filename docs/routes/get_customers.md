@@ -1,22 +1,23 @@
-# Route: GET /customers
+# Customer CRM Directory
 
-Display a listing of distinct customers (phone numbers) and their activity.
+## Overview
+
+Manage customer profiles and client histories.
+
+## How it Works
+
+Compiles customer profiles automatically when calls are processed.
+
+## How to Use
+
+Search client entries by name or phone. Review recent job tickets associated with each client.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/customers` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/customers` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `customers.index` |
-| **Controller Action** | `App\Http\Controllers\CustomerController@index` |
+| **Action Code** | `App\Http\Controllers\CustomerController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `customers/Index` |
-
-## How it Works
-
-Renders the Inertia SPA view: `customers/Index`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

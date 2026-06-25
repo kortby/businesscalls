@@ -1,21 +1,23 @@
-# Route: POST /admin/mascot-shop/purchase
+# Purchase Mascot Avatar Skins
 
-Purchase/activate a mascot skin.
+## Overview
+
+Unlock custom skins using earned points.
+
+## How it Works
+
+Deducts dispatcher points and unlocks custom avatar skins.
+
+## How to Use
+
+Click "Purchase" on your desired skin inside the mascot shop.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/mascot-shop/purchase` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/admin/mascot-shop/purchase` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `admin.mascot-shop.purchase` |
-| **Controller Action** | `App\Http\Controllers\AdminController@purchaseMascotSkin` |
+| **Action Code** | `App\Http\Controllers\AdminController@purchaseMascotSkin` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.

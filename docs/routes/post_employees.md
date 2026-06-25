@@ -1,45 +1,23 @@
-# Route: POST /employees
+# Register New Technicians
 
-Store a newly created employee.
+## Overview
+
+Add new staff members to your team.
+
+## How it Works
+
+Creates a technician profile, registers skill tags, and optionally generates login credentials.
+
+## How to Use
+
+Click "Add Staff", enter first name, last name, phone, trade skills (e.g. plumbing, HVAC), notification preference, and click "Save".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/employees` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `employees.store` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@store` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@store` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
-
-## Request Parameters
-
-| Parameter | Type | Required | Rules / Constraints |
-| --- | --- | --- | --- |
-| `first_name` | `string` | Yes | `required, string, max:255` |
-| `last_name` | `string` | Yes | `required, string, max:255` |
-| `phone` | `string` | Yes | `required, string, max:50` |
-| `skills` | `array` | No | `nullable, array` |
-| `notification_preference` | `string` | Yes | `required, string, in:sms, email, both` |
-| `email` | `string` | No | `nullable, email, max:255` |
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.
-
-### Example Request Body
-
-```json
-{
-    "first_name": "value",
-    "last_name": "value",
-    "phone": "value",
-    "skills": [],
-    "notification_preference": "value",
-    "email": "value"
-}
-```

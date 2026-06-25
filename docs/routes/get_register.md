@@ -1,6 +1,6 @@
-# Route: GET /register
+# API Reference: GET /register
 
-Renders the registration form or registers a new tenant user.
+Show the registration view.
 
 ## Technical Details
 
@@ -14,17 +14,8 @@ Renders the registration form or registers a new tenant user.
 
 ## How it Works
 
-GET: Renders the Inertia user registration page. POST: Validates inputs (name, email, password, password_confirmation), creates a new User model, registers a corresponding default tenant organization, and logs the user in.
+Processes request triggers.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@example.com",
-  "password": "password123",
-  "password_confirmation": "password123"
-}
-```
+Send HTTP request calls.

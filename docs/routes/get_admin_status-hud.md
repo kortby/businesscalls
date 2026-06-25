@@ -1,22 +1,23 @@
-# Route: GET /admin/status-hud
+# System Status Monitor HUD
 
-Display the playful visual system status and health console.
+## Overview
+
+Overview of server uptime and active webhook queues.
+
+## How it Works
+
+Checks response latency and monitors system health state.
+
+## How to Use
+
+Review status lights to ensure all services are fully operational.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/status-hud` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/status-hud` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.status-hud` |
-| **Controller Action** | `App\Http\Controllers\AdminController@statusHud` |
+| **Action Code** | `App\Http\Controllers\AdminController@statusHud` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/StatusHUD` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/StatusHUD`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

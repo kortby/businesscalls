@@ -1,4 +1,4 @@
-# Route: POST /api/oauth/token
+# API Reference: POST /api/oauth/token
 
 Handle client credentials grant and return access tokens.
 
@@ -14,8 +14,8 @@ Handle client credentials grant and return access tokens.
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
+Saves models updates.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

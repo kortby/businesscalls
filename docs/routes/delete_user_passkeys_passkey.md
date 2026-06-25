@@ -1,6 +1,6 @@
-# Route: DELETE /user/passkeys/{passkey}
+# API Reference: DELETE /user/passkeys/{passkey}
 
-Removes a registered passkey credential.
+Delete a passkey for the authenticated user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Removes a registered passkey credential.
 
 ## How it Works
 
-DELETE: Locates and deletes the specified passkey record from the database.
+Processes request triggers.
 
 ## How to Use
 
-Send DELETE request to `/user/passkeys/{passkey_id}`.
+Send HTTP request calls.

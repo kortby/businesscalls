@@ -1,6 +1,6 @@
-# Route: GET /user/two-factor-recovery-codes
+# API Reference: GET /user/two-factor-recovery-codes
 
-Retrieves the active two-factor recovery codes.
+Get the two factor authentication recovery codes for authenticated user.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves the active two-factor recovery codes.
 
 ## How it Works
 
-GET: Decrypts and returns the collection of recovery codes.
+Processes request triggers.
 
 ## How to Use
 
-Retrieve codes collection array.
+Send HTTP request calls.

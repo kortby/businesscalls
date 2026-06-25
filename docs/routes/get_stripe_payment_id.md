@@ -1,6 +1,6 @@
-# Route: GET /stripe/payment/{id}
+# API Reference: GET /stripe/payment/{id}
 
-Displays the Stripe payment confirmation page.
+Display the form to gather additional payment verification for the given payment.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Displays the Stripe payment confirmation page.
 
 ## How it Works
 
-GET: Renders a payment confirmation template for resolving 3D secure payments.
+Processes request triggers.
 
 ## How to Use
 
-Redirect target from checkout flows.
+Send HTTP request calls.

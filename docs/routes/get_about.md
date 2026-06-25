@@ -1,21 +1,23 @@
-# Route: GET /about
+# About Us Information
 
-No description available.
+## Overview
+
+Public information page describing the mission and technology of businesscalls.
+
+## How it Works
+
+Explains our real-time AI scheduling algorithms, team backgrounds, and customer success principles.
+
+## How to Use
+
+Click the "About" link in the navbar or go directly to the `/about` URL path.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/about` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/about` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `about` |
-| **Controller Action** | `\Inertia\Controller` |
+| **Action Code** | `\Inertia\Controller` |
 | **Middleware** | `web` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

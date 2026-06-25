@@ -1,22 +1,23 @@
-# Route: GET /admin/pre-flight-audit
+# Pre-Flight System Check
 
-Display the playful pre-flight launch audit panel.
+## Overview
+
+Run connection tests on third-party service APIs.
+
+## How it Works
+
+Tests Twilio integration, Stripe API keys, Pusher connection, and database status.
+
+## How to Use
+
+Click "Run Verification" to check if the system is fully configured and ready for production calls.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/pre-flight-audit` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/pre-flight-audit` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.preflight` |
-| **Controller Action** | `App\Http\Controllers\AdminController@preFlightAudit` |
+| **Action Code** | `App\Http\Controllers\AdminController@preFlightAudit` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/PreFlightAudit` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/PreFlightAudit`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

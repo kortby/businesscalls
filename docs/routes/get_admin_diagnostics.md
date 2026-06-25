@@ -1,22 +1,23 @@
-# Route: GET /admin/diagnostics
+# Live Diagnostics HUD
 
-Display the system diagnostic telemetry panel.
+## Overview
+
+Infrastructure telemetry panel tracking server vitals.
+
+## How it Works
+
+Displays active WebSocket Reverb connections, queue load metrics, database latency, and average conversational latency.
+
+## How to Use
+
+Monitor system parameters to ensure high performance and low conversational delay times.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/diagnostics` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/diagnostics` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.diagnostics` |
-| **Controller Action** | `App\Http\Controllers\AdminController@diagnostics` |
+| **Action Code** | `App\Http\Controllers\AdminController@diagnostics` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/DiagnosticPanel` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/DiagnosticPanel`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

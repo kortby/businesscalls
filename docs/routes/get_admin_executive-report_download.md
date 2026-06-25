@@ -1,21 +1,23 @@
-# Route: GET /admin/executive-report/download
+# Download Performance Reports
 
-Download the gamified executive PDF report.
+## Overview
+
+Export performance summaries directly.
+
+## How it Works
+
+Generates and downloads PDF documents directly.
+
+## How to Use
+
+Triggered automatically when downloading reports.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/executive-report/download` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/executive-report/download` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.report.download` |
-| **Controller Action** | `App\Http\Controllers\AdminController@downloadReport` |
+| **Action Code** | `App\Http\Controllers\AdminController@downloadReport` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Perform an HTTP GET request to retrieve the requested resource data.

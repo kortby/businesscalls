@@ -1,6 +1,6 @@
-# Route: GET /up
+# API Reference: GET /up
 
-Application health status endpoint.
+Developer API endpoint.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Application health status endpoint.
 
 ## How it Works
 
-Returns a basic HTTP response if the application is booted, signifying the server is active.
+Processes request triggers.
 
 ## How to Use
 
-Send a GET request to `/up`. Used for server uptime check monitoring.
+Send HTTP request calls.

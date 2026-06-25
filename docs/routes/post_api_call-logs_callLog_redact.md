@@ -1,4 +1,4 @@
-# Route: POST /api/call-logs/{callLog}/redact
+# API Reference: POST /api/call-logs/{callLog}/redact
 
 Manually redact sensitive data in the specified call log transcript.
 
@@ -14,8 +14,8 @@ Manually redact sensitive data in the specified call log transcript.
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
+Saves models updates.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

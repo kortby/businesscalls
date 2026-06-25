@@ -1,21 +1,23 @@
-# Route: GET /employees/{employee}
+# Technician Profile Details
 
-No description available.
+## Overview
+
+Detailed view of an individual technician's performance and shifts.
+
+## How it Works
+
+Displays contact logs, active skills, calendar shifts, and job history charts.
+
+## How to Use
+
+Click on any technician to view their full profile panel.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees/{employee}` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/employees/{employee}` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `employees.show` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@show` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@show` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Standard routing endpoint.
-
-## How to Use
-
-Access via the specified HTTP method.

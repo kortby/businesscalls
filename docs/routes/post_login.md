@@ -1,4 +1,4 @@
-# Route: POST /login
+# API Reference: POST /login
 
 Attempt to authenticate a new session.
 
@@ -14,8 +14,8 @@ Attempt to authenticate a new session.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

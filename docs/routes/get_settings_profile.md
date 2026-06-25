@@ -1,22 +1,23 @@
-# Route: GET /settings/profile
+# User Profile Settings
 
-Show the user's profile settings page.
+## Overview
+
+Manage personal contact information.
+
+## How it Works
+
+Renders form to edit user account settings.
+
+## How to Use
+
+Modify your name, email, or telephone and click "Save Changes".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/profile` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/settings/profile` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `profile.edit` |
-| **Controller Action** | `App\Http\Controllers\Settings\ProfileController@edit` |
+| **Action Code** | `App\Http\Controllers\Settings\ProfileController@edit` |
 | **Middleware** | `web`, `auth` |
-| **Inertia Page Component** | `settings/Profile` |
-
-## How it Works
-
-Renders the Inertia SPA view: `settings/Profile`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

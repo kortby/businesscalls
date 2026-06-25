@@ -1,4 +1,4 @@
-# Route: POST /api/telephony/fallback-route/{tenant_id?}
+# API Reference: POST /api/telephony/fallback-route/{tenant_id?}
 
 Handle Twilio dynamic TwiML fallback voice routing.
 
@@ -14,8 +14,8 @@ Handle Twilio dynamic TwiML fallback voice routing.
 
 ## How it Works
 
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
+Saves models updates.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

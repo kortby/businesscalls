@@ -1,6 +1,6 @@
-# Route: GET /passkeys/login/options
+# API Reference: GET /passkeys/login/options
 
-Retrieves login challenge options for passkeys.
+Get passkey login options.
 
 ## Technical Details
 
@@ -14,8 +14,8 @@ Retrieves login challenge options for passkeys.
 
 ## How it Works
 
-GET: Generates login challenge config details.
+Processes request triggers.
 
 ## How to Use
 
-Fetch login challenge values.
+Send HTTP request calls.

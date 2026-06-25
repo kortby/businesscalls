@@ -1,22 +1,23 @@
-# Route: GET /availabilities
+# Technician Availabilities List
 
-Display a listing of shift availabilities.
+## Overview
+
+View active shift schedules and hours for all registered technicians.
+
+## How it Works
+
+Displays weekly availability grids grouped by technician. Overlapping shift windows are prevented automatically.
+
+## How to Use
+
+Review the calendar grid to verify technician coverage for the upcoming week.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/availabilities` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/availabilities` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `availabilities.index` |
-| **Controller Action** | `App\Http\Controllers\AvailabilityController@index` |
+| **Action Code** | `App\Http\Controllers\AvailabilityController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Availabilities` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Availabilities`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

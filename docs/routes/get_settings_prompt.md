@@ -1,22 +1,23 @@
-# Route: GET /settings/prompt
+# AI Receptionist Voice Instructions
 
-Show the tenant settings / prompt editor page.
+## Overview
+
+Set greeting prompts and rules for the AI receptionist.
+
+## How it Works
+
+Configures the LLM instruction prompts used during customer call dialogues.
+
+## How to Use
+
+Edit the text prompt field to change how the AI answers (tone, questions to ask, pricing rules) and click "Update Prompt".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/settings/prompt` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/settings/prompt` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `settings.prompt.edit` |
-| **Controller Action** | `App\Http\Controllers\Settings\TenantSettingsController@edit` |
+| **Action Code** | `App\Http\Controllers\Settings\TenantSettingsController@edit` |
 | **Middleware** | `web`, `auth` |
-| **Inertia Page Component** | `settings/PromptEditor` |
-
-## How it Works
-
-Renders the Inertia SPA view: `settings/PromptEditor`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

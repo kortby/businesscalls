@@ -1,22 +1,23 @@
-# Route: GET /employees
+# Technicians & Staff Directory
 
-Display a listing of the employees.
+## Overview
+
+View all registered technicians, their details, and trade skills.
+
+## How it Works
+
+Groups staff details, links shift schedules, and compiles skill specializations.
+
+## How to Use
+
+Search technicians by name. Click "View Profile" to check their active schedule or edit records.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/employees` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `employees.index` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@index` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@index` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `employees/Index` |
-
-## How it Works
-
-Renders the Inertia SPA view: `employees/Index`.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

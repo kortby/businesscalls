@@ -1,4 +1,4 @@
-# Route: POST /api/telemetry/quality-degraded
+# API Reference: POST /api/telemetry/quality-degraded
 
 Broadcast call quality degradation metrics to supervisors.
 
@@ -14,8 +14,8 @@ Broadcast call quality degradation metrics to supervisors.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
+Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

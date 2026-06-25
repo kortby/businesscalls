@@ -1,4 +1,4 @@
-# Route: POST /user/confirmed-two-factor-authentication
+# API Reference: POST /user/confirmed-two-factor-authentication
 
 Enable two factor authentication for the user.
 
@@ -14,8 +14,8 @@ Enable two factor authentication for the user.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

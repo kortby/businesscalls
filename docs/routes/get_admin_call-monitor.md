@@ -1,22 +1,23 @@
-# Route: GET /admin/call-monitor
+# Live Call Listening Panel
 
-Display the Live Call Monitoring Hub.
+## Overview
+
+Listen in real time to customer calls answered by the AI receptionist.
+
+## How it Works
+
+Connects to active WebRTC audio streams of active voice calls.
+
+## How to Use
+
+View active calls list and click "Listen" to monitor audio in real time.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/call-monitor` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/call-monitor` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.call-monitor` |
-| **Controller Action** | `App\Http\Controllers\AdminController@callMonitor` |
+| **Action Code** | `App\Http\Controllers\AdminController@callMonitor` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/CallMonitor` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/CallMonitor`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

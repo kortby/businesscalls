@@ -1,32 +1,23 @@
-# Route: PUT|PATCH /jobs/{job}
+# Update Job Details
 
-Update the specified service job.
+## Overview
+
+Modify service descriptions, pricing, or status parameters of a job.
+
+## How it Works
+
+Updates job record values in the database.
+
+## How to Use
+
+Click "Edit Job", update comments or details, and click "Save Updates".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/jobs/{job}` |
-| **HTTP Methods** | `PUT|PATCH` |
+| **URL Path** | `/jobs/{job}` |
+| **HTTP Method** | `PUT|PATCH` |
 | **Route Name** | `jobs.update` |
-| **Controller Action** | `App\Http\Controllers\ServiceJobController@update` |
+| **Action Code** | `App\Http\Controllers\ServiceJobController@update` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Processes request through the controller action.
-
-## Request Parameters
-
-| Parameter | Type | Required | Rules / Constraints |
-| --- | --- | --- | --- |
-| `customer_id` | `string` | Yes | `required, exists:customers, id` |
-| `employee_id` | `string` | No | `nullable, exists:employees, id` |
-| `title` | `string` | Yes | `required, string, max:255` |
-| `description` | `string` | No | `nullable, string, max:1000` |
-| `status` | `string` | Yes | `required, string, in:pending, in_progress, completed, cancelled` |
-| `steps` | `array` | No | `nullable, array` |
-
-## How to Use
-
-Perform an HTTP PUT|PATCH request with the required payload parameters.

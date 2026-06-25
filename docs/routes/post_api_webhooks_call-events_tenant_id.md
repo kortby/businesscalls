@@ -1,4 +1,4 @@
-# Route: POST /api/webhooks/call-events/{tenant_id?}
+# API Reference: POST /api/webhooks/call-events/{tenant_id?}
 
 Handle incoming telephony events from Retell/Vapi.
 
@@ -14,8 +14,8 @@ Handle incoming telephony events from Retell/Vapi.
 
 ## How it Works
 
-Applies tenant isolation scoping rules to isolate company data. Dispatches real-time broadcast events or queued jobs.
+Applies tenant isolation scoping rules. Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

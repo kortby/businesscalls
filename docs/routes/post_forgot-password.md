@@ -1,6 +1,6 @@
-# Route: POST /forgot-password
+# API Reference: POST /forgot-password
 
-Sends a password reset link to the specified user email address.
+Send a reset link to the given user.
 
 ## Technical Details
 
@@ -14,14 +14,8 @@ Sends a password reset link to the specified user email address.
 
 ## How it Works
 
-POST: Validates the email address, generates a unique secure token, and dispatches a password recovery email notifications.
+Processes request triggers.
 
 ## How to Use
 
-POST request payload:
-
-```json
-{
-  "email": "user@example.com"
-}
-```
+Send HTTP request calls.

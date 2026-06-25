@@ -1,4 +1,4 @@
-# Route: POST /api/web-calls/token
+# API Reference: POST /api/web-calls/token
 
 Generate an ephemeral client access token or public key payload for WebRTC.
 
@@ -14,7 +14,7 @@ Generate an ephemeral client access token or public key payload for WebRTC.
 
 ## How it Works
 
-Processes request through the controller action.
+Processes request triggers.
 
 ## Request Parameters
 
@@ -24,7 +24,7 @@ Processes request through the controller action.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.
 
 ### Example Request Body
 

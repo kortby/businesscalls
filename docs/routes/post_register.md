@@ -1,4 +1,4 @@
-# Route: POST /register
+# API Reference: POST /register
 
 Create a new registered user.
 
@@ -14,8 +14,8 @@ Create a new registered user.
 
 ## How it Works
 
-Dispatches real-time broadcast events or queued jobs.
+Triggers WebSocket broadcasts.
 
 ## How to Use
 
-Perform an HTTP POST request with the required payload parameters.
+Send HTTP request calls.

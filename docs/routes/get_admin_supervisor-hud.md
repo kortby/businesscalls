@@ -1,22 +1,23 @@
-# Route: GET /admin/supervisor-hud
+# Supervisor HUD coaching panel
 
-Display the playful visual Supervisor HUD (Duolingo style UI).
+## Overview
+
+Advanced coaching controls for active customer calls.
+
+## How it Works
+
+Connects WebRTC streams and supports two-way whispering or full barging overrides.
+
+## How to Use
+
+During a live call, click "Whisper" to coach the agent silently, or "Barge In" to speak directly to the customer.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/supervisor-hud` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/supervisor-hud` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.supervisor-hud` |
-| **Controller Action** | `App\Http\Controllers\AdminController@supervisorHud` |
+| **Action Code** | `App\Http\Controllers\AdminController@supervisorHud` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/SupervisorHUD` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/SupervisorHUD`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.

@@ -1,21 +1,23 @@
-# Route: POST /admin/integrations
+# Save CRM Credentials
 
-Save or update a tenant integration status/details.
+## Overview
+
+Save external CRM credentials.
+
+## How it Works
+
+Saves CRM keys to securely link client databases.
+
+## How to Use
+
+Click "Save Integration" after inputting API credentials.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/integrations` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/admin/integrations` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `admin.integrations.save` |
-| **Controller Action** | `App\Http\Controllers\AdminController@saveIntegration` |
+| **Action Code** | `App\Http\Controllers\AdminController@saveIntegration` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.

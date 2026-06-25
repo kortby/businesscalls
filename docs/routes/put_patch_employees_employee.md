@@ -1,31 +1,23 @@
-# Route: PUT|PATCH /employees/{employee}
+# Update Technician Records
 
-Update the specified employee.
+## Overview
+
+Modify contact info, skills, or notification preferences of existing technicians.
+
+## How it Works
+
+Updates employee record values in the database.
+
+## How to Use
+
+Click "Edit Profile", update fields, and click "Save Updates".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/employees/{employee}` |
-| **HTTP Methods** | `PUT|PATCH` |
+| **URL Path** | `/employees/{employee}` |
+| **HTTP Method** | `PUT|PATCH` |
 | **Route Name** | `employees.update` |
-| **Controller Action** | `App\Http\Controllers\EmployeeController@update` |
+| **Action Code** | `App\Http\Controllers\EmployeeController@update` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Processes request through the controller action.
-
-## Request Parameters
-
-| Parameter | Type | Required | Rules / Constraints |
-| --- | --- | --- | --- |
-| `first_name` | `string` | Yes | `required, string, max:255` |
-| `last_name` | `string` | Yes | `required, string, max:255` |
-| `phone` | `string` | Yes | `required, string, max:50` |
-| `skills` | `array` | No | `nullable, array` |
-| `notification_preference` | `string` | Yes | `required, string, in:sms, email, both` |
-
-## How to Use
-
-Perform an HTTP PUT|PATCH request with the required payload parameters.

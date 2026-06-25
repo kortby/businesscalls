@@ -1,35 +1,23 @@
-# Route: POST /customers/import
+# Import Client Databases (CSV)
 
-Import customers from a CSV file.
+## Overview
+
+Bulk upload customer lists from spreadsheets or CRM exports.
+
+## How it Works
+
+Parses CSV formats, matches phone logs, and bulk-inserts records securely.
+
+## How to Use
+
+Select a CSV file from your computer, match columns (Name, Phone), and click "Import Database".
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/customers/import` |
-| **HTTP Methods** | `POST` |
+| **URL Path** | `/customers/import` |
+| **HTTP Method** | `POST` |
 | **Route Name** | `customers.import` |
-| **Controller Action** | `App\Http\Controllers\CustomerController@import` |
+| **Action Code** | `App\Http\Controllers\CustomerController@import` |
 | **Middleware** | `web`, `auth`, `verified` |
-
-## How it Works
-
-Stores or persists model state to the database. Applies tenant isolation scoping rules to isolate company data.
-
-## Request Parameters
-
-| Parameter | Type | Required | Rules / Constraints |
-| --- | --- | --- | --- |
-| `csv_file` | `string` | Yes | `required, file, mimes:csv, txt, max:2048` |
-
-## How to Use
-
-Perform an HTTP POST request with the required payload parameters.
-
-### Example Request Body
-
-```json
-{
-    "csv_file": "value"
-}
-```

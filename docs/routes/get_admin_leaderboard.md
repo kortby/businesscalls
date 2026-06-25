@@ -1,22 +1,23 @@
-# Route: GET /admin/leaderboard
+# Dispatcher Rankings
 
-Display the playful Technician Performance Leaderboard (Duolingo style UI).
+## Overview
+
+Review rankings of team members based on booking success.
+
+## How it Works
+
+Calculates ranking positions based on successful call booking conversion rates.
+
+## How to Use
+
+Use rank lists to motivate and optimize team booking performance.
 
 ## Technical Details
 
 | Property | Value |
 | --- | --- |
-| **URI** | `/admin/leaderboard` |
-| **HTTP Methods** | `GET` |
+| **URL Path** | `/admin/leaderboard` |
+| **HTTP Method** | `GET` |
 | **Route Name** | `admin.leaderboard` |
-| **Controller Action** | `App\Http\Controllers\AdminController@leaderboard` |
+| **Action Code** | `App\Http\Controllers\AdminController@leaderboard` |
 | **Middleware** | `web`, `auth`, `verified` |
-| **Inertia Page Component** | `Admin/Leaderboard` |
-
-## How it Works
-
-Renders the Inertia SPA view: `Admin/Leaderboard`. Applies tenant isolation scoping rules to isolate company data.
-
-## How to Use
-
-Open the URL path in the web browser or perform a client-side Inertia navigation to view the rendered page.
