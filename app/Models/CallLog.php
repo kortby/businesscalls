@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('call_logs')]
-#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score', 'is_test_mode', 'latency_drift')]
-#[Casts(['is_test_mode' => 'boolean', 'latency_drift' => 'double'])]
+#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score', 'is_test_mode', 'latency_drift', 'turn_taking_congruence')]
+#[Casts(['is_test_mode' => 'boolean', 'latency_drift' => 'double', 'turn_taking_congruence' => 'double'])]
 class CallLog extends Model
 {
     use BelongsToTenant, HasAttributeCasts, HasFactory;
@@ -86,5 +86,32 @@ class CallLog extends Model
         $this->save();
 
         return $cqs;
+    }
+
+    /**
+     * Calculate and store the Speech Turn-Taking Congruence Index.
+     *
+     * @param  array<int>  $actualPauses
+     */
+    public function calculateTurnTakingCongruence(array $actualPauses): ?float
+    {
+        if (empty($actualPauses)) {
+            return null;
+        }
+
+        $c = count($actualPauses);
+        $pTarget = 600.0;
+        $sum = 0.0;
+
+        foreach ($actualPauses as $pActual) {
+            $sum += (1.0 - (abs($pActual - $pTarget) / $pTarget));
+        }
+
+        $congruence = $sum / $c;
+
+        $this->turn_taking_congruence = $congruence;
+        $this->save();
+
+        return $congruence;
     }
 }

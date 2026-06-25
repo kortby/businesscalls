@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\TenantOAuthToken;
 use App\Models\TenantShard;
 use Closure;
 use Illuminate\Http\Request;
@@ -20,6 +21,13 @@ class IdentifyTenantDatabaseShard
             ?? $request->route('tenant_id')
             ?? $request->header('X-Tenant-ID')
             ?? $request->header('x-tenant-id');
+
+        if (! $tenantId && $request->bearerToken()) {
+            $tokenRecord = TenantOAuthToken::where('access_token', $request->bearerToken())->first();
+            if ($tokenRecord) {
+                $tenantId = $tokenRecord->tenant_id;
+            }
+        }
 
         if ($tenantId) {
             $shard = TenantShard::where('tenant_id', $tenantId)->first();

@@ -12,6 +12,8 @@ import {
     Briefcase,
     HelpCircle,
     Sparkles,
+    Link2,
+    Activity,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -67,6 +69,11 @@ const mainNavItems: NavItem[] = [
         href: '/conversations',
         icon: MessageSquare,
     },
+    {
+        title: 'Live Monitor',
+        href: '/admin/call-monitor',
+        icon: Activity,
+    },
 ];
 
 const footerNavItems: NavItem[] = [
@@ -74,6 +81,11 @@ const footerNavItems: NavItem[] = [
         title: 'Mascot Shop',
         href: '/admin/mascot-shop',
         icon: Sparkles,
+    },
+    {
+        title: 'Integrations',
+        href: '/admin/integrations',
+        icon: Link2,
     },
     {
         title: 'Documentation',

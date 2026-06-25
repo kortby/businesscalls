@@ -2,10 +2,12 @@
 
 use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Booking;
+use App\Models\CallLog;
 use App\Models\CustomVoice;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Services\TenantSettingsService;
 use App\Services\VoiceCloningService;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Cache;
@@ -191,4 +193,41 @@ test('speech pace alignment engine handles division by zero and pacing mismatche
         return $request->url() === "https://api.vapi.ai/call/{$callId}" &&
             $request['assistantOverrides']['voice']['speed'] === 0.85;
     });
+});
+
+test('calculate turn taking congruence index correctly computes and saves metric', function () {
+    $tenant = Tenant::factory()->create();
+    $callLog = CallLog::create([
+        'tenant_id' => $tenant->id,
+        'call_id' => 'turn-taking-call-123',
+        'status' => 'ended',
+        'customer_phone' => '123-456-7890',
+    ]);
+
+    // Actual pauses 500ms and 700ms (P_target = 600ms)
+    // 1 - |500 - 600|/600 = 5/6 = 0.8333...
+    // 1 - |700 - 600|/600 = 5/6 = 0.8333...
+    // Expected avg congruence = 0.8333...
+    $congruence = $callLog->calculateTurnTakingCongruence([500, 700]);
+
+    expect($congruence)->toBeGreaterThan(0.83)
+        ->and($congruence)->toBeLessThan(0.84)
+        ->and($callLog->fresh()->turn_taking_congruence)->toBeGreaterThan(0.83);
+});
+
+test('tenant settings service includes custom speech timing overrides in vapi assistant overrides', function () {
+    $tenant = Tenant::factory()->create([
+        'settings' => [
+            'startSpeakingPlan' => 500, // 500ms -> 0.5s waitSeconds
+            'stopSpeakingPlan' => 0.4, // 0.4s voiceSeconds
+        ],
+    ]);
+
+    $service = app(TenantSettingsService::class);
+    $payload = $service->generateAssistantPayload($tenant);
+
+    expect($payload['assistantOverrides']['startSpeakingPlan']['waitSeconds'])->toBe(0.5)
+        ->and($payload['assistantOverrides']['stopSpeakingPlan']['voiceSeconds'])->toBe(0.4)
+        ->and($payload['assistantOverrides']['stopSpeakingPlan']['numWords'])->toBe(0)
+        ->and($payload['assistantOverrides']['stopSpeakingPlan']['backoffSeconds'])->toBe(1.0);
 });

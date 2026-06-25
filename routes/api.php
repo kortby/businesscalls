@@ -7,25 +7,30 @@ use App\Http\Controllers\Api\CallWebhookController;
 use App\Http\Controllers\Api\DispatchWebhookController;
 use App\Http\Controllers\Api\IvrController;
 use App\Http\Controllers\Api\McpController;
+use App\Http\Controllers\Api\OAuthController;
 use App\Http\Controllers\Api\PronunciationDictionaryController;
 use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\SmsWebhookController;
 use App\Http\Controllers\Api\SpecializedKeywordsController;
 use App\Http\Controllers\Api\WebCallController;
 use App\Http\Controllers\Api\WebRtcTelemetryController;
+use App\Http\Middleware\BlockSuspendedTenantCalls;
 use App\Http\Middleware\EnsureWebhookIdempotency;
 use App\Http\Middleware\RestrictToTelephonyIps;
 use App\Http\Middleware\ThrottleTenantTelephony;
+use App\Http\Middleware\VerifyOAuthWebhookToken;
 use App\Http\Middleware\WebhookGatewayMiddleware;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+
+Route::post('/oauth/token', [OAuthController::class, 'token'])->name('oauth.token');
 
 Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
-Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([BlockSuspendedTenantCalls::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'])->name('webhook.sms')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr-keypress')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
@@ -42,3 +47,4 @@ Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::cla
 Route::post('/settings/call-flow', [CallFlowController::class, 'store'])->middleware('auth:sanctum');
 
 Route::post('/telemetry/webrtc', WebRtcTelemetryController::class)->middleware('auth:sanctum');
+Route::post('/telemetry/quality-degraded', [WebRtcTelemetryController::class, 'degraded'])->middleware('auth:sanctum');

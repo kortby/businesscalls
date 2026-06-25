@@ -17,6 +17,9 @@ class TenantSettingsService
 
         $skills = $tenant->employees()->get()->pluck('skills')->flatten()->filter()->unique()->implode(', ');
 
+        $startSpeakingVal = (int) $tenant->getSetting('startSpeakingPlan', 600);
+        $stopSpeakingVal = (float) $tenant->getSetting('stopSpeakingPlan', 0.2);
+
         $payload = [
             'assistantOverrides' => [
                 'variableValues' => [
@@ -24,6 +27,14 @@ class TenantSettingsService
                     'custom_instructions' => $customInstructions,
                     'emergency_fee' => $emergencyFee,
                     'service_list' => $skills ?: 'General Contracting',
+                ],
+                'startSpeakingPlan' => [
+                    'waitSeconds' => (float) ($startSpeakingVal / 1000.0),
+                ],
+                'stopSpeakingPlan' => [
+                    'numWords' => 0,
+                    'voiceSeconds' => $stopSpeakingVal,
+                    'backoffSeconds' => 1.0,
                 ],
             ],
         ];

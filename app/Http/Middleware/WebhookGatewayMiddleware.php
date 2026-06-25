@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;
+use App\Models\TenantOAuthToken;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
@@ -54,6 +55,13 @@ class WebhookGatewayMiddleware
             $hasCustomCredentials = ($authToken && hash_equals($tenant->secret_key, $authToken))
                 || ($vapiSecret && hash_equals($tenant->secret_key, $vapiSecret))
                 || ($retellSecret && hash_equals($tenant->secret_key, $retellSecret));
+        }
+
+        if (! $hasCustomCredentials && $authToken) {
+            $tokenRecord = TenantOAuthToken::where('access_token', $authToken)->first();
+            if ($tokenRecord && $tokenRecord->tenant_id === $tenant->id && ! $tokenRecord->expires_at->isPast()) {
+                $hasCustomCredentials = true;
+            }
         }
 
         // 2. Signature Validation and Replay Attack Prevention

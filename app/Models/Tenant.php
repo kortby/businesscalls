@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
 
 #[Table('tenants')]
-#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'is_test_mode')]
+#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'is_test_mode', 'client_id', 'client_secret')]
 #[Casts(['settings' => 'array', 'is_test_mode' => 'boolean'])]
 class Tenant extends Model
 {
@@ -62,5 +62,46 @@ class Tenant extends Model
     public function tenantShard(): HasOne
     {
         return $this->hasOne(TenantShard::class);
+    }
+
+    /**
+     * Get the call logs associated with the tenant.
+     */
+    public function callLogs(): HasMany
+    {
+        return $this->hasMany(CallLog::class);
+    }
+
+    /**
+     * Calculate spend usage for the current billing cycle.
+     */
+    public function calculateSpendUsage(): float
+    {
+        $startDate = now()->startOfMonth();
+        $calls = $this->callLogs()
+            ->where('created_at', '>=', $startDate)
+            ->get();
+
+        $spend = 0.0;
+        $blendedRate = (float) $this->getSetting('blended_rate', 0.15);
+        $integrationSurcharge = (float) $this->getSetting('integration_surcharge', 0.05);
+        $ragSurcharge = (float) $this->getSetting('rag_surcharge', 0.01);
+
+        foreach ($calls as $call) {
+            $durationInMinutes = ($call->duration ?? 0) / 60.0;
+            $spend += ($durationInMinutes * $blendedRate);
+            $spend += ($call->integrations_count * $integrationSurcharge);
+            $spend += ($call->rag_lookups_count * $ragSurcharge);
+        }
+
+        return $spend;
+    }
+
+    /**
+     * Get the active spend limit.
+     */
+    public function getSpendLimit(): float
+    {
+        return (float) $this->getSetting('spend_limit', 50.0);
     }
 }

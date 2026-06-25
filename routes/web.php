@@ -38,6 +38,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/leaderboard', [AdminController::class, 'leaderboard'])->name('admin.leaderboard');
     Route::get('admin/mascot-shop', [AdminController::class, 'mascotShop'])->name('admin.mascot-shop');
     Route::post('admin/mascot-shop/purchase', [AdminController::class, 'purchaseMascotSkin'])->name('admin.mascot-shop.purchase');
+    Route::get('admin/integrations', [AdminController::class, 'integrations'])->name('admin.integrations');
+    Route::post('admin/integrations', [AdminController::class, 'saveIntegration'])->name('admin.integrations.save');
+    Route::post('admin/integrations/timing', [AdminController::class, 'saveTimingSettings'])->name('admin.integrations.timing');
+    Route::get('admin/call-monitor', [AdminController::class, 'callMonitor'])->name('admin.call-monitor');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

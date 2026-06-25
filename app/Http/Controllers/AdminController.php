@@ -9,6 +9,7 @@ use App\Models\CustomVoice;
 use App\Models\Employee;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
+use App\Models\TenantIntegration;
 use App\Services\PdfGeneratorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -508,5 +509,96 @@ class AdminController extends Controller
         }
 
         return back();
+    }
+
+    /**
+     * Display the playful visual Integrations Panel (Duolingo style UI).
+     */
+    public function integrations(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $integrations = TenantIntegration::where('tenant_id', $tenant->id)->get();
+
+        return Inertia::render('Admin/Integrations', [
+            'tenant' => $tenant,
+            'integrations' => $integrations,
+            'timingSettings' => [
+                'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
+                'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
+            ],
+            'stripe_active' => ! empty($tenant->stripe_id) || ! empty($tenant->getSetting('stripe_key')),
+        ]);
+    }
+
+    /**
+     * Save or update a tenant integration status/details.
+     */
+    public function saveIntegration(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'platform_name' => 'required|string',
+            'webhook_url' => 'nullable|string',
+            'is_active' => 'required|boolean',
+            'settings_json' => 'nullable|array',
+        ]);
+
+        $user = auth()->user();
+        $tenantId = $user->tenant_id;
+
+        TenantIntegration::updateOrCreate(
+            ['tenant_id' => $tenantId, 'platform_name' => $request->input('platform_name')],
+            [
+                'webhook_url' => $request->input('webhook_url'),
+                'is_active' => $request->input('is_active'),
+                'settings_json' => $request->input('settings_json', []),
+            ]
+        );
+
+        return back()->with('success', "Updated {$request->input('platform_name')} integration!");
+    }
+
+    /**
+     * Save customized speech timing settings.
+     */
+    public function saveTimingSettings(Request $request): RedirectResponse
+    {
+        $request->validate([
+            'startSpeakingPlan' => 'required|integer|min:400|max:800',
+            'stopSpeakingPlan' => 'required|numeric|min:0.1|max:2.0',
+        ]);
+
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        if ($tenant) {
+            $settings = $tenant->settings ?? [];
+            $settings['startSpeakingPlan'] = (int) $request->input('startSpeakingPlan');
+            $settings['stopSpeakingPlan'] = (float) $request->input('stopSpeakingPlan');
+            $tenant->settings = $settings;
+            $tenant->save();
+        }
+
+        return back()->with('success', 'Timing settings updated successfully!');
+    }
+
+    /**
+     * Display the Live Call Monitoring Hub.
+     */
+    public function callMonitor(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        return Inertia::render('Admin/CallMonitor', [
+            'tenant' => $tenant,
+            'timingSettings' => [
+                'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
+                'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
+            ],
+            'spendUsage' => $tenant->calculateSpendUsage(),
+            'spendLimit' => $tenant->getSpendLimit(),
+        ]);
     }
 }

@@ -11,6 +11,8 @@ use App\Models\CallLog;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
+use App\Models\TenantOAuthToken;
+use App\Services\WorkflowIntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -26,15 +28,13 @@ class DispatchWebhookController extends Controller
         // 1. Parse incoming parameters (supporting flat and nested Vapi payload structures)
         $toolCallId = $request->input('message.toolCalls.0.id');
         $arguments = $request->input('message.toolCalls.0.function.arguments', []);
+        $functionName = $request->input('message.toolCalls.0.function.name') ?? $request->input('function_name');
 
-        $customerPhone = $arguments['customer_phone'] ?? $request->input('customer_phone');
-        $serviceType = $arguments['service_type'] ?? $request->input('service_type');
-        $requestedTime = $arguments['requested_time'] ?? $request->input('requested_time');
         $tenantIdOrSlug = $arguments['tenant_id'] ?? $request->input('tenant_id') ?? $arguments['tenant_slug'] ?? $request->input('tenant_slug') ?? $request->input('tenant_id');
 
-        if (! $customerPhone || ! $serviceType || ! $requestedTime || ! $tenantIdOrSlug) {
+        if (! $tenantIdOrSlug) {
             return response()->json([
-                'error' => 'Missing required fields: customer_phone, service_type, requested_time, and tenant_id/slug must be provided.',
+                'error' => 'Missing required field: tenant_id or tenant_slug must be provided.',
             ], 400);
         }
 
@@ -60,6 +60,13 @@ class DispatchWebhookController extends Controller
             $hasCustomCredentials = ($authToken && hash_equals($tenant->secret_key, $authToken))
                 || ($vapiSecret && hash_equals($tenant->secret_key, $vapiSecret))
                 || ($retellSecret && hash_equals($tenant->secret_key, $retellSecret));
+        }
+
+        if (! $hasCustomCredentials && $authToken) {
+            $tokenRecord = TenantOAuthToken::where('access_token', $authToken)->first();
+            if ($tokenRecord && $tokenRecord->tenant_id === $tenant->id && ! $tokenRecord->expires_at->isPast()) {
+                $hasCustomCredentials = true;
+            }
         }
 
         if ($tenant->secret_key && ! $hasCustomCredentials) {
@@ -93,6 +100,42 @@ class DispatchWebhookController extends Controller
 
         // Apply global tenancy context for this request thread
         TenantScope::setTenantId($tenant->id);
+
+        // Check if this is an integration tool call trigger
+        if ($functionName && in_array($functionName, ['trigger_workflow', 'triggerExternalWorkflow'])) {
+            $eventName = $arguments['event_name'] ?? $request->input('event_name') ?? 'default_event';
+
+            $workflowService = app(WorkflowIntegrationService::class);
+            $workflowService->triggerExternalWorkflow($tenant, $eventName, $arguments);
+
+            $result = [
+                'status' => 'success',
+                'message' => "Workflow '{$eventName}' triggered successfully.",
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $result,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($result);
+        }
+
+        $customerPhone = $arguments['customer_phone'] ?? $request->input('customer_phone');
+        $serviceType = $arguments['service_type'] ?? $request->input('service_type');
+        $requestedTime = $arguments['requested_time'] ?? $request->input('requested_time');
+
+        if (! $customerPhone || ! $serviceType || ! $requestedTime) {
+            return response()->json([
+                'error' => 'Missing required fields: customer_phone, service_type, and requested_time must be provided.',
+            ], 400);
+        }
 
         // Broadcast searching status to dashboard
         event(new DispatchUpdated($tenant->id, [

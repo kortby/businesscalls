@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\CallLog;
 use App\Models\KnowledgeBase;
 use App\Models\KnowledgeChunk;
 use App\Models\Tenant;
@@ -52,6 +53,19 @@ class RAGKnowledgeService
      */
     public function search(Tenant $tenant, string $query, int $limit = 5, float $beta = 2.0): array
     {
+        $callId = request()->input('call_id')
+            ?? request()->input('call.id')
+            ?? request()->input('message.call.id')
+            ?? request()->input('message.callId')
+            ?? request()->input('message.call.callId');
+
+        if ($callId) {
+            $callLog = CallLog::where('call_id', $callId)->first();
+            if ($callLog) {
+                $callLog->increment('rag_lookups_count');
+            }
+        }
+
         $knowledgeBaseIds = KnowledgeBase::where('tenant_id', $tenant->id)->pluck('id');
 
         if ($knowledgeBaseIds->isEmpty()) {

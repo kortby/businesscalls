@@ -261,6 +261,8 @@ class CallWebhookController extends Controller
                     ? 'forwarded_to_voicemail'
                     : ($callEndReason ?? $existingCallLog?->call_end_reason);
 
+                $cost = $callData['combined_cost'] ?? $callData['combinedCost'] ?? $callData['cost'] ?? $callData['call_cost'] ?? null;
+
                 $callLog = CallLog::updateOrCreate(
                     ['call_id' => $callId],
                     [
@@ -271,6 +273,7 @@ class CallWebhookController extends Controller
                         'recording_url' => $recordingUrl,
                         'call_end_reason' => $finalEndReason,
                         'disconnection_source' => $disconnectionSource,
+                        'cost' => $cost !== null ? (float) $cost : null,
                     ]
                 );
 
