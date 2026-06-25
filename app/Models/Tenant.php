@@ -73,6 +73,14 @@ class Tenant extends Model
     }
 
     /**
+     * Get the payment transactions associated with the tenant.
+     */
+    public function paymentTransactions(): HasMany
+    {
+        return $this->hasMany(PaymentTransaction::class);
+    }
+
+    /**
      * Calculate spend usage for the current billing cycle.
      */
     public function calculateSpendUsage(): float

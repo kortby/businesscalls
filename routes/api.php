@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\DispatchWebhookController;
 use App\Http\Controllers\Api\IvrController;
 use App\Http\Controllers\Api\McpController;
 use App\Http\Controllers\Api\OAuthController;
+use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\PronunciationDictionaryController;
 use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\SmsWebhookController;
@@ -34,6 +35,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([BlockSuspendedTenantCalls::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/process-payment', [PaymentWebhookController::class, 'handle'])->name('webhook.process-payment');
 Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'])->name('webhook.sms')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr-keypress')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);

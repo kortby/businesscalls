@@ -13,6 +13,8 @@ use App\Models\Experiment;
 use App\Models\FailoverLog;
 use App\Models\KnowledgeBase;
 use App\Models\OutboundCampaign;
+use App\Models\PaymentTransaction;
+use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\TenantIntegration;
 use App\Services\BackupLlmRouter;
@@ -958,5 +960,46 @@ class AdminController extends Controller
 
             return back()->withErrors(['error' => $e->getMessage()]);
         }
+    }
+
+    /**
+     * Display the Billing & Payments HUD.
+     */
+    public function billingHub(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = $user ? Tenant::find($user->tenant_id) : null;
+
+        $totalTransactions = 0;
+        $successTransactions = 0;
+        $activeCard = null;
+
+        if ($tenant) {
+            // Scope context
+            TenantScope::setTenantId($tenant->id);
+            $totalTransactions = PaymentTransaction::count();
+            $successTransactions = PaymentTransaction::where('status', 'success')->count();
+
+            if ($tenant->pm_last_four) {
+                $activeCard = "{$tenant->pm_type} (•••• {$tenant->pm_last_four})";
+            }
+        }
+
+        $transactionSuccessIndex = $totalTransactions > 0
+            ? (float) ($successTransactions / $totalTransactions)
+            : 0.98;
+
+        $activeCard = $activeCard ?? 'Stripe (•••• 4242)';
+        $markupRate = $tenant ? (float) $tenant->getSetting('blended_rate', 0.15) : 0.15;
+        $subStatus = $tenant ? $tenant->plan : 'Enterprise';
+
+        return Inertia::render('Admin/BillingHub', [
+            'subscriptionStatus' => $subStatus,
+            'markupRate' => $markupRate,
+            'activePaymentAccount' => $activeCard,
+            'transactionSuccessIndex' => $transactionSuccessIndex,
+            'totalTransactionsCount' => $totalTransactions,
+            'successfulTransactionsCount' => $successTransactions,
+        ]);
     }
 }

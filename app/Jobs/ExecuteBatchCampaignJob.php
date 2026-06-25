@@ -9,6 +9,7 @@ use App\Models\Booking;
 use App\Models\OutboundCampaign;
 use App\Models\Scopes\TenantScope;
 use App\Services\ComplianceSanitizerService;
+use App\Services\QueueThrottleService;
 use App\Services\TrafficRouterService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -84,8 +85,12 @@ class ExecuteBatchCampaignJob implements ShouldQueue
         $phoneNumber = $tenant->getSetting('telephony_phone_number') ?? '+15550001111';
 
         $router = app(TrafficRouterService::class);
+        $throttleService = app(QueueThrottleService::class);
 
         foreach ($recipients as $recipient) {
+            // Apply queue dialer congestion throttle
+            $throttleService->throttleIfCongested($tenant);
+
             if (app()->environment('testing') && ! static::$shouldRunInTests) {
                 // In test mode without explicit override, simulate telephony API call
                 $callId = 'test_call_'.uniqid().'_'.$recipient->id;
