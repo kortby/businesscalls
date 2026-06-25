@@ -28,6 +28,8 @@ const callStatus = ref<'idle' | 'connecting' | 'connected' | 'ended' | 'error'>(
 );
 const isMuted = ref(false);
 const errorMessage = ref('');
+const isReconnecting = ref(false);
+const reconnectAttempts = ref(0);
 
 let vapiInstance: any = null;
 let retellInstance: any = null;
@@ -317,6 +319,171 @@ const stopAudioPolling = () => {
     callStore.isSpeaking = false;
 };
 
+const bindRetellListeners = (assistantId: string, callId: string) => {
+    if (!retellInstance) return;
+
+    retellInstance.on('call_started', () => {
+        callStatus.value = 'connected';
+        emit('call_started');
+        startTelemetryCollection(callId, 'retell');
+        startAudioPolling(null, true);
+        reconnectAttempts.value = 0;
+    });
+
+    retellInstance.on('call_ended', () => {
+        if (!isReconnecting.value) {
+            callStatus.value = 'ended';
+            emit('call_ended');
+            cleanupCall();
+        }
+    });
+
+    retellInstance.on('error', (err: any) => {
+        console.error('Retell error:', err);
+        if (callStatus.value === 'connected' || isReconnecting.value) {
+            handleReconnection('retell', assistantId, callId);
+        } else {
+            errorMessage.value = err?.message || 'A network error occurred during the call.';
+            callStatus.value = 'error';
+            emit('call_ended');
+            cleanupCall();
+        }
+    });
+
+    retellInstance.on('connection_lost', () => {
+        console.warn('Retell connection lost');
+        handleReconnection('retell', assistantId, callId);
+    });
+
+    retellInstance.on('close', () => {
+        console.warn('Retell connection closed');
+        if (callStatus.value === 'connected') {
+            handleReconnection('retell', assistantId, callId);
+        }
+    });
+};
+
+const bindVapiListeners = (assistantId: string, callId: string) => {
+    if (!vapiInstance) return;
+
+    vapiInstance.on('call-start', (call: any) => {
+        callStatus.value = 'connected';
+        emit('call_started');
+        const cid = call?.id || callId || 'vapi-call';
+        startTelemetryCollection(cid, 'vapi');
+        startAudioPolling(vapiInstance, false);
+        reconnectAttempts.value = 0;
+    });
+
+    vapiInstance.on('call-end', () => {
+        if (!isReconnecting.value) {
+            callStatus.value = 'ended';
+            emit('call_ended');
+            cleanupCall();
+        }
+    });
+
+    vapiInstance.on('error', (err: any) => {
+        console.error('Vapi error:', err);
+        if (callStatus.value === 'connected' || isReconnecting.value) {
+            handleReconnection('vapi', assistantId, callId);
+        } else {
+            errorMessage.value = err?.message || 'Failed to establish WebRTC connection.';
+            callStatus.value = 'error';
+            emit('call_ended');
+            cleanupCall();
+        }
+    });
+
+    vapiInstance.on('connection_lost', () => {
+        console.warn('Vapi connection lost');
+        handleReconnection('vapi', assistantId, callId);
+    });
+
+    vapiInstance.on('close', () => {
+        console.warn('Vapi connection closed');
+        if (callStatus.value === 'connected') {
+            handleReconnection('vapi', assistantId, callId);
+        }
+    });
+};
+
+const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: string, currentCallId: string) => {
+    if (isReconnecting.value) {
+        return;
+    }
+    isReconnecting.value = true;
+    reconnectAttempts.value++;
+
+    if (reconnectAttempts.value > 3) {
+        isReconnecting.value = false;
+        errorMessage.value = 'Reconnection failed after maximum attempts.';
+        callStatus.value = 'error';
+        emit('call_ended');
+        cleanupCall();
+        return;
+    }
+
+    console.warn(`WebRTC connection dropped. Attempting auto-reconnection (${reconnectAttempts.value}/3)...`);
+    callStatus.value = 'connecting';
+
+    try {
+        const response = await fetch('/api/web-calls/refresh-token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                Accept: 'application/json',
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Token refresh failed');
+        }
+
+        const data = await response.json();
+        const newAccessToken = data.access_token;
+        const expiresIn = data.expires_in || 3600;
+        tokenExpiresAt = Date.now() + expiresIn * 1000;
+
+        if (provider === 'retell') {
+            if (retellInstance) {
+                try { retellInstance.stopCall(); } catch (e) {}
+            }
+            const { RetellWebClient } = await import('retell-client-js-sdk');
+            retellInstance = new RetellWebClient();
+            callStore.retellClient = retellInstance;
+
+            bindRetellListeners(assistantId, currentCallId);
+
+            await retellInstance.startCall({
+                accessToken: newAccessToken,
+            });
+        } else {
+            if (vapiInstance) {
+                try { vapiInstance.stop(); } catch (e) {}
+            }
+            const Vapi = (await import('@vapi-ai/web')).default;
+            vapiInstance = new Vapi(newAccessToken);
+            callStore.vapiClient = vapiInstance;
+
+            bindVapiListeners(assistantId, currentCallId);
+
+            vapiInstance.start(assistantId);
+        }
+
+        isReconnecting.value = false;
+        callStatus.value = 'connected';
+        console.log('WebRTC session auto-reconnection handshake successful!');
+    } catch (err: any) {
+        console.error('Reconnection attempt failed:', err);
+        setTimeout(() => {
+            isReconnecting.value = false;
+            handleReconnection(provider, assistantId, currentCallId);
+        }, 3000);
+    }
+};
+
 const startCall = async () => {
     callStatus.value = 'connecting';
     errorMessage.value = '';
@@ -355,27 +522,7 @@ const startCall = async () => {
             retellInstance = new RetellWebClient();
             callStore.retellClient = retellInstance;
 
-            retellInstance.on('call_started', () => {
-                callStatus.value = 'connected';
-                emit('call_started');
-                startTelemetryCollection(call_id, 'retell');
-                startAudioPolling(null, true);
-            });
-
-            retellInstance.on('call_ended', () => {
-                callStatus.value = 'ended';
-                emit('call_ended');
-                cleanupCall();
-            });
-
-            retellInstance.on('error', (err: any) => {
-                console.error('Retell error:', err);
-                errorMessage.value =
-                    err?.message || 'A network error occurred during the call.';
-                callStatus.value = 'error';
-                emit('call_ended');
-                cleanupCall();
-            });
+            bindRetellListeners(assistant_id, call_id || 'retell-call');
 
             await retellInstance.startCall({
                 accessToken: access_token,
@@ -386,28 +533,7 @@ const startCall = async () => {
             vapiInstance = new Vapi(access_token);
             callStore.vapiClient = vapiInstance;
 
-            vapiInstance.on('call-start', (call: any) => {
-                callStatus.value = 'connected';
-                emit('call_started');
-                const cid = call?.id || 'vapi-call';
-                startTelemetryCollection(cid, 'vapi');
-                startAudioPolling(vapiInstance, false);
-            });
-
-            vapiInstance.on('call-end', () => {
-                callStatus.value = 'ended';
-                emit('call_ended');
-                cleanupCall();
-            });
-
-            vapiInstance.on('error', (err: any) => {
-                console.error('Vapi error:', err);
-                errorMessage.value =
-                    err?.message || 'Failed to establish WebRTC connection.';
-                callStatus.value = 'error';
-                emit('call_ended');
-                cleanupCall();
-            });
+            bindVapiListeners(assistant_id, call_id || 'vapi-call');
 
             vapiInstance.start(assistant_id);
         }
@@ -452,6 +578,8 @@ const cleanupCall = () => {
     callStore.isSpeaking = false;
     callStore.transcript = '';
     callStore.amplitude = 0;
+    isReconnecting.value = false;
+    reconnectAttempts.value = 0;
 };
 
 const toggleMute = () => {

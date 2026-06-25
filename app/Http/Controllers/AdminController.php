@@ -1002,4 +1002,59 @@ class AdminController extends Controller
             'successfulTransactionsCount' => $successTransactions,
         ]);
     }
+
+    /**
+     * Display the Streak & Badges Hub.
+     */
+    public function streakHub(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $streak = $tenant ? (int) $tenant->getSetting('booking_streak', 5) : 5;
+        $totalBookings = Booking::count();
+
+        // Calculate average speech performance score for the tenant
+        $averagePerformance = 0.96;
+        if ($tenant) {
+            $averagePerformance = (float) ($tenant->callLogs()->whereNotNull('performance_score')->avg('performance_score') ?? 0.96);
+        } else {
+            $averagePerformance = (float) (CallLog::whereNotNull('performance_score')->avg('performance_score') ?? 0.96);
+        }
+
+        // Gather calendar data: daily active booking count for the last 30 days
+        $startDate = now()->subDays(30)->startOfDay();
+        $dailyBookings = Booking::where('created_at', '>=', $startDate)
+            ->selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->pluck('count', 'date')
+            ->toArray();
+
+        // Standardize date keys relative to current month calendar view
+        $calendarGrid = [];
+        for ($i = 29; $i >= 0; $i--) {
+            $dateStr = now()->subDays($i)->format('Y-m-d');
+            $count = $dailyBookings[$dateStr] ?? 0;
+            $calendarGrid[] = [
+                'date' => $dateStr,
+                'day' => now()->subDays($i)->format('d'),
+                'count' => $count,
+                'has_bookings' => $count > 0,
+            ];
+        }
+
+        // Active webhooks count
+        $webhookActiveCount = 0;
+        if ($tenant) {
+            $webhookActiveCount = $tenant->tenantWebhooks()->where('is_active', true)->count();
+        }
+
+        return Inertia::render('Admin/StreakHub', [
+            'bookingStreak' => $streak,
+            'totalBookingsCount' => $totalBookings,
+            'speechPerformanceIndex' => $averagePerformance,
+            'calendarGrid' => $calendarGrid,
+            'webhookActiveCount' => $webhookActiveCount,
+        ]);
+    }
 }

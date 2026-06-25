@@ -81,6 +81,14 @@ class Tenant extends Model
     }
 
     /**
+     * Get the webhooks associated with the tenant.
+     */
+    public function tenantWebhooks(): HasMany
+    {
+        return $this->hasMany(TenantWebhook::class);
+    }
+
+    /**
      * Calculate spend usage for the current billing cycle.
      */
     public function calculateSpendUsage(): float
