@@ -12,8 +12,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Table('call_logs')]
-#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score', 'is_test_mode', 'latency_drift', 'turn_taking_congruence')]
-#[Casts(['is_test_mode' => 'boolean', 'latency_drift' => 'double', 'turn_taking_congruence' => 'double'])]
+#[Fillable('tenant_id', 'call_id', 'status', 'customer_phone', 'transcript', 'recording_url', 'summary', 'duration', 'csat_score', 'call_end_reason', 'disconnection_source', 'latency', 'transcription_confidence', 'tool_success_rate', 'call_quality_score', 'is_test_mode', 'latency_drift', 'turn_taking_congruence', 'cost', 'experiment_variant_id', 'snr_raw', 'snr_processed', 'denoising_quality_improvement')]
+#[Casts(['is_test_mode' => 'boolean', 'latency_drift' => 'double', 'turn_taking_congruence' => 'double', 'cost' => 'double', 'experiment_variant_id' => 'integer', 'snr_raw' => 'double', 'snr_processed' => 'double', 'denoising_quality_improvement' => 'double'])]
 class CallLog extends Model
 {
     use BelongsToTenant, HasAttributeCasts, HasFactory;

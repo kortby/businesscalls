@@ -7,9 +7,11 @@ use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\CustomVoice;
 use App\Models\Employee;
+use App\Models\Experiment;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Models\TenantIntegration;
+use App\Services\BrandedCallerIdService;
 use App\Services\PdfGeneratorService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -600,5 +602,120 @@ class AdminController extends Controller
             'spendUsage' => $tenant->calculateSpendUsage(),
             'spendLimit' => $tenant->getSpendLimit(),
         ]);
+    }
+
+    /**
+     * Display the Conversational A/B Prompt Split-Testing Experiments Panel.
+     */
+    public function experiments(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $experiments = Experiment::where('tenant_id', $tenant->id)
+            ->with('variants')
+            ->latest()
+            ->get();
+
+        $activeExperiment = $experiments->where('status', 'active')->first();
+        $chiSquare = $activeExperiment ? $activeExperiment->calculateChiSquare() : 0.0;
+
+        $totalCalls = CallLog::where('tenant_id', $tenant->id)->count();
+        $totalBookings = Booking::where('tenant_id', $tenant->id)->count();
+        $baselineConversion = $totalCalls > 0 ? (float) ($totalBookings / $totalCalls) : 0.20;
+
+        return Inertia::render('Admin/Experiments', [
+            'tenant' => $tenant,
+            'experiments' => $experiments,
+            'activeExperiment' => $activeExperiment,
+            'chiSquare' => (float) $chiSquare,
+            'baselineConversion' => (float) $baselineConversion,
+            'denoisingEnabled' => (bool) $tenant->getSetting('background_denoising_enabled', false),
+        ]);
+    }
+
+    /**
+     * Toggle background denoising settings for the tenant.
+     */
+    public function toggleDenoising(Request $request)
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $settings = $tenant->settings ?? [];
+        $settings['background_denoising_enabled'] = ! ($settings['background_denoising_enabled'] ?? false);
+        $tenant->settings = $settings;
+        $tenant->save();
+
+        return back()->with('success', 'Audio denoising settings updated!');
+    }
+
+    /**
+     * Save/Create a new A/B experiment and its variants.
+     */
+    public function saveExperiment(Request $request)
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $request->validate([
+            'name' => 'required|string',
+            'traffic_split' => 'required|integer|between:0,100',
+            'prompt_a' => 'required|string',
+            'model_a' => 'required|string',
+            'prompt_b' => 'required|string',
+            'model_b' => 'required|string',
+        ]);
+
+        // Archive active experiments first
+        Experiment::where('tenant_id', $tenant->id)
+            ->where('status', 'active')
+            ->update(['status' => 'archived']);
+
+        $experiment = Experiment::create([
+            'tenant_id' => $tenant->id,
+            'name' => $request->name,
+            'traffic_split' => (int) $request->traffic_split,
+            'status' => 'active',
+        ]);
+
+        $experiment->variants()->create([
+            'version' => 'A',
+            'prompt_instructions' => $request->prompt_a,
+            'model_provider' => $request->model_a,
+        ]);
+
+        $experiment->variants()->create([
+            'version' => 'B',
+            'prompt_instructions' => $request->prompt_b,
+            'model_provider' => $request->model_b,
+        ]);
+
+        return back()->with('success', 'A/B Experiment created and activated!');
+    }
+
+    /**
+     * Submit Branded Caller ID registration details via API.
+     */
+    public function submitBrandedCallerId(Request $request)
+    {
+        $user = $request->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $request->validate([
+            'legal_business_name' => 'required|string',
+            'brand_logo_url' => 'required|url',
+            'physical_address' => 'required|string',
+            'phone_numbers' => 'nullable|array',
+        ]);
+
+        try {
+            $service = app(BrandedCallerIdService::class);
+            $result = $service->registerBrandedCallerId($tenant, $request->all());
+
+            return response()->json($result);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 }

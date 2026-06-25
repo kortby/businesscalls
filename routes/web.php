@@ -42,6 +42,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('admin/integrations', [AdminController::class, 'saveIntegration'])->name('admin.integrations.save');
     Route::post('admin/integrations/timing', [AdminController::class, 'saveTimingSettings'])->name('admin.integrations.timing');
     Route::get('admin/call-monitor', [AdminController::class, 'callMonitor'])->name('admin.call-monitor');
+    Route::get('admin/experiments', [AdminController::class, 'experiments'])->name('admin.experiments');
+    Route::post('admin/experiments/denoising', [AdminController::class, 'toggleDenoising'])->name('admin.experiments.denoising');
+    Route::post('admin/experiments/create', [AdminController::class, 'saveExperiment'])->name('admin.experiments.save');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
 
     Route::get('dashboard', function () {

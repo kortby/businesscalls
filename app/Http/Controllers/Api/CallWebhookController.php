@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\ProcessLatencyDriftJob;
 use App\Models\Booking;
 use App\Models\CallLog;
+use App\Models\ExperimentVariant;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Services\CarrierFailoverService;
@@ -263,6 +264,30 @@ class CallWebhookController extends Controller
 
                 $cost = $callData['combined_cost'] ?? $callData['combinedCost'] ?? $callData['cost'] ?? $callData['call_cost'] ?? null;
 
+                $variantId = $callData['metadata']['experiment_variant_id']
+                    ?? $request->input('message.call.metadata.experiment_variant_id')
+                    ?? $request->input('metadata.experiment_variant_id')
+                    ?? Cache::get("call_variant_map:{$callId}");
+
+                $snrRaw = $callData['snr_raw']
+                    ?? $callData['snrRaw']
+                    ?? $callData['analysis']['snrRaw']
+                    ?? $callData['analysis']['snr_raw']
+                    ?? $request->input('message.call.analysis.snrRaw')
+                    ?? null;
+
+                $snrProcessed = $callData['snr_processed']
+                    ?? $callData['snrProcessed']
+                    ?? $callData['analysis']['snrProcessed']
+                    ?? $callData['analysis']['snr_processed']
+                    ?? $request->input('message.call.analysis.snrProcessed')
+                    ?? null;
+
+                $deltaQuality = null;
+                if ($snrRaw !== null && $snrProcessed !== null) {
+                    $deltaQuality = (float) $snrProcessed - (float) $snrRaw;
+                }
+
                 $callLog = CallLog::updateOrCreate(
                     ['call_id' => $callId],
                     [
@@ -274,8 +299,32 @@ class CallWebhookController extends Controller
                         'call_end_reason' => $finalEndReason,
                         'disconnection_source' => $disconnectionSource,
                         'cost' => $cost !== null ? (float) $cost : null,
+                        'experiment_variant_id' => $variantId !== null ? (int) $variantId : null,
+                        'snr_raw' => $snrRaw !== null ? (float) $snrRaw : null,
+                        'snr_processed' => $snrProcessed !== null ? (float) $snrProcessed : null,
+                        'denoising_quality_improvement' => $deltaQuality !== null ? (float) $deltaQuality : null,
                     ]
                 );
+
+                if ($variantId) {
+                    $variant = ExperimentVariant::find($variantId);
+                    if ($variant) {
+                        $lockKey = "call_stats_incremented:{$callId}";
+                        if (! Cache::has($lockKey)) {
+                            Cache::put($lockKey, true, 86400);
+                            $variant->increment('call_count');
+
+                            $hasBooking = Cache::has("call_booking_map:{$callId}")
+                                || Booking::where('customer_phone', $customerPhone)
+                                    ->where('created_at', '>=', $callLog->created_at ?? now()->subMinutes(30))
+                                    ->exists();
+
+                            if ($hasBooking) {
+                                $variant->increment('booking_count');
+                            }
+                        }
+                    }
+                }
 
                 if ($finalEndReason === 'dial_failed' || $finalEndReason === 'dial_busy') {
                     app(CarrierFailoverService::class)->orchestrateFailover($tenant, $callLog, $callData);
@@ -361,6 +410,30 @@ class CallWebhookController extends Controller
                     ? 'forwarded_to_voicemail'
                     : ($callEndReason ?? $existingCallLog?->call_end_reason);
 
+                $variantId = $callData['metadata']['experiment_variant_id']
+                    ?? $request->input('message.call.metadata.experiment_variant_id')
+                    ?? $request->input('metadata.experiment_variant_id')
+                    ?? Cache::get("call_variant_map:{$callId}");
+
+                $snrRaw = $callData['snr_raw']
+                    ?? $callData['snrRaw']
+                    ?? $callData['analysis']['snrRaw']
+                    ?? $callData['analysis']['snr_raw']
+                    ?? $request->input('message.call.analysis.snrRaw')
+                    ?? null;
+
+                $snrProcessed = $callData['snr_processed']
+                    ?? $callData['snrProcessed']
+                    ?? $callData['analysis']['snrProcessed']
+                    ?? $callData['analysis']['snr_processed']
+                    ?? $request->input('message.call.analysis.snrProcessed')
+                    ?? null;
+
+                $deltaQuality = null;
+                if ($snrRaw !== null && $snrProcessed !== null) {
+                    $deltaQuality = (float) $snrProcessed - (float) $snrRaw;
+                }
+
                 $callLog = CallLog::updateOrCreate(
                     ['call_id' => $callId],
                     [
@@ -371,8 +444,32 @@ class CallWebhookController extends Controller
                         'summary' => $summary,
                         'call_end_reason' => $finalEndReason,
                         'disconnection_source' => $disconnectionSource,
+                        'experiment_variant_id' => $variantId !== null ? (int) $variantId : null,
+                        'snr_raw' => $snrRaw !== null ? (float) $snrRaw : null,
+                        'snr_processed' => $snrProcessed !== null ? (float) $snrProcessed : null,
+                        'denoising_quality_improvement' => $deltaQuality !== null ? (float) $deltaQuality : null,
                     ]
                 );
+
+                if ($variantId) {
+                    $variant = ExperimentVariant::find($variantId);
+                    if ($variant) {
+                        $lockKey = "call_stats_incremented:{$callId}";
+                        if (! Cache::has($lockKey)) {
+                            Cache::put($lockKey, true, 86400);
+                            $variant->increment('call_count');
+
+                            $hasBooking = Cache::has("call_booking_map:{$callId}")
+                                || Booking::where('customer_phone', $customerPhone)
+                                    ->where('created_at', '>=', $callLog->created_at ?? now()->subMinutes(30))
+                                    ->exists();
+
+                            if ($hasBooking) {
+                                $variant->increment('booking_count');
+                            }
+                        }
+                    }
+                }
 
                 $callLog->calculateCqsScore(
                     $latency !== null ? (int) $latency : null,

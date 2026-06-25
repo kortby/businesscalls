@@ -14,6 +14,7 @@ import {
     Sparkles,
     Link2,
     Activity,
+    FlaskConical,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -86,6 +87,11 @@ const footerNavItems: NavItem[] = [
         title: 'Integrations',
         href: '/admin/integrations',
         icon: Link2,
+    },
+    {
+        title: 'Experiments',
+        href: '/admin/experiments',
+        icon: FlaskConical,
     },
     {
         title: 'Documentation',

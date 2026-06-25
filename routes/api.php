@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\BookingStatusController;
 use App\Http\Controllers\Api\CallFlowController;
 use App\Http\Controllers\Api\CallRedactionController;
@@ -18,6 +19,7 @@ use App\Http\Middleware\BlockSuspendedTenantCalls;
 use App\Http\Middleware\EnsureWebhookIdempotency;
 use App\Http\Middleware\RestrictToTelephonyIps;
 use App\Http\Middleware\ThrottleTenantTelephony;
+use App\Http\Middleware\TrafficRouterMiddleware;
 use App\Http\Middleware\VerifyOAuthWebhookToken;
 use App\Http\Middleware\WebhookGatewayMiddleware;
 use Illuminate\Http\Request;
@@ -35,7 +37,7 @@ Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'
 Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr-keypress')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::match(['get', 'post'], '/mcp', [McpController::class, 'handle'])->name('mcp.server');
-Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class]);
+Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class, TrafficRouterMiddleware::class]);
 Route::put('/bookings/{booking}/status', [BookingStatusController::class, 'update'])->middleware('auth:sanctum');
 Route::post('/settings/dictionary', [PronunciationDictionaryController::class, 'store'])->middleware('auth:sanctum');
 Route::post('/call-logs/{callLog}/redact', [CallRedactionController::class, 'redact'])->middleware('auth:sanctum');
@@ -45,6 +47,7 @@ Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle
 Route::post('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/settings/call-flow', [CallFlowController::class, 'store'])->middleware('auth:sanctum');
+Route::post('/settings/branded-caller-id', [AdminController::class, 'submitBrandedCallerId'])->middleware('auth:sanctum');
 
 Route::post('/telemetry/webrtc', WebRtcTelemetryController::class)->middleware('auth:sanctum');
 Route::post('/telemetry/quality-degraded', [WebRtcTelemetryController::class, 'degraded'])->middleware('auth:sanctum');

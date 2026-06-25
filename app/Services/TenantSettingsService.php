@@ -12,7 +12,10 @@ class TenantSettingsService
     public function generateAssistantPayload(Tenant $tenant): array
     {
         $businessName = $tenant->name;
-        $customInstructions = $tenant->getSetting('ai_prompt', 'Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
+        $variant = request()->attributes->get('active_experiment_variant');
+        $customInstructions = $variant
+            ? $variant->prompt_instructions
+            : $tenant->getSetting('ai_prompt', 'Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
         $emergencyFee = $tenant->getSetting('emergency_fee', '$150');
 
         $skills = $tenant->employees()->get()->pluck('skills')->flatten()->filter()->unique()->implode(', ');
@@ -38,6 +41,37 @@ class TenantSettingsService
                 ],
             ],
         ];
+
+        // Apply audio denoising configurations if activated
+        if ($tenant->getSetting('background_denoising_enabled', false)) {
+            $payload['assistantOverrides']['backgroundDenoisingEnabled'] = true;
+            $payload['assistantOverrides']['noiseSuppressionEnabled'] = true;
+            $payload['assistantOverrides']['advancedDenoising'] = true;
+        }
+
+        // Apply A/B Experiment metadata and model overrides
+        if ($variant) {
+            $payload['assistantOverrides']['metadata'] = [
+                'experiment_variant_id' => $variant->id,
+            ];
+            $payload['metadata'] = [
+                'experiment_variant_id' => $variant->id,
+            ];
+
+            if ($variant->model_provider) {
+                $parts = explode('/', $variant->model_provider);
+                if (count($parts) === 2) {
+                    $payload['assistantOverrides']['model'] = [
+                        'provider' => $parts[0],
+                        'model' => $parts[1],
+                    ];
+                } else {
+                    $payload['assistantOverrides']['model'] = [
+                        'model' => $variant->model_provider,
+                    ];
+                }
+            }
+        }
 
         $dictionaryService = app(PronunciationDictionaryService::class);
         $payload = $dictionaryService->applyOverridesToPayload($tenant, $payload);

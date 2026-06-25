@@ -8,6 +8,7 @@ use App\Jobs\Middleware\EnsureRegulatoryCompliance;
 use App\Models\Booking;
 use App\Models\OutboundCampaign;
 use App\Models\Scopes\TenantScope;
+use App\Services\TrafficRouterService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -81,10 +82,18 @@ class ExecuteBatchCampaignJob implements ShouldQueue
         $phoneNumberId = $tenant->getSetting('telephony_phone_number_id') ?? 'default-phone-id';
         $phoneNumber = $tenant->getSetting('telephony_phone_number') ?? '+15550001111';
 
+        $router = app(TrafficRouterService::class);
+
         foreach ($recipients as $recipient) {
             if (app()->environment('testing') && ! static::$shouldRunInTests) {
                 // In test mode without explicit override, simulate telephony API call
                 $callId = 'test_call_'.uniqid().'_'.$recipient->id;
+
+                $variant = $router->route($tenant);
+                if ($variant) {
+                    Cache::put("call_variant_map:{$callId}", $variant->id, 3600);
+                }
+
                 $recipient->update([
                     'call_id' => $callId,
                     'status' => 'called',
@@ -94,6 +103,7 @@ class ExecuteBatchCampaignJob implements ShouldQueue
             }
 
             try {
+                $variant = null;
                 if ($provider === 'vapi') {
                     $payload = [
                         'assistantId' => $assistantId,
@@ -109,6 +119,14 @@ class ExecuteBatchCampaignJob implements ShouldQueue
                             ],
                         ],
                     ];
+
+                    $router->applyExperimentOverrides($tenant, $payload, $variant);
+
+                    $brandedTrunkId = $tenant->getSetting('branded_caller_id_trunk_id');
+                    if ($brandedTrunkId) {
+                        $payload['sipvbcTrunkId'] = $brandedTrunkId;
+                        $payload['trunkId'] = $brandedTrunkId;
+                    }
 
                     if ($this->campaign->schedule_time) {
                         $payload['schedulePlan'] = [
@@ -130,6 +148,13 @@ class ExecuteBatchCampaignJob implements ShouldQueue
                         ],
                     ];
 
+                    $router->applyExperimentOverrides($tenant, $payload, $variant);
+
+                    $brandedTrunkId = $tenant->getSetting('branded_caller_id_trunk_id');
+                    if ($brandedTrunkId) {
+                        $payload['telephony_trunk_id'] = $brandedTrunkId;
+                    }
+
                     if ($this->campaign->schedule_time) {
                         $payload['trigger_timestamp'] = $this->campaign->schedule_time->timestamp * 1000;
                     }
@@ -141,6 +166,11 @@ class ExecuteBatchCampaignJob implements ShouldQueue
 
                 if ($response->successful()) {
                     $callId = $response->json('id') ?? $response->json('call_id');
+
+                    if ($variant) {
+                        Cache::put("call_variant_map:{$callId}", $variant->id, 3600);
+                    }
+
                     $recipient->update([
                         'call_id' => $callId,
                         'status' => 'called',
