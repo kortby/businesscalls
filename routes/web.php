@@ -35,6 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/pre-flight-audit', [AdminController::class, 'preFlightAudit'])->name('admin.preflight');
     Route::get('admin/achievements', [AdminController::class, 'achievements'])->name('admin.achievements');
     Route::get('admin/onboarding', [AdminController::class, 'onboardingQuest'])->name('admin.onboarding');
+    Route::get('admin/onboarding-setup', [AdminController::class, 'onboardingSetup'])->name('admin.onboarding-setup');
     Route::get('admin/dispatch-map', [AdminController::class, 'dispatchMap'])->name('admin.dispatch-map');
     Route::get('admin/leaderboard', [AdminController::class, 'leaderboard'])->name('admin.leaderboard');
     Route::get('admin/mascot-shop', [AdminController::class, 'mascotShop'])->name('admin.mascot-shop');

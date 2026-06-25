@@ -812,4 +812,29 @@ class AdminController extends Controller
             'currentMilestone' => $currentMilestone,
         ]);
     }
+
+    /**
+     * Display the subscriber onboarding setup workspace.
+     */
+    public function onboardingSetup(Request $request): Response
+    {
+        $user = $request->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $isSubscribed = $tenant && ($tenant->subscribed('default') || $tenant->plan === 'pro' || $tenant->plan === 'enterprise');
+
+        $employeesCount = $tenant ? $tenant->employees()->count() : 0;
+        $technicianRosterStatus = $employeesCount > 0 ? 'Mapped' : 'Empty';
+
+        $customPrompt = $tenant ? $tenant->getSetting('ai_prompt') : null;
+        $hasCustomPrompt = ! empty($customPrompt) && ($customPrompt !== 'Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
+        $voiceAiPromptsStatus = $hasCustomPrompt ? 'Programmed' : 'Default';
+
+        return Inertia::render('Admin/Onboarding', [
+            'tenant' => $tenant,
+            'isSubscribed' => (bool) $isSubscribed,
+            'technicianRosterStatus' => $technicianRosterStatus,
+            'voiceAiPromptsStatus' => $voiceAiPromptsStatus,
+        ]);
+    }
 }
