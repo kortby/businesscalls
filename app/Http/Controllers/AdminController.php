@@ -1057,4 +1057,31 @@ class AdminController extends Controller
             'webhookActiveCount' => $webhookActiveCount,
         ]);
     }
+
+    /**
+     * Display the subscriber onboarding customizer board.
+     */
+    public function onboardingBoard(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $subscriptionActive = $tenant && ($tenant->subscribed('default') || $tenant->plan === 'pro' || $tenant->plan === 'enterprise');
+        $mascotSkinActive = $tenant && $tenant->getSetting('mascot_skin') !== null;
+
+        $phoneProvisioned = $tenant && (
+            ! empty($tenant->getSetting('phone_number')) ||
+            ! empty($tenant->getSetting('telephony_phone_number'))
+        );
+
+        $allMilestonesPassed = $subscriptionActive && $mascotSkinActive && $phoneProvisioned;
+
+        return Inertia::render('Admin/OnboardingBoard', [
+            'tenant' => $tenant,
+            'subscriptionActive' => (bool) $subscriptionActive,
+            'mascotSkinActive' => (bool) $mascotSkinActive,
+            'phoneProvisioned' => (bool) $phoneProvisioned,
+            'allMilestonesPassed' => (bool) $allMilestonesPassed,
+        ]);
+    }
 }

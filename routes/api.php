@@ -19,6 +19,7 @@ use App\Http\Controllers\Api\WebCallController;
 use App\Http\Controllers\Api\WebRtcTelemetryController;
 use App\Http\Middleware\BlockSuspendedTenantCalls;
 use App\Http\Middleware\EnsureWebhookIdempotency;
+use App\Http\Middleware\LanguageDetectionMiddleware;
 use App\Http\Middleware\RestrictToTelephonyIps;
 use App\Http\Middleware\ThrottleTenantTelephony;
 use App\Http\Middleware\TrafficRouterMiddleware;
@@ -33,7 +34,7 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
-Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class, LanguageDetectionMiddleware::class]);
 Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([BlockSuspendedTenantCalls::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/process-payment', [PaymentWebhookController::class, 'handle'])->name('webhook.process-payment');
 Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'])->name('webhook.sms')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);

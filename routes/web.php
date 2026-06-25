@@ -30,6 +30,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/sla-diagnostics', [AdminController::class, 'slaDiagnostics'])->name('admin.sla-diagnostics');
     Route::get('admin/billing-hub', [AdminController::class, 'billingHub'])->name('admin.billing-hub');
     Route::get('admin/streak-hub', [AdminController::class, 'streakHub'])->name('admin.streak-hub');
+    Route::get('admin/onboarding-board', [AdminController::class, 'onboardingBoard'])->name('admin.onboarding-board');
     Route::post('admin/telephony/provision', [AdminController::class, 'provisionTelephony'])->name('admin.telephony.provision');
     Route::get('admin/loyalty', [AdminController::class, 'loyalty'])->name('admin.loyalty');
     Route::get('admin/health', [AdminController::class, 'health'])->name('admin.health');

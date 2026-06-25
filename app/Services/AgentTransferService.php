@@ -154,4 +154,77 @@ class AgentTransferService
             'keep_ai_active' => $keepAiActive,
         ];
     }
+
+    /**
+     * Format the transfer payload for Retell AI Conversation Flow.
+     */
+    public function formatRetellHandoverPayload(string $childAgentId, string $parentTranscript, array $parentVariables): array
+    {
+        return [
+            'action' => 'agent_transfer',
+            'agent_id' => $childAgentId,
+            'inherit_transcript' => true,
+            'transcript_history' => $parentTranscript,
+            'variables' => $parentVariables,
+        ];
+    }
+
+    /**
+     * Format the Vapi-compatible Squad handover spec payload.
+     */
+    public function formatVapiHandoverPayload(string $childAgentId, string $parentTranscript, array $parentVariables): array
+    {
+        return [
+            'destination' => [
+                'type' => 'assistant',
+                'assistantId' => $childAgentId,
+            ],
+            'assistant' => [
+                'id' => $childAgentId,
+                'variableOverrides' => $parentVariables,
+            ],
+            'context' => [
+                'transcript' => $parentTranscript,
+                'variables' => $parentVariables,
+            ],
+        ];
+    }
+
+    /**
+     * Compute the Contextual Handover Match Index (Phi_handoff).
+     */
+    public function calculateHandoverScore(int $sharedCount, int $totalCount, float $delayMs): float
+    {
+        if ($totalCount === 0) {
+            return 0.0;
+        }
+
+        $accuracyTerm = (float) ($sharedCount / $totalCount);
+        $latencyTerm = max(0.0, min(1.0, 1.0 - ($delayMs / 1000.0)));
+
+        return $accuracyTerm * $latencyTerm;
+    }
+
+    /**
+     * Calculate and save the handover match score directly to the CallLog under scoped tenant context.
+     */
+    public function saveHandoverScore(CallLog $callLog, int $sharedCount, int $totalCount, float $delayMs): float
+    {
+        $tenant = $callLog->tenant;
+        if ($tenant) {
+            TenantScope::setTenantId($tenant->id);
+        }
+
+        try {
+            $score = $this->calculateHandoverScore($sharedCount, $totalCount, $delayMs);
+            $callLog->contextual_handover_match_index = $score;
+            $callLog->save();
+
+            Log::info("Contextual Handover Match Index saved for Call {$callLog->call_id}: {$score}");
+
+            return $score;
+        } finally {
+            TenantScope::setTenantId(null);
+        }
+    }
 }

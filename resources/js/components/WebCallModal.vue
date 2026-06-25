@@ -44,6 +44,8 @@ const startTelemetryCollection = (
 ) => {
     const latencies: number[] = [];
     const tenantId = (page.props as any).auth?.user?.tenant_id || 1;
+    let violationStart: number | null = null;
+    let alertSent = false;
 
     telemetryInterval = setInterval(async () => {
         let stats = { jitter: 0, latency: 0, packetLoss: 0 };
@@ -138,6 +140,44 @@ const startTelemetryCollection = (
             });
         } catch (e) {
             // Silently swallow reporting failures
+        }
+
+        // Check for threshold violations: jitter > 30 or packetLoss > 5% (0.05 or 5)
+        const hasViolation = stats.jitter > 30 || stats.packetLoss > 0.05 || stats.packetLoss > 5;
+        if (hasViolation) {
+            if (violationStart === null) {
+                violationStart = Date.now();
+            } else if (Date.now() - violationStart >= 3000) {
+                if (!alertSent) {
+                    alertSent = true;
+                    try {
+                        await fetch('/api/telemetry/quality-degraded', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN':
+                                    (
+                                        document.querySelector(
+                                            'meta[name="csrf-token"]',
+                                        ) as HTMLMetaElement
+                                    )?.content || '',
+                                Accept: 'application/json',
+                            },
+                            body: JSON.stringify({
+                                tenant_id: tenantId,
+                                call_id: callId,
+                                packet_loss: stats.packetLoss,
+                                rtp_jitter: stats.jitter,
+                            }),
+                        });
+                    } catch (err) {
+                        // Silently swallow quality-degraded reporting failures
+                    }
+                }
+            }
+        } else {
+            violationStart = null;
+            alertSent = false;
         }
     }, 2000);
 };
