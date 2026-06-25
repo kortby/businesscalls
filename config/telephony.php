@@ -51,4 +51,19 @@ return [
     ],
 
     'client_credentials' => env('TELEPHONY_CLIENT_CREDENTIALS', 'vapi-secret-key-123'),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Mean Opinion Score (MOS) Prediction Weights
+    |--------------------------------------------------------------------------
+    |
+    | Define the normalized weights used for computing synthetic voice clarity
+    | and natural pacing quality index (Ψ_MOS).
+    |
+    */
+    'mos_weights' => [
+        'alpha' => (float) env('MOS_ALPHA', 0.4),
+        'beta' => (float) env('MOS_BETA', 0.3),
+        'gamma' => (float) env('MOS_GAMMA', 0.3),
+    ],
 ];

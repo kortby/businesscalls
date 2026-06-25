@@ -46,6 +46,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/call-monitor', [AdminController::class, 'callMonitor'])->name('admin.call-monitor');
     Route::get('admin/supervisor-hud', [AdminController::class, 'supervisorHud'])->name('admin.supervisor-hud');
     Route::get('admin/status-hud', [AdminController::class, 'statusHud'])->name('admin.status-hud');
+    Route::get('admin/audit-logs', [AdminController::class, 'auditLogs'])->name('admin.audit-logs');
     Route::get('admin/experiments', [AdminController::class, 'experiments'])->name('admin.experiments');
     Route::post('admin/experiments/denoising', [AdminController::class, 'toggleDenoising'])->name('admin.experiments.denoising');
     Route::post('admin/experiments/create', [AdminController::class, 'saveExperiment'])->name('admin.experiments.save');

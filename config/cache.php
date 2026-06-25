@@ -59,6 +59,12 @@ return [
             'path' => env('CACHE_STORAGE_PATH', 'framework/cache/data'),
         ],
 
+        's3_overflow' => [
+            'driver' => 'storage',
+            'disk' => 's3',
+            'path' => 'sqs-overflow',
+        ],
+
         'memcached' => [
             'driver' => 'memcached',
             'persistent_id' => env('MEMCACHED_PERSISTENT_ID'),

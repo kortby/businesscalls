@@ -5,11 +5,13 @@ namespace App\Providers;
 use App\Ai\Text;
 use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
+use App\Jobs\EvaluateVoiceQualityJob;
 use App\Jobs\SendFollowUpSmsJob;
 use App\Jobs\SyncCallToCrmJob;
 use App\Models\Booking;
 use App\Models\Tenant;
 use App\Observers\BookingObserver;
+use App\Queue\SqsS3Connector;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -42,6 +44,11 @@ class AppServiceProvider extends ServiceProvider
         config()->set('database.connections.master', $defaultConfig);
         config()->set('database.master_connection', $defaultConn);
 
+        // Register custom SQS S3 payload offloading queue connector
+        $this->app['queue']->addConnector('sqs-s3', function () {
+            return new SqsS3Connector;
+        });
+
         $this->configureDefaults();
 
         // Configure Cashier
@@ -54,9 +61,10 @@ class AppServiceProvider extends ServiceProvider
             SendFollowUpSmsJob::dispatch($event->callLog);
         });
 
-        // Dispatch SMS follow-up when a call ends (handles immediate/fallback triggers)
+        // Dispatch SMS follow-up and voice quality evaluation when a call ends (handles immediate/fallback triggers)
         Event::listen(CallEnded::class, function (CallEnded $event) {
             SendFollowUpSmsJob::dispatch($event->callLog);
+            EvaluateVoiceQualityJob::dispatch($event->callLog);
         });
 
         // Register zero-downtime replication observers

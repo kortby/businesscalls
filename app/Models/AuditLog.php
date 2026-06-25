@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Attributes\Casts;
 use App\Concerns\BelongsToTenant;
 use App\Concerns\HasAttributeCasts;
+use App\Events\AuditLogCreated;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -39,5 +40,15 @@ class AuditLog extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    /**
+     * Boot the model.
+     */
+    protected static function booted(): void
+    {
+        static::created(function ($auditLog) {
+            event(new AuditLogCreated($auditLog));
+        });
     }
 }

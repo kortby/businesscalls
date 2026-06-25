@@ -33,6 +33,8 @@ return Application::configure(basePath: dirname(__DIR__))
             'api/webhooks/ivr-keypress',
             'api/webhooks/ivr-keypress/*',
             'api/mcp',
+            'api/telephony/fallback-route',
+            'api/telephony/fallback-route/*',
         ]);
 
         $middleware->web(append: [

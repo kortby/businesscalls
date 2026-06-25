@@ -13,6 +13,7 @@ use App\Http\Controllers\Api\PronunciationDictionaryController;
 use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\SmsWebhookController;
 use App\Http\Controllers\Api\SpecializedKeywordsController;
+use App\Http\Controllers\Api\TelephonyFallbackController;
 use App\Http\Controllers\Api\WebCallController;
 use App\Http\Controllers\Api\WebRtcTelemetryController;
 use App\Http\Middleware\BlockSuspendedTenantCalls;
@@ -47,6 +48,9 @@ Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle
 Route::post('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'store'])->middleware('auth:sanctum');
 Route::get('/settings/specialized-keywords', [SpecializedKeywordsController::class, 'index'])->middleware('auth:sanctum');
 Route::post('/settings/call-flow', [CallFlowController::class, 'store'])->middleware('auth:sanctum');
+
+Route::post('/telephony/fallback-route/{tenant_id?}', [TelephonyFallbackController::class, 'handle'])
+    ->name('telephony.fallback-route');
 Route::post('/settings/branded-caller-id', [AdminController::class, 'submitBrandedCallerId'])->middleware('auth:sanctum');
 
 Route::post('/telemetry/webrtc', WebRtcTelemetryController::class)->middleware('auth:sanctum');

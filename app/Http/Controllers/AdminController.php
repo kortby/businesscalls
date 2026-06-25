@@ -837,4 +837,22 @@ class AdminController extends Controller
             'voiceAiPromptsStatus' => $voiceAiPromptsStatus,
         ]);
     }
+
+    /**
+     * Display the playful admin audit logs terminal view.
+     */
+    public function auditLogs(Request $request): Response
+    {
+        $user = $request->user();
+        $tenantId = $user ? $user->tenant_id : null;
+
+        $auditLogs = AuditLog::with('user')
+            ->latest()
+            ->get();
+
+        return Inertia::render('Admin/AuditLogs', [
+            'initialLogs' => $auditLogs,
+            'tenantId' => $tenantId,
+        ]);
+    }
 }
