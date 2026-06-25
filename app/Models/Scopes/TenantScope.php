@@ -79,10 +79,6 @@ class TenantScope implements Scope
             return static::$tenantId;
         }
 
-        if (request()->hasSession() && session()->has('tenant_id')) {
-            return session('tenant_id');
-        }
-
         if (static::$resolving) {
             return null;
         }
@@ -92,8 +88,12 @@ class TenantScope implements Scope
         try {
             if (Auth::hasUser()) {
                 $user = Auth::user();
+                $id = $user->tenant_id ?? null;
+                if ($id !== null && request()->hasSession()) {
+                    session(['tenant_id' => $id]);
+                }
 
-                return $user->tenant_id ?? null;
+                return $id;
             }
 
             if (Auth::check()) {
@@ -107,6 +107,10 @@ class TenantScope implements Scope
             }
         } finally {
             static::$resolving = false;
+        }
+
+        if (request()->hasSession() && session()->has('tenant_id')) {
+            return session('tenant_id');
         }
 
         return null;

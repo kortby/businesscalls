@@ -1084,4 +1084,110 @@ class AdminController extends Controller
             'allMilestonesPassed' => (bool) $allMilestonesPassed,
         ]);
     }
+
+    /**
+     * Display the CSAT feedback analytics dashboard.
+     */
+    public function csatFeedback(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $alpha = 0.6;
+        $beta = 0.4;
+        $tMax = 3000.0; // max allowable latency in ms
+
+        // Query last 7 days of completed calls first
+        $weeklyCalls = CallLog::where('tenant_id', $tenant->id)
+            ->where('status', 'ended')
+            ->where('created_at', '>=', now()->subDays(7))
+            ->get();
+
+        // Fallback to last 30 ended calls if no weekly calls exist
+        if ($weeklyCalls->isEmpty()) {
+            $weeklyCalls = CallLog::where('tenant_id', $tenant->id)
+                ->where('status', 'ended')
+                ->orderBy('created_at', 'desc')
+                ->take(30)
+                ->get();
+        }
+
+        $weeklyPhiSum = 0.0;
+        $weeklyCount = 0;
+        foreach ($weeklyCalls as $callLog) {
+            $hasBooking = Cache::has("call_booking_map:{$callLog->call_id}")
+                || Booking::where('customer_phone', $callLog->customer_phone)
+                    ->where('tenant_id', $tenant->id)
+                    ->whereBetween('created_at', [$callLog->created_at->subMinutes(10), $callLog->created_at->addMinutes(60)])
+                    ->exists();
+
+            $resolution = $hasBooking ? 1 : 0;
+            $satisfaction = $callLog->csat_score !== null ? ($callLog->csat_score / 100.0) : 0.8;
+            $latency = $callLog->latency ?? 500;
+            $latencyTerm = max(0.0, min(1.0, 1.0 - ($latency / $tMax)));
+            $phi_c = (($alpha * $satisfaction) + ($beta * $latencyTerm)) * $resolution;
+
+            $weeklyPhiSum += $phi_c;
+            $weeklyCount++;
+        }
+        $weeklyAvgPhi = $weeklyCount > 0 ? ($weeklyPhiSum / $weeklyCount) : 0.0;
+
+        // Check if there are active ongoing calls
+        $ongoingCallsCount = CallLog::where('tenant_id', $tenant->id)
+            ->where('status', 'ongoing')
+            ->count();
+        $isProcessing = $ongoingCallsCount > 0;
+
+        // Check for recent errors in last 12 hours
+        $hasRecentError = CallLog::where('tenant_id', $tenant->id)
+            ->where('created_at', '>=', now()->subHours(12))
+            ->where(function ($query) {
+                $query->where('status', 'error')
+                    ->orWhere('call_end_reason', 'error');
+            })
+            ->exists();
+
+        // Get recent call logs list for table rendering
+        $callLogs = CallLog::where('tenant_id', $tenant->id)
+            ->orderBy('created_at', 'desc')
+            ->take(30)
+            ->get()
+            ->map(function ($callLog) use ($alpha, $beta, $tMax, $tenant) {
+                $hasBooking = Cache::has("call_booking_map:{$callLog->call_id}")
+                    || Booking::where('customer_phone', $callLog->customer_phone)
+                        ->where('tenant_id', $tenant->id)
+                        ->whereBetween('created_at', [$callLog->created_at->subMinutes(10), $callLog->created_at->addMinutes(60)])
+                        ->exists();
+
+                $resolution = $hasBooking ? 1 : 0;
+                $satisfaction = $callLog->csat_score !== null ? ($callLog->csat_score / 100.0) : 0.8;
+                $latency = $callLog->latency ?? 500;
+                $latencyTerm = max(0.0, min(1.0, 1.0 - ($latency / $tMax)));
+                $phi_c = (($alpha * $satisfaction) + ($beta * $latencyTerm)) * $resolution;
+
+                return [
+                    'id' => $callLog->id,
+                    'call_id' => $callLog->call_id,
+                    'customer_phone' => $callLog->customer_phone,
+                    'status' => $callLog->status,
+                    'csat_score' => $callLog->csat_score,
+                    'latency' => $callLog->latency,
+                    'resolution' => $resolution,
+                    'phi_csat' => round($phi_c, 3),
+                    'created_at' => $callLog->created_at->toDateTimeString(),
+                    'call_end_reason' => $callLog->call_end_reason,
+                ];
+            });
+
+        return Inertia::render('Admin/CsatFeedback', [
+            'tenant' => $tenant,
+            'callLogs' => $callLogs,
+            'weeklyAvgPhi' => round($weeklyAvgPhi, 3),
+            'isProcessing' => $isProcessing,
+            'hasRecentError' => $hasRecentError,
+            'alpha' => $alpha,
+            'beta' => $beta,
+            'tMax' => $tMax,
+        ]);
+    }
 }

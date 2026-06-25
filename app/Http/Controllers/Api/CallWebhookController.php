@@ -7,6 +7,7 @@ use App\Events\CallEnded;
 use App\Events\CallStarted;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessLatencyDriftJob;
+use App\Jobs\SendSmsConfirmationJob;
 use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\ExperimentVariant;
@@ -353,6 +354,7 @@ class CallWebhookController extends Controller
                 }
 
                 event(new CallEnded($tenant->id, $callLog));
+                SendSmsConfirmationJob::dispatch($callLog);
                 break;
 
             case 'call_analyzed':
@@ -499,6 +501,7 @@ class CallWebhookController extends Controller
                 }
 
                 event(new CallAnalyzed($tenant->id, $callLog));
+                SendSmsConfirmationJob::dispatch($callLog);
                 break;
 
             case 'transcript':

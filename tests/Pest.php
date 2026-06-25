@@ -1,6 +1,9 @@
 <?php
 
+use App\Ai\Text;
+use App\Models\Scopes\TenantScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
 use Tests\TestCase;
 
 /*
@@ -48,3 +51,12 @@ function something()
 {
     // ..
 }
+
+beforeEach(function () {
+    TenantScope::setTenantId(null);
+    Text::$mockResponse = null;
+    Cache::flush();
+    if (request()->hasSession()) {
+        session()->flush();
+    }
+});

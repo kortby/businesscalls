@@ -17,6 +17,8 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class DispatchWebhookController extends Controller
 {
@@ -100,6 +102,68 @@ class DispatchWebhookController extends Controller
 
         // Apply global tenancy context for this request thread
         TenantScope::setTenantId($tenant->id);
+
+        // Call-Steering Matrix: Emergency & High-Severity Outage check
+        $isEmergency = false;
+        $serviceType = $arguments['service_type'] ?? $request->input('service_type') ?? '';
+        $jobDetails = $arguments['job_details'] ?? $request->input('job_details') ?? '';
+        $transcript = $request->input('message.transcript') ?? $request->input('transcript') ?? '';
+
+        $emergencyKeywords = ['emergency', 'gas leak', 'electrical short circuit', 'outage', 'short circuit', 'leak', 'short-circuit'];
+        foreach ($emergencyKeywords as $kw) {
+            if (str_contains(strtolower($serviceType), $kw) || str_contains(strtolower($jobDetails), $kw) || str_contains(strtolower($transcript), $kw)) {
+                $isEmergency = true;
+                break;
+            }
+        }
+
+        if ($isEmergency) {
+            $callId = $request->input('call_id')
+                ?? $request->input('call.id')
+                ?? $request->input('message.call.id')
+                ?? $request->input('message.callId');
+
+            if ($callId) {
+                $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
+                $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
+
+                $emergencyScript = 'EMERGENCY SCRIPT: Act with absolute urgency. A high-priority emergency or outage has been reported. Prioritize safety instructions immediately and secure the location.';
+
+                try {
+                    if ($provider === 'vapi') {
+                        Http::withToken($apiKey)->timeout(5)->patch("https://api.vapi.ai/call/{$callId}", [
+                            'assistantOverrides' => [
+                                'voice' => [
+                                    'provider' => 'elevenlabs',
+                                    'voiceId' => 'pNInz6obpgfrDuZJe63m', // Authoritative Voice ID
+                                ],
+                                'model' => [
+                                    'messages' => [
+                                        [
+                                            'role' => 'system',
+                                            'content' => $emergencyScript,
+                                        ],
+                                    ],
+                                ],
+                                'stopSpeakingThreshold' => 2.0,
+                                'silenceTimeoutSeconds' => 5.0,
+                            ],
+                        ]);
+                    } else {
+                        Http::withToken($apiKey)->timeout(5)->patch("https://api.retellai.com/v2/calls/{$callId}", [
+                            'assistant_overrides' => [
+                                'voice_id' => '11labs-authoritative',
+                                'prompt' => $emergencyScript,
+                                'stop_speaking_threshold' => 2.0,
+                            ],
+                        ]);
+                    }
+                    Log::info("Call-Steering Matrix: Emergency safety overrides patched successfully for Call {$callId}.");
+                } catch (\Exception $e) {
+                    Log::error('Failed to patch emergency safety overrides: '.$e->getMessage());
+                }
+            }
+        }
 
         // Check if this is an integration tool call trigger
         if ($functionName && in_array($functionName, ['trigger_workflow', 'triggerExternalWorkflow'])) {

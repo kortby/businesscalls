@@ -4,12 +4,17 @@ use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
 
 uses(RefreshDatabase::class);
+
+beforeEach(function () {
+    TenantScope::setTenantId(null);
+});
 
 test('authenticated user can view customers aggregated list', function () {
     $tenant = Tenant::factory()->create();
@@ -101,6 +106,7 @@ test('user can add customer with validation', function () {
         'name' => 'Patrick Star',
         'phone' => '+15559990001',
     ]);
+
     $response->assertRedirect();
     $this->assertDatabaseHas('customers', [
         'tenant_id' => $otherTenant->id,
