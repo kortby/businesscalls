@@ -114,4 +114,28 @@ class CallLog extends Model
 
         return $congruence;
     }
+
+    /**
+     * Calculate and return the CRM Synchronization Efficiency Index (Psi_sync) for the tenant.
+     */
+    public function calculateCrmSyncEfficiency(): float
+    {
+        $tenant = $this->tenant;
+        if (! $tenant) {
+            return 0.0;
+        }
+
+        $total = $tenant->callLogs()->count();
+        if ($total === 0) {
+            return 0.0;
+        }
+
+        $success = $tenant->callLogs()->where('crm_sync_status', 'success')->count();
+        $avgLatency = $tenant->callLogs()->where('crm_sync_status', 'success')->avg('crm_sync_latency') ?? 0.0;
+
+        $tMax = 5000.0;
+        $latencyTerm = max(0.0, 1.0 - ($avgLatency / $tMax));
+
+        return ($success / $total) * $latencyTerm;
+    }
 }

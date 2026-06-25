@@ -22,6 +22,7 @@ class TenantSettingsService
 
         $startSpeakingVal = (int) $tenant->getSetting('startSpeakingPlan', 600);
         $stopSpeakingVal = (float) $tenant->getSetting('stopSpeakingPlan', 0.2);
+        $backchannelEnabled = (bool) $tenant->getSetting('backchanneling_enabled', false);
 
         $payload = [
             'assistantOverrides' => [
@@ -39,6 +40,7 @@ class TenantSettingsService
                     'voiceSeconds' => $stopSpeakingVal,
                     'backoffSeconds' => 1.0,
                 ],
+                'backchannelingEnabled' => $backchannelEnabled,
             ],
         ];
 

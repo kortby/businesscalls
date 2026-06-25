@@ -6,6 +6,7 @@ use App\Models\AuditLog;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\CallLog;
+use App\Models\CrmCredential;
 use App\Models\CustomVoice;
 use App\Models\Employee;
 use App\Models\Experiment;
@@ -526,15 +527,19 @@ class AdminController extends Controller
         $tenant = Tenant::find($user->tenant_id);
 
         $integrations = TenantIntegration::where('tenant_id', $tenant->id)->get();
+        $crmCredentials = CrmCredential::where('tenant_id', $tenant->id)->get();
 
         return Inertia::render('Admin/Integrations', [
             'tenant' => $tenant,
             'integrations' => $integrations,
+            'crmCredentials' => $crmCredentials,
             'timingSettings' => [
                 'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
                 'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
+                'backchanneling_enabled' => (bool) $tenant->getSetting('backchanneling_enabled', false),
             ],
             'stripe_active' => ! empty($tenant->stripe_id) || ! empty($tenant->getSetting('stripe_key')),
+            'telephony_active' => ! empty(env('TELEPHONY_API_KEY')) || ! empty($tenant->getSetting('telephony_key')),
         ]);
     }
 
@@ -543,6 +548,42 @@ class AdminController extends Controller
      */
     public function saveIntegration(Request $request): RedirectResponse
     {
+        $platform = $request->input('platform_name');
+
+        if (in_array($platform, ['hubspot', 'salesforce'])) {
+            $request->validate([
+                'platform_name' => 'required|string',
+                'access_token' => 'nullable|string',
+                'refresh_token' => 'nullable|string',
+                'expires_in' => 'nullable|integer',
+                'is_active' => 'required|boolean',
+                'settings_json' => 'nullable|array',
+            ]);
+
+            $user = auth()->user();
+            $tenantId = $user->tenant_id;
+
+            $expiresAt = null;
+            if ($request->filled('expires_in')) {
+                $expiresAt = now()->addSeconds((int) $request->input('expires_in'));
+            }
+
+            $settings = $request->input('settings_json', []);
+            $settings['is_active'] = $request->input('is_active');
+
+            CrmCredential::updateOrCreate(
+                ['tenant_id' => $tenantId, 'platform_name' => $platform],
+                [
+                    'access_token' => $request->input('access_token') ?? '',
+                    'refresh_token' => $request->input('refresh_token'),
+                    'token_expires_at' => $expiresAt,
+                    'settings_json' => $settings,
+                ]
+            );
+
+            return back()->with('success', "Updated {$platform} credentials successfully!");
+        }
+
         $request->validate([
             'platform_name' => 'required|string',
             'webhook_url' => 'nullable|string',
@@ -554,7 +595,7 @@ class AdminController extends Controller
         $tenantId = $user->tenant_id;
 
         TenantIntegration::updateOrCreate(
-            ['tenant_id' => $tenantId, 'platform_name' => $request->input('platform_name')],
+            ['tenant_id' => $tenantId, 'platform_name' => $platform],
             [
                 'webhook_url' => $request->input('webhook_url'),
                 'is_active' => $request->input('is_active'),
@@ -562,7 +603,7 @@ class AdminController extends Controller
             ]
         );
 
-        return back()->with('success', "Updated {$request->input('platform_name')} integration!");
+        return back()->with('success', "Updated {$platform} integration!");
     }
 
     /**
@@ -573,6 +614,7 @@ class AdminController extends Controller
         $request->validate([
             'startSpeakingPlan' => 'required|integer|min:400|max:800',
             'stopSpeakingPlan' => 'required|numeric|min:0.1|max:2.0',
+            'backchanneling_enabled' => 'required|boolean',
         ]);
 
         $user = auth()->user();
@@ -582,6 +624,7 @@ class AdminController extends Controller
             $settings = $tenant->settings ?? [];
             $settings['startSpeakingPlan'] = (int) $request->input('startSpeakingPlan');
             $settings['stopSpeakingPlan'] = (float) $request->input('stopSpeakingPlan');
+            $settings['backchanneling_enabled'] = (bool) $request->input('backchanneling_enabled');
             $tenant->settings = $settings;
             $tenant->save();
         }
