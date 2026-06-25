@@ -9,10 +9,12 @@ use App\Models\CallLog;
 use App\Models\CustomVoice;
 use App\Models\Employee;
 use App\Models\Experiment;
+use App\Models\FailoverLog;
 use App\Models\KnowledgeBase;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Models\TenantIntegration;
+use App\Services\BackupLlmRouter;
 use App\Services\BrandedCallerIdService;
 use App\Services\PdfGeneratorService;
 use Illuminate\Http\RedirectResponse;
@@ -616,6 +618,35 @@ class AdminController extends Controller
 
         return Inertia::render('Admin/SupervisorHUD', [
             'tenant' => $tenant,
+            'timingSettings' => [
+                'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
+                'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
+            ],
+            'spendUsage' => $tenant->calculateSpendUsage(),
+            'spendLimit' => $tenant->getSpendLimit(),
+        ]);
+    }
+
+    /**
+     * Display the playful visual system status and health console.
+     */
+    public function statusHud(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $backupRouter = app(BackupLlmRouter::class);
+        $resilienceScore = $backupRouter->calculateResilienceScore($tenant);
+
+        // Count today's failover events
+        $failoverEventsCount = FailoverLog::where('tenant_id', $tenant->id)
+            ->where('created_at', '>=', now()->startOfDay())
+            ->count();
+
+        return Inertia::render('Admin/StatusHUD', [
+            'tenant' => $tenant,
+            'resilienceScore' => $resilienceScore,
+            'failoverEventsCount' => $failoverEventsCount,
             'timingSettings' => [
                 'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
                 'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
