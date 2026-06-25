@@ -205,6 +205,7 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                         analyser.fftSize = 256;
                         source.connect(analyser);
                         dataArray = new Uint8Array(analyser.frequencyBinCount);
+                        callStore.analyserNode = analyser;
 
                         const updateAmplitude = () => {
                             if (analyser && dataArray) {
@@ -249,6 +250,7 @@ const stopAudioPolling = () => {
     }
     analyser = null;
     dataArray = null;
+    callStore.analyserNode = null;
     callStore.amplitude = 0;
     callStore.isSpeaking = false;
 };

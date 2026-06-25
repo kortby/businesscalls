@@ -19,6 +19,7 @@ import { ref, onMounted, computed, watch } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import BargeControls from '@/components/BargeControls.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import SpectralVisualizer from '@/components/SpectralVisualizer.vue';
 import { callStore } from '@/lib/store';
 import StreakFlame from '@/components/StreakFlame.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
@@ -1408,6 +1409,11 @@ const shiftValidation = computed(() => {
                                             class="text-[9px] font-black tracking-widest text-slate-500 uppercase"
                                             >Listening...</span
                                         >
+                                    </div>
+
+                                    <!-- WebGL audio visualizer -->
+                                    <div class="mb-3">
+                                        <SpectralVisualizer />
                                     </div>
 
                                     <div

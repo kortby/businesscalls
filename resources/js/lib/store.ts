@@ -15,6 +15,7 @@ export interface CallStore {
     retellClient: any | null;
     recentWebhookEvents: WebhookEvent[];
     amplitude: number;
+    analyserNode: any | null;
 }
 
 export const callStore = reactive<CallStore>({
@@ -24,4 +25,5 @@ export const callStore = reactive<CallStore>({
     retellClient: null,
     recentWebhookEvents: [],
     amplitude: 0,
+    analyserNode: null,
 });

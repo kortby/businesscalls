@@ -3,11 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\AuditLog;
+use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\CustomVoice;
 use App\Models\Employee;
 use App\Models\Experiment;
+use App\Models\KnowledgeBase;
 use App\Models\OutboundCampaign;
 use App\Models\Tenant;
 use App\Models\TenantIntegration;
@@ -717,5 +719,47 @@ class AdminController extends Controller
         } catch (\Exception $e) {
             return response()->json(['error' => $e->getMessage()], 400);
         }
+    }
+
+    /**
+     * Display the onboarding journey quest map.
+     */
+    public function onboardingQuest(Request $request): Response
+    {
+        $user = $request->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        $node1 = $tenant && ! empty($tenant->slug) && ! empty($tenant->name);
+        $node2 = $tenant && (! empty($tenant->getSetting('phone_number')) || ! empty($tenant->getSetting('telephony_phone_number')));
+        $node3 = Availability::where('is_active', true)->exists();
+        $node4 = KnowledgeBase::exists();
+        $node5 = CallLog::where('status', 'ended')->exists();
+
+        // Calculate active milestone (1 to 5)
+        $currentMilestone = 1;
+        if ($node1) {
+            $currentMilestone = 2;
+        }
+        if ($node1 && $node2) {
+            $currentMilestone = 3;
+        }
+        if ($node1 && $node2 && $node3) {
+            $currentMilestone = 4;
+        }
+        if ($node1 && $node2 && $node3 && $node4) {
+            $currentMilestone = 5;
+        }
+
+        return Inertia::render('Admin/OnboardingQuest', [
+            'tenant' => $tenant,
+            'milestones' => [
+                'node1' => $node1,
+                'node2' => $node2,
+                'node3' => $node3,
+                'node4' => $node4,
+                'node5' => $node5,
+            ],
+            'currentMilestone' => $currentMilestone,
+        ]);
     }
 }

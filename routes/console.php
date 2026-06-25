@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('audit:clean')->weekly();
+Schedule::command('compliance:audit')->daily();

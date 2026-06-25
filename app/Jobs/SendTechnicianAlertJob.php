@@ -6,6 +6,7 @@ use App\Attributes\Queue;
 use App\Models\Booking;
 use App\Models\CustomVoice;
 use App\Models\Scopes\TenantScope;
+use App\Services\ComplianceSanitizerService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\Interruptible;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -134,6 +135,9 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                         ];
                     }
                 }
+
+                $complianceService = app(ComplianceSanitizerService::class);
+                $complianceService->applyCompliance($tenant, $payload);
 
                 $response = Http::withHeaders([
                     'Authorization' => "Bearer {$apiKey}",

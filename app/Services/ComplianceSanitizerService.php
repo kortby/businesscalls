@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Models\Tenant;
+
 class ComplianceSanitizerService
 {
     /**
@@ -23,5 +25,26 @@ class ComplianceSanitizerService
         $text = preg_replace('/\b\d{9}\b/', '[REDACTED]', $text);
 
         return $text;
+    }
+
+    /**
+     * Apply recording opt-outs if GDPR/HIPAA enforcement is enabled.
+     */
+    public function applyCompliance(Tenant $tenant, array &$payload): void
+    {
+        if ($tenant->getSetting('gdpr_hipaa_enforcement', false) || $tenant->getSetting('gdpr_hipaa_enabled', false)) {
+            $payload['disable_recordings'] = true;
+            $payload['recording_enabled'] = false;
+
+            if (isset($payload['assistantOverrides'])) {
+                $payload['assistantOverrides']['recordingEnabled'] = false;
+                $payload['assistantOverrides']['disable_recordings'] = true;
+            }
+
+            if (isset($payload['assistant_overrides'])) {
+                $payload['assistant_overrides']['recordingEnabled'] = false;
+                $payload['assistant_overrides']['disable_recordings'] = true;
+            }
+        }
     }
 }

@@ -75,6 +75,11 @@ const mainNavItems: NavItem[] = [
         href: '/admin/call-monitor',
         icon: Activity,
     },
+    {
+        title: 'Onboarding Quest',
+        href: '/admin/onboarding',
+        icon: Sparkles,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

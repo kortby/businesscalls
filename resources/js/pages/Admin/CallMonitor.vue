@@ -20,6 +20,8 @@ import {
 import { ref, onMounted, onUnmounted, computed, watch } from 'vue';
 import { useEcho } from '@laravel/echo-vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import SpectralVisualizer from '@/components/SpectralVisualizer.vue';
+import { callStore } from '@/lib/store';
 
 defineOptions({
     layout: {
@@ -533,6 +535,11 @@ const isLimitReached = computed(() => props.spendUsage >= props.spendLimit);
                             </div>
                         </div>
                     </div>
+                </div>
+
+                <!-- Live WebGL Spectral Visualizer -->
+                <div v-if="ongoingCalls.length > 0" class="w-full">
+                    <SpectralVisualizer />
                 </div>
 
                 <!-- Scrolling Active Transcript Bubble -->

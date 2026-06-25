@@ -8,6 +8,7 @@ use App\Jobs\Middleware\EnsureRegulatoryCompliance;
 use App\Models\Booking;
 use App\Models\OutboundCampaign;
 use App\Models\Scopes\TenantScope;
+use App\Services\ComplianceSanitizerService;
 use App\Services\TrafficRouterService;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -134,6 +135,9 @@ class ExecuteBatchCampaignJob implements ShouldQueue
                         ];
                     }
 
+                    $complianceService = app(ComplianceSanitizerService::class);
+                    $complianceService->applyCompliance($tenant, $payload);
+
                     $response = Http::withToken($apiKey)
                         ->timeout(10)
                         ->post('https://api.vapi.ai/call', $payload);
@@ -158,6 +162,9 @@ class ExecuteBatchCampaignJob implements ShouldQueue
                     if ($this->campaign->schedule_time) {
                         $payload['trigger_timestamp'] = $this->campaign->schedule_time->timestamp * 1000;
                     }
+
+                    $complianceService = app(ComplianceSanitizerService::class);
+                    $complianceService->applyCompliance($tenant, $payload);
 
                     $response = Http::withToken($apiKey)
                         ->timeout(10)

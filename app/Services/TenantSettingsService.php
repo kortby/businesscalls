@@ -76,6 +76,9 @@ class TenantSettingsService
         $dictionaryService = app(PronunciationDictionaryService::class);
         $payload = $dictionaryService->applyOverridesToPayload($tenant, $payload);
 
+        $complianceService = app(ComplianceSanitizerService::class);
+        $complianceService->applyCompliance($tenant, $payload);
+
         return $payload;
     }
 

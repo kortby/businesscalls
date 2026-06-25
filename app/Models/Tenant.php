@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Laravel\Cashier\Billable;
 
 #[Table('tenants')]
-#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'is_test_mode', 'client_id', 'client_secret')]
+#[Fillable('slug', 'name', 'plan', 'settings', 'secret_key', 'stripe_id', 'pm_type', 'pm_last_four', 'trial_ends_at', 'is_test_mode', 'client_id', 'client_secret', 'domain')]
 #[Casts(['settings' => 'array', 'is_test_mode' => 'boolean'])]
 class Tenant extends Model
 {

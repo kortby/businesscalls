@@ -34,6 +34,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/executive-report/download', [AdminController::class, 'downloadReport'])->name('admin.report.download');
     Route::get('admin/pre-flight-audit', [AdminController::class, 'preFlightAudit'])->name('admin.preflight');
     Route::get('admin/achievements', [AdminController::class, 'achievements'])->name('admin.achievements');
+    Route::get('admin/onboarding', [AdminController::class, 'onboardingQuest'])->name('admin.onboarding');
     Route::get('admin/dispatch-map', [AdminController::class, 'dispatchMap'])->name('admin.dispatch-map');
     Route::get('admin/leaderboard', [AdminController::class, 'leaderboard'])->name('admin.leaderboard');
     Route::get('admin/mascot-shop', [AdminController::class, 'mascotShop'])->name('admin.mascot-shop');
