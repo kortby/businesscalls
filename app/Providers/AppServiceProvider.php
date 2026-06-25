@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Ai\Text;
 use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
+use App\Jobs\EvaluateCallJob;
 use App\Jobs\EvaluateVoiceQualityJob;
 use App\Jobs\SendFollowUpSmsJob;
 use App\Jobs\SyncCallToCrmJob;
@@ -59,6 +60,7 @@ class AppServiceProvider extends ServiceProvider
         Event::listen(CallAnalyzed::class, function (CallAnalyzed $event) {
             SyncCallToCrmJob::dispatch($event->callLog);
             SendFollowUpSmsJob::dispatch($event->callLog);
+            EvaluateCallJob::dispatch($event->callLog);
         });
 
         // Dispatch SMS follow-up and voice quality evaluation when a call ends (handles immediate/fallback triggers)

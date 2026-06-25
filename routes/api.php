@@ -39,6 +39,7 @@ Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->nam
 Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr-keypress')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::match(['get', 'post'], '/mcp', [McpController::class, 'handle'])->name('mcp.server');
 Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class, TrafficRouterMiddleware::class]);
+Route::post('/web-calls/refresh-token', [WebCallController::class, 'refreshToken'])->middleware('auth:sanctum');
 Route::put('/bookings/{booking}/status', [BookingStatusController::class, 'update'])->middleware('auth:sanctum');
 Route::post('/settings/dictionary', [PronunciationDictionaryController::class, 'store'])->middleware('auth:sanctum');
 Route::post('/call-logs/{callLog}/redact', [CallRedactionController::class, 'redact'])->middleware('auth:sanctum');

@@ -33,6 +33,8 @@ let vapiInstance: any = null;
 let retellInstance: any = null;
 const page = usePage();
 let telemetryInterval: any = null;
+let tokenExpiresAt = 0;
+let rotationInterval: any = null;
 
 const startTelemetryCollection = (
     callId: string,
@@ -142,6 +144,66 @@ const stopTelemetryCollection = () => {
     if (telemetryInterval) {
         clearInterval(telemetryInterval);
         telemetryInterval = null;
+    }
+};
+
+const startTokenRotationLoop = (provider: string) => {
+    stopTokenRotationLoop();
+
+    rotationInterval = setInterval(async () => {
+        const timeLeft = tokenExpiresAt - Date.now();
+        if (timeLeft > 0 && timeLeft <= 5 * 60 * 1000) {
+            console.log('Token is within 5 minutes of expiring. Rotating...');
+            try {
+                const response = await fetch('/api/web-calls/refresh-token', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            (
+                                document.querySelector(
+                                    'meta[name="csrf-token"]',
+                                ) as HTMLMetaElement
+                            )?.content || '',
+                        Accept: 'application/json',
+                    },
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const newAccessToken = data.access_token;
+                    const expiresIn = data.expires_in || 3600;
+                    tokenExpiresAt = Date.now() + expiresIn * 1000;
+
+                    if (provider === 'vapi' && vapiInstance) {
+                        if (typeof vapiInstance.setToken === 'function') {
+                            vapiInstance.setToken(newAccessToken);
+                        } else {
+                            vapiInstance.sdkKey = newAccessToken;
+                        }
+                        console.log('Successfully rotated Vapi WebRTC token.');
+                    } else if (provider === 'retell' && retellInstance) {
+                        if (typeof retellInstance.updateAccessToken === 'function') {
+                            retellInstance.updateAccessToken(newAccessToken);
+                        } else {
+                            retellInstance.accessToken = newAccessToken;
+                        }
+                        console.log('Successfully rotated Retell WebRTC token.');
+                    }
+                } else {
+                    console.error('Failed to refresh WebRTC token:', response.statusText);
+                }
+            } catch (e) {
+                console.error('Error during WebRTC token rotation handshake:', e);
+            }
+        }
+    }, 10000);
+};
+
+const stopTokenRotationLoop = () => {
+    if (rotationInterval) {
+        clearInterval(rotationInterval);
+        rotationInterval = null;
     }
 };
 
@@ -285,6 +347,9 @@ const startCall = async () => {
         const data = await response.json();
         const { provider, access_token, assistant_id, call_id } = data;
 
+        tokenExpiresAt = Date.now() + (data.expires_in || 3600) * 1000;
+        startTokenRotationLoop(provider);
+
         if (provider === 'retell') {
             const { RetellWebClient } = await import('retell-client-js-sdk');
             retellInstance = new RetellWebClient();
@@ -379,6 +444,7 @@ const endCall = () => {
 const cleanupCall = () => {
     stopTelemetryCollection();
     stopAudioPolling();
+    stopTokenRotationLoop();
     vapiInstance = null;
     retellInstance = null;
     callStore.vapiClient = null;

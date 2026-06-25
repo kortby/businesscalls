@@ -17,6 +17,64 @@ use Illuminate\Support\Str;
 class WebCallController extends Controller
 {
     /**
+     * Refresh the ephemeral WebRTC client access token.
+     */
+    public function refreshToken(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if (! $user || ! $user->tenant) {
+            return response()->json(['error' => 'Unauthorized or missing active tenant.'], 403);
+        }
+
+        $tenant = $user->tenant;
+        $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
+        $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
+        $assistantId = $tenant->getSetting('voice_assistant_id') ?? 'default-assistant-id';
+
+        Log::info("Refreshing WebRTC calling token for Tenant: {$tenant->id}, provider: {$provider}");
+
+        if ($provider === 'retell') {
+            try {
+                $response = Http::withToken($apiKey)
+                    ->timeout(10)
+                    ->post('https://api.retellai.com/create-web-call', [
+                        'assistant_id' => $assistantId,
+                    ]);
+
+                if ($response->failed()) {
+                    Log::error('Retell create-web-call refresh failed: '.$response->body());
+
+                    return response()->json(['error' => 'Telephony provider session refresh failed.'], 500);
+                }
+
+                $accessToken = $response->json('access_token');
+                if (! $accessToken) {
+                    return response()->json(['error' => 'Missing access token in provider response.'], 500);
+                }
+
+                return response()->json([
+                    'provider' => 'retell',
+                    'access_token' => $accessToken,
+                    'expires_in' => 3600, // Ephemeral token standard expiry
+                ]);
+            } catch (\Exception $e) {
+                Log::error('Retell web call refresh connection exception: '.$e->getMessage());
+
+                return response()->json(['error' => 'Telephony provider timed out.'], 504);
+            }
+        }
+
+        $publicKey = env('VAPI_PUBLIC_KEY') ?? 'dummy-vapi-public-key';
+
+        return response()->json([
+            'provider' => 'vapi',
+            'access_token' => $publicKey,
+            'expires_in' => 3600,
+        ]);
+    }
+
+    /**
      * Generate an ephemeral client access token or public key payload for WebRTC.
      */
     public function token(Request $request): JsonResponse

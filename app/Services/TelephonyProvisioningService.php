@@ -92,4 +92,14 @@ class TelephonyProvisioningService
             'phone_number_id' => $phoneId,
         ];
     }
+
+    /**
+     * Provision a phone number (alias/wrapper around purchasePhoneNumber).
+     *
+     * @return array{phone_number: string, phone_number_id: string}
+     */
+    public function provisionPhoneNumber(Tenant $tenant, string $areaCode): array
+    {
+        return $this->purchasePhoneNumber($tenant, $areaCode);
+    }
 }

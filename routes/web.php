@@ -27,6 +27,8 @@ Route::get('technician/login', [TechnicianController::class, 'login'])->name('te
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/diagnostics', [AdminController::class, 'diagnostics'])->name('admin.diagnostics');
+    Route::get('admin/sla-diagnostics', [AdminController::class, 'slaDiagnostics'])->name('admin.sla-diagnostics');
+    Route::post('admin/telephony/provision', [AdminController::class, 'provisionTelephony'])->name('admin.telephony.provision');
     Route::get('admin/loyalty', [AdminController::class, 'loyalty'])->name('admin.loyalty');
     Route::get('admin/health', [AdminController::class, 'health'])->name('admin.health');
     Route::get('admin/call-flow', [AdminController::class, 'callFlow'])->name('admin.callflow');
