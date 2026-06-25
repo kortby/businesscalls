@@ -84,3 +84,17 @@ test('supervisors cannot barge call logs belonging to other tenants', function (
     // Query should fail to locate due to tenant isolation or return forbidden
     $response->assertStatus(404);
 });
+
+test('supervisors can view supervisor hud and get inertia payload', function () {
+    $tenant = Tenant::factory()->create();
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
+
+    $response = $this->actingAs($user)->get('/admin/supervisor-hud');
+
+    $response->assertOk();
+});
+
+test('guests are redirected from supervisor hud', function () {
+    $response = $this->get('/admin/supervisor-hud');
+    $response->assertRedirect();
+});

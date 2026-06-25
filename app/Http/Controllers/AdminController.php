@@ -607,6 +607,25 @@ class AdminController extends Controller
     }
 
     /**
+     * Display the playful visual Supervisor HUD (Duolingo style UI).
+     */
+    public function supervisorHud(Request $request): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        return Inertia::render('Admin/SupervisorHUD', [
+            'tenant' => $tenant,
+            'timingSettings' => [
+                'startSpeakingPlan' => (int) $tenant->getSetting('startSpeakingPlan', 600),
+                'stopSpeakingPlan' => (float) $tenant->getSetting('stopSpeakingPlan', 0.2),
+            ],
+            'spendUsage' => $tenant->calculateSpendUsage(),
+            'spendLimit' => $tenant->getSpendLimit(),
+        ]);
+    }
+
+    /**
      * Display the Conversational A/B Prompt Split-Testing Experiments Panel.
      */
     public function experiments(Request $request): Response
