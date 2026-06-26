@@ -47,6 +47,11 @@ class User extends Authenticatable implements PasskeyUser
     /** @use HasFactory<UserFactory> */
     use BelongsToTenant, HasAttributeCasts, HasConversations, HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
+    public function getConnectionName()
+    {
+        return config('database.master_connection', 'sqlite');
+    }
+
     /**
      * Determine if the user has supervisor permissions.
      */
