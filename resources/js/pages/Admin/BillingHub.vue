@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head } from '@inertiajs/vue3';
+import { Head, Link } from '@inertiajs/vue3';
 import { ref, onMounted, computed } from 'vue';
 import {
     CreditCard,
@@ -109,6 +109,12 @@ const runVoiceTransaction = (willSucceed = true) => {
                 </div>
 
                 <div class="flex gap-2">
+                    <Link
+                        href="/settings/billing"
+                        class="bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-wider py-3 px-6 rounded-2xl border-b-4 border-indigo-800 active:border-b-0 active:mt-1 transition-all duration-75 text-xs shadow-lg cursor-pointer flex items-center justify-center"
+                    >
+                        Configure Plans
+                    </Link>
                     <button
                         @click="runVoiceTransaction(true)"
                         :disabled="isProcessing"

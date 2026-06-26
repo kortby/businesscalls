@@ -204,6 +204,11 @@ const sidebarNavItems = computed<NavItem[]>(() => {
                         icon: CreditCard,
                     },
                     {
+                        title: 'Billing Settings',
+                        href: '/settings/billing',
+                        icon: Settings2,
+                    },
+                    {
                         title: 'Loyalty Panel',
                         href: adminLoyalty(),
                         icon: Users,
