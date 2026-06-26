@@ -62,6 +62,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('admin/experiments', [AdminController::class, 'experiments'])->name('admin.experiments');
         Route::post('admin/experiments/denoising', [AdminController::class, 'toggleDenoising'])->name('admin.experiments.denoising');
         Route::post('admin/experiments/create', [AdminController::class, 'saveExperiment'])->name('admin.experiments.save');
+
+        Route::get('api/billing/portal', [StripeBillingController::class, 'portal'])->name('billing.portal');
+        Route::post('api/billing/checkout', [StripeBillingController::class, 'checkout'])->name('billing.checkout');
     });
 
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
@@ -77,79 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         }
 
         $tenant = $user ? Tenant::find($user->tenant_id) : null;
-        if ($tenant && $tenant->is_test_mode) {
-            $employees = [
-                [
-                    'id' => 9991,
-                    'first_name' => 'Alice (Simulated)',
-                    'last_name' => 'Smith',
-                    'phone' => '555-0199',
-                    'skills' => ['hvac', 'electrical'],
-                    'availabilities' => [
-                        ['id' => 99901, 'day_of_week' => 1, 'start_time' => '08:00', 'end_time' => '17:00', 'is_active' => true],
-                        ['id' => 99902, 'day_of_week' => 2, 'start_time' => '08:00', 'end_time' => '17:00', 'is_active' => true],
-                    ],
-                    'bookings' => [
-                        ['id' => 99911, 'customer_phone' => '555-0101', 'job_details' => 'AC Maintenance Service', 'status' => 'booked', 'scheduled_start' => now()->startOfDay()->addHours(9)->toDateTimeString()],
-                    ],
-                ],
-                [
-                    'id' => 9992,
-                    'first_name' => 'Bob (Simulated)',
-                    'last_name' => 'Jones',
-                    'phone' => '555-0299',
-                    'skills' => ['plumbing'],
-                    'availabilities' => [
-                        ['id' => 99903, 'day_of_week' => 3, 'start_time' => '09:00', 'end_time' => '18:00', 'is_active' => true],
-                    ],
-                    'bookings' => [
-                        ['id' => 99922, 'customer_phone' => '555-0102', 'job_details' => 'Leaky Pipe Repair', 'status' => 'booked', 'scheduled_start' => now()->startOfDay()->addHours(13)->toDateTimeString()],
-                    ],
-                ],
-            ];
 
-            $bookingsList = [
-                [
-                    'id' => 99911,
-                    'customer_phone' => '555-0101',
-                    'job_details' => 'AC Maintenance Service',
-                    'status' => 'booked',
-                    'scheduled_start' => now()->startOfDay()->addHours(9)->toDateTimeString(),
-                    'employee' => ['first_name' => 'Alice (Simulated)', 'last_name' => 'Smith'],
-                ],
-                [
-                    'id' => 99922,
-                    'customer_phone' => '555-0102',
-                    'job_details' => 'Leaky Pipe Repair',
-                    'status' => 'booked',
-                    'scheduled_start' => now()->startOfDay()->addHours(13)->toDateTimeString(),
-                    'employee' => ['first_name' => 'Bob (Simulated)', 'last_name' => 'Jones'],
-                ],
-            ];
-
-            return Inertia::render('Dashboard', [
-                'tenant' => $tenant,
-                'employees' => $employees,
-                'bookings' => $bookingsList,
-                'totalCallsCount' => 2,
-                'successfulBookingsCount' => 2,
-                'openJobsTodayCount' => 2,
-                'bookingStreak' => 5,
-                'averageCqs' => 0.95,
-                'draftTasks' => [
-                    [
-                        'id' => 99991,
-                        'booking_id' => 99911,
-                        'call_id' => 'call-sim-1',
-                        'task_type' => 'order_parts',
-                        'description' => 'Order replacement parts based on call analysis.',
-                        'status' => 'pending',
-                    ],
-                ],
-            ]);
-        }
-
-        // Calculate Stats
+        // Calculate Stats from database (scoped to active tenant)
         $totalCallsCount = CallLog::count();
         $successfulBookingsCount = Booking::where('status', 'booked')->count();
         $openJobsTodayCount = Booking::whereDate('scheduled_start', now()->startOfDay())->where('status', 'booked')->count();
@@ -198,9 +130,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('conversations', [ConversationsController::class, 'index'])->name('conversations.index');
     Route::post('conversations/{conversation}/messages', [ConversationsController::class, 'storeMessage'])->name('conversations.messages.store');
-
-    Route::get('api/billing/portal', [StripeBillingController::class, 'portal'])->name('billing.portal');
-    Route::post('api/billing/checkout', [StripeBillingController::class, 'checkout'])->name('billing.checkout');
 
     Route::resource('employees', EmployeeController::class);
     Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');

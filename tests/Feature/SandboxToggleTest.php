@@ -38,7 +38,7 @@ test('authenticated user can toggle sandbox mode state', function () {
 
 test('stripe checkout is mocked when tenant is in test mode', function () {
     $tenant = Tenant::factory()->create(['is_test_mode' => true]);
-    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
 
     $response = $this->actingAs($user)->postJson('/api/billing/checkout', [
         'plan' => 'enterprise',

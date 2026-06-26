@@ -16,7 +16,7 @@ beforeEach(function () {
 
 test('tenant can generate billing portal redirect URL', function () {
     $tenant = Tenant::factory()->create(['stripe_id' => 'cus_12345']);
-    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
 
     // Mock billingPortalUrl native method on Tenant model using Mockery
     $tenantMock = Mockery::mock($tenant)->makePartial();
@@ -31,7 +31,7 @@ test('tenant can generate billing portal redirect URL', function () {
 
 test('tenant can generate checkout session URL for pro plan', function () {
     $tenant = Tenant::factory()->create(['stripe_id' => 'cus_12345']);
-    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
 
     $tenantMock = Mockery::mock($tenant)->makePartial();
 
@@ -41,7 +41,7 @@ test('tenant can generate checkout session URL for pro plan', function () {
     $builderMock->shouldReceive('checkout')->andReturn($checkoutSessionMock);
 
     $tenantMock->shouldReceive('newSubscription')
-        ->with('default', 'price_pro')
+        ->with('default', env('STRIPE_PRO_PRICE_ID', 'price_pro'))
         ->andReturn($builderMock);
 
     $user->setRelation('tenant', $tenantMock);

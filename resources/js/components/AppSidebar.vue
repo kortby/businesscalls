@@ -80,6 +80,7 @@ import type { NavItem } from '@/types';
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 const isSupervisor = computed(() => !!user.value?.is_supervisor);
+const isEmployee = computed(() => !!user.value?.employee);
 
 const sidebarNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [
@@ -88,7 +89,10 @@ const sidebarNavItems = computed<NavItem[]>(() => {
             href: dashboard(),
             icon: LayoutGrid,
         },
-        {
+    ];
+
+    if (isSupervisor.value || !isEmployee.value) {
+        items.push({
             title: 'Operations',
             icon: Briefcase,
             items: [
@@ -123,8 +127,8 @@ const sidebarNavItems = computed<NavItem[]>(() => {
                     icon: MessageSquare,
                 },
             ],
-        },
-    ];
+        });
+    }
 
     if (isSupervisor.value) {
         items.push(

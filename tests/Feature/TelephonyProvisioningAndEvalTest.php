@@ -152,6 +152,10 @@ test('CallEvaluationService applies fallback evaluation if API request fails', f
 });
 
 test('WebCallController refresh token proxy endpoint succeeds for authenticated user', function () {
+    $_ENV['VAPI_PUBLIC_KEY'] = 'dummy-vapi-public-key';
+    $_SERVER['VAPI_PUBLIC_KEY'] = 'dummy-vapi-public-key';
+    putenv('VAPI_PUBLIC_KEY=dummy-vapi-public-key');
+
     $tenant = Tenant::factory()->create();
     $user = User::factory()->create(['tenant_id' => $tenant->id]);
 

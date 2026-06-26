@@ -7,6 +7,7 @@ use App\Models\AuditLog;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
 
@@ -19,12 +20,14 @@ class StripeBillingController extends Controller
     {
         $tenant = $request->user()->tenant;
 
+        $isSubscribed = $tenant->subscribed('default') || ($tenant->is_test_mode && in_array($tenant->plan, ['pro', 'enterprise']));
+
         return Inertia::render('settings/Billing', [
             'tenant' => $tenant,
             'stripeKey' => config('cashier.key'),
             'pmType' => $tenant->pm_type,
             'pmLastFour' => $tenant->pm_last_four,
-            'isSubscribed' => $tenant->subscribed('default'),
+            'isSubscribed' => $isSubscribed,
             'plan' => $tenant->plan,
         ]);
     }
@@ -48,14 +51,20 @@ class StripeBillingController extends Controller
             return response()->json(['url' => route('dashboard').'?mock_portal=true']);
         }
 
-        if (! $tenant->stripe_id) {
-            $tenant->createAsStripeCustomer();
+        try {
+            if (! $tenant->stripe_id) {
+                $tenant->createAsStripeCustomer();
+            }
+
+            // Generate Stripe hosted billing portal redirect URL
+            $url = $tenant->billingPortalUrl(route('dashboard'));
+
+            return response()->json(['url' => $url]);
+        } catch (\Exception $e) {
+            Log::error('Stripe billing portal error: '.$e->getMessage());
+
+            return response()->json(['error' => 'Failed to connect to Stripe Billing Portal. Please check your STRIPE_SECRET key.'], 500);
         }
-
-        // Generate Stripe hosted billing portal redirect URL
-        $url = $tenant->billingPortalUrl(route('dashboard'));
-
-        return response()->json(['url' => $url]);
     }
 
     /**
@@ -86,6 +95,16 @@ class StripeBillingController extends Controller
         if ($tenant->is_test_mode) {
             // Mock subscription upgrade instantly in test mode!
             $tenant->plan = $plan;
+            $settings = $tenant->settings ?? [];
+            $settings['dispatch_locked'] = false;
+            if ($plan === 'enterprise') {
+                $settings['call_limit'] = 10000;
+            } elseif ($plan === 'pro') {
+                $settings['call_limit'] = 1000;
+            } else {
+                $settings['call_limit'] = 100;
+            }
+            $tenant->settings = $settings;
             $tenant->save();
 
             AuditLog::create([
@@ -104,30 +123,36 @@ class StripeBillingController extends Controller
             return response()->json(['url' => route('dashboard').'?checkout=success&test_mode=true']);
         }
 
-        if (! $tenant->stripe_id) {
-            $tenant->createAsStripeCustomer();
-        }
+        try {
+            if (! $tenant->stripe_id) {
+                $tenant->createAsStripeCustomer();
+            }
 
-        // Generate Checkout session URL
-        $checkout = $tenant->newSubscription('default', $priceId)
-            ->checkout([
-                'success_url' => route('dashboard').'?checkout=success',
-                'cancel_url' => route('settings.billing.index').'?checkout=cancel',
+            // Generate Checkout session URL
+            $checkout = $tenant->newSubscription('default', $priceId)
+                ->checkout([
+                    'success_url' => route('dashboard').'?checkout=success',
+                    'cancel_url' => route('settings.billing.index').'?checkout=cancel',
+                ]);
+
+            // Log compliance audit log for checkout intent
+            AuditLog::create([
+                'tenant_id' => $tenant->id,
+                'user_id' => $user->id,
+                'action' => 'checkout_initiated',
+                'ip_address' => $request->ip(),
+                'browser_agent' => $request->userAgent(),
+                'payload' => [
+                    'plan' => $plan,
+                    'price_id' => $priceId,
+                ],
             ]);
 
-        // Log compliance audit log for checkout intent
-        AuditLog::create([
-            'tenant_id' => $tenant->id,
-            'user_id' => $user->id,
-            'action' => 'checkout_initiated',
-            'ip_address' => $request->ip(),
-            'browser_agent' => $request->userAgent(),
-            'payload' => [
-                'plan' => $plan,
-                'price_id' => $priceId,
-            ],
-        ]);
+            return response()->json(['url' => $checkout->url]);
+        } catch (\Exception $e) {
+            Log::error('Stripe checkout session error: '.$e->getMessage());
 
-        return response()->json(['url' => $checkout->url]);
+            return response()->json(['error' => 'Failed to connect to Stripe Gateway. Please check your STRIPE_SECRET key.'], 500);
+        }
     }
 }

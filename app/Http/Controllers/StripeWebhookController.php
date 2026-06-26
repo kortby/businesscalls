@@ -17,12 +17,16 @@ class StripeWebhookController extends CashierController
     {
         $stripeId = $payload['data']['object']['customer'];
         $tenant = Tenant::where('stripe_id', $stripeId)->first();
-
         if ($tenant) {
-            $priceId = $payload['data']['object']['lines']['data'][0]['price']['id'] ?? 'price_pro';
+            $priceId = $payload['data']['object']['lines']['data'][0]['price']['id'] ?? '';
+            $proPriceId = env('STRIPE_PRO_PRICE_ID', 'price_pro');
+            $enterprisePriceId = env('STRIPE_ENTERPRISE_PRICE_ID', 'price_enterprise');
+
             $plan = 'pro';
-            if (str_contains($priceId, 'enterprise')) {
+            if ($priceId === $enterprisePriceId || str_contains($priceId, 'enterprise')) {
                 $plan = 'enterprise';
+            } elseif ($priceId === $proPriceId || str_contains($priceId, 'pro')) {
+                $plan = 'pro';
             } elseif (str_contains($priceId, 'basic')) {
                 $plan = 'basic';
             }

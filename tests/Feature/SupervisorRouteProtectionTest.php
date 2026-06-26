@@ -55,12 +55,18 @@ test('non-supervisor users are forbidden from prompt settings', function () {
     $response->assertStatus(403);
 });
 
-test('non-supervisor users are forbidden from billing settings', function () {
+test('non-supervisor users are forbidden from billing settings and APIs', function () {
     $tenant = Tenant::factory()->create();
     $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => false]);
     $this->actingAs($user);
 
     $response = $this->get(route('settings.billing.index'));
+    $response->assertStatus(403);
+
+    $response = $this->getJson(route('billing.portal'));
+    $response->assertStatus(403);
+
+    $response = $this->postJson(route('billing.checkout'), ['plan' => 'pro']);
     $response->assertStatus(403);
 });
 
