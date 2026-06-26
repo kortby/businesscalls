@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\BookingStatusUpdated;
+use App\Events\TechnicianLocationUpdated;
 use App\Http\Controllers\Controller;
 use App\Models\Booking;
 use App\Models\Scopes\TenantScope;
+use App\Services\DiagnosticValidationService;
+use App\Services\RouteOptimizerService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -64,6 +67,9 @@ class BookingStatusController extends Controller
                 $booking->job_details .= "\nBilling Amount: $".number_format($validated['billing_amount'], 2);
             }
             $booking->save();
+
+            // Evaluate the triaging accuracy coefficient
+            app(DiagnosticValidationService::class)->calculateAndSave($booking);
         }
 
         // Broadcast Reverb updates to update admin dashboard instantly
@@ -72,6 +78,51 @@ class BookingStatusController extends Controller
         return response()->json([
             'success' => true,
             'booking' => $booking,
+        ]);
+    }
+
+    /**
+     * Update the live technician coordinates and broadcast updates.
+     */
+    public function updateLocation(Request $request, Booking $booking): JsonResponse
+    {
+        $user = $request->user();
+        if (! $user) {
+            return response()->json(['error' => 'Unauthenticated.'], 401);
+        }
+
+        TenantScope::setTenantId($booking->tenant_id);
+
+        $validated = $request->validate([
+            'latitude' => ['required', 'numeric'],
+            'longitude' => ['required', 'numeric'],
+        ]);
+
+        $latitude = (float) $validated['latitude'];
+        $longitude = (float) $validated['longitude'];
+
+        $employee = $booking->employee;
+        if ($employee) {
+            $employee->update([
+                'latitude' => $latitude,
+                'longitude' => $longitude,
+            ]);
+        }
+
+        // Compute real-time remaining ETA to destination coordinates
+        $routeService = app(RouteOptimizerService::class);
+        $destLat = (float) ($booking->latitude ?? 37.7749);
+        $destLng = (float) ($booking->longitude ?? -122.4194);
+        $etaMinutes = $routeService->getTransitTimeMinutes($latitude, $longitude, $destLat, $destLng);
+
+        // Broadcast tracking updates over Reverb
+        event(new TechnicianLocationUpdated($booking, $latitude, $longitude, $etaMinutes));
+
+        return response()->json([
+            'success' => true,
+            'latitude' => $latitude,
+            'longitude' => $longitude,
+            'eta_minutes' => $etaMinutes,
         ]);
     }
 }

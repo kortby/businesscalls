@@ -1,20 +1,34 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
 import {
-    BookOpen,
-    FolderGit2,
     LayoutGrid,
     Calendar,
     Clock,
-    MessageSquare,
     Wrench,
     Users,
     Briefcase,
-    HelpCircle,
+    MessageSquare,
+    Activity,
     Sparkles,
     Link2,
-    Activity,
     FlaskConical,
+    HelpCircle,
+    Map,
+    Shield,
+    HeartPulse,
+    ClipboardCheck,
+    Settings2,
+    Zap,
+    Server,
+    GitBranch,
+    TrendingUp,
+    Flame,
+    CalendarCheck,
+    ThumbsUp,
+    Award,
+    Trophy,
+    CreditCard,
+    FileText,
 } from '@lucide/vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
@@ -29,12 +43,40 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { dashboard, docs } from '@/routes';
 import { index as availabilitiesIndex } from '@/routes/availabilities';
 import { index as bookingsIndex } from '@/routes/bookings';
+import { index as employeesIndex } from '@/routes/employees';
+import { index as customersIndex } from '@/routes/customers';
+import { index as jobsIndex } from '@/routes/jobs';
+import { index as conversationsIndex } from '@/routes/conversations';
+import {
+    dispatchMap as adminDispatchMap,
+    callMonitor as adminCallMonitor,
+    supervisorHud as adminSupervisorHud,
+    statusHud as adminStatusHud,
+    preflight as adminPreFlightAudit,
+    diagnostics as adminDiagnostics,
+    slaDiagnostics as adminSlaDiagnostics,
+    health as adminHealth,
+    callflow as adminCallFlow,
+    saasProfit as adminSaasProfit,
+    onboarding as adminOnboardingQuest,
+    onboardingBoard as adminOnboardingBoard,
+    streakHub as adminStreakHub,
+    csatFeedback as adminCsatFeedback,
+    achievements as adminAchievements,
+    leaderboard as adminLeaderboard,
+    billingHub as adminBillingHub,
+    loyalty as adminLoyalty,
+    auditLogs as adminAuditLogs,
+    mascotShop as adminMascotShop,
+    integrations as adminIntegrations,
+    experiments as adminExperiments,
+} from '@/routes/admin';
 import type { NavItem } from '@/types';
 
-const mainNavItems: NavItem[] = [
+const coreNavItems: NavItem[] = [
     {
         title: 'Dashboard',
         href: dashboard(),
@@ -52,62 +94,148 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Employees',
-        href: '/employees',
+        href: employeesIndex(),
         icon: Wrench,
     },
     {
         title: 'Customers',
-        href: '/customers',
+        href: customersIndex(),
         icon: Users,
     },
     {
         title: 'Customer Jobs',
-        href: '/jobs',
+        href: jobsIndex(),
         icon: Briefcase,
     },
     {
         title: 'Conversations',
-        href: '/conversations',
+        href: conversationsIndex(),
         icon: MessageSquare,
     },
+];
+
+const hudNavItems: NavItem[] = [
     {
-        title: 'Live Monitor',
-        href: '/admin/call-monitor',
+        title: 'Live Dispatch Map',
+        href: adminDispatchMap(),
+        icon: Map,
+    },
+    {
+        title: 'Live Call Monitor',
+        href: adminCallMonitor(),
         icon: Activity,
     },
     {
+        title: 'Supervisor HUD',
+        href: adminSupervisorHud(),
+        icon: Shield,
+    },
+    {
+        title: 'Telephony Status HUD',
+        href: adminStatusHud(),
+        icon: HeartPulse,
+    },
+    {
+        title: 'Pre-Flight Audit',
+        href: adminPreFlightAudit(),
+        icon: ClipboardCheck,
+    },
+    {
+        title: 'Diagnostics Panel',
+        href: adminDiagnostics(),
+        icon: Settings2,
+    },
+    {
+        title: 'SLA Diagnostics',
+        href: adminSlaDiagnostics(),
+        icon: Zap,
+    },
+    {
+        title: 'System Health',
+        href: adminHealth(),
+        icon: Server,
+    },
+    {
+        title: 'IVR Call Flow',
+        href: adminCallFlow(),
+        icon: GitBranch,
+    },
+];
+
+const insightsNavItems: NavItem[] = [
+    {
+        title: 'SaaS Profit HUD',
+        href: adminSaasProfit(),
+        icon: TrendingUp,
+    },
+    {
         title: 'Onboarding Quest',
-        href: '/admin/onboarding',
+        href: adminOnboardingQuest(),
         icon: Sparkles,
+    },
+    {
+        title: 'Onboarding Customize',
+        href: adminOnboardingBoard(),
+        icon: Flame,
+    },
+    {
+        title: 'Streak Hub',
+        href: adminStreakHub(),
+        icon: CalendarCheck,
+    },
+    {
+        title: 'CSAT Feedback',
+        href: adminCsatFeedback(),
+        icon: ThumbsUp,
+    },
+    {
+        title: 'Achievements',
+        href: adminAchievements(),
+        icon: Award,
+    },
+    {
+        title: 'Leaderboard',
+        href: adminLeaderboard(),
+        icon: Trophy,
+    },
+    {
+        title: 'Billing Hub',
+        href: adminBillingHub(),
+        icon: CreditCard,
+    },
+    {
+        title: 'Loyalty Panel',
+        href: adminLoyalty(),
+        icon: Users,
+    },
+    {
+        title: 'Audit Logs',
+        href: adminAuditLogs(),
+        icon: FileText,
     },
 ];
 
 const footerNavItems: NavItem[] = [
     {
         title: 'Mascot Shop',
-        href: '/admin/mascot-shop',
+        href: adminMascotShop(),
         icon: Sparkles,
     },
     {
         title: 'Integrations',
-        href: '/admin/integrations',
+        href: adminIntegrations(),
         icon: Link2,
     },
     {
         title: 'Experiments',
-        href: '/admin/experiments',
+        href: adminExperiments(),
         icon: FlaskConical,
     },
     {
         title: 'Documentation',
-        href: '/docs',
+        href: docs(),
         icon: HelpCircle,
     },
-    // {
-    //     title: 'Documentation',
-    //     href: 'https://laravel.com/docs/starter-kits#vue',
-    //     icon: BookOpen,
-    // },
 ];
 </script>
 
@@ -125,8 +253,10 @@ const footerNavItems: NavItem[] = [
             </SidebarMenu>
         </SidebarHeader>
 
-        <SidebarContent>
-            <NavMain :items="mainNavItems" />
+        <SidebarContent class="space-y-4">
+            <NavMain :items="coreNavItems" title="Operations & Scheduling" />
+            <NavMain :items="hudNavItems" title="Dispatch & Telephony HUDs" />
+            <NavMain :items="insightsNavItems" title="Revenue & Performance Insights" />
         </SidebarContent>
 
         <SidebarFooter>

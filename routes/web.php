@@ -10,8 +10,10 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ServiceJobController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TechnicianController;
+use App\Http\Controllers\TrackingController;
 use App\Models\Booking;
 use App\Models\CallLog;
+use App\Models\DraftTask;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
@@ -24,6 +26,7 @@ Route::inertia('/pricing', 'Pricing')->name('pricing');
 Route::inertia('/contact', 'Contact')->name('contact');
 
 Route::get('technician/login', [TechnicianController::class, 'login'])->name('technician.login');
+Route::get('/track/{hash}', [TrackingController::class, 'show'])->name('booking.track');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/diagnostics', [AdminController::class, 'diagnostics'])->name('admin.diagnostics');
@@ -58,6 +61,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('admin/experiments/denoising', [AdminController::class, 'toggleDenoising'])->name('admin.experiments.denoising');
     Route::post('admin/experiments/create', [AdminController::class, 'saveExperiment'])->name('admin.experiments.save');
     Route::get('technician/dashboard', [TechnicianController::class, 'dashboard'])->name('technician.dashboard');
+    Route::get('technician/skill-up', [TechnicianController::class, 'skillUp'])->name('technician.skill-up');
 
     Route::get('dashboard', function () {
         $user = auth()->user();
@@ -128,6 +132,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 'openJobsTodayCount' => 2,
                 'bookingStreak' => 5,
                 'averageCqs' => 0.95,
+                'draftTasks' => [
+                    [
+                        'id' => 99991,
+                        'booking_id' => 99911,
+                        'call_id' => 'call-sim-1',
+                        'task_type' => 'order_parts',
+                        'description' => 'Order replacement parts based on call analysis.',
+                        'status' => 'pending',
+                    ],
+                ],
             ]);
         }
 
@@ -158,8 +172,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'openJobsTodayCount' => $openJobsTodayCount,
             'bookingStreak' => $bookingStreak,
             'averageCqs' => (float) $averageCqs,
+            'draftTasks' => DraftTask::with('booking')->latest()->take(10)->get(),
         ]);
     })->name('dashboard');
+
+    Route::put('/draft-tasks/{draftTask}/complete', function (DraftTask $draftTask) {
+        $draftTask->update(['status' => 'completed']);
+
+        return back();
+    })->name('draft-tasks.complete');
 
     Route::get('availabilities', [AvailabilityController::class, 'index'])->name('availabilities.index');
     Route::post('availabilities', [AvailabilityController::class, 'store'])->name('availabilities.store');

@@ -103,6 +103,18 @@ const props = defineProps<{
     openJobsTodayCount: number;
     bookingStreak: number;
     averageCqs: number;
+    draftTasks?: Array<{
+        id: number;
+        booking_id: number | null;
+        call_id: string | null;
+        task_type: string;
+        description: string;
+        status: string;
+        booking?: {
+            id: number;
+            customer_phone: string;
+        } | null;
+    }>;
 }>();
 
 // Page info for auth checks
@@ -118,6 +130,12 @@ const webCallPhone = ref('');
 const startWebCall = (phone: string) => {
     webCallPhone.value = phone;
     isWebCallOpen.value = true;
+};
+
+const completeDraftTask = (task: any) => {
+    router.put(`/draft-tasks/${task.id}/complete`, {}, {
+        preserveScroll: true
+    });
 };
 
 // Local lists for real-time websocket appending
@@ -2077,6 +2095,61 @@ const shiftValidation = computed(() => {
                             <p class="mt-0.5 leading-tight text-slate-300">
                                 {{ log.message }}
                             </p>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <!-- Draft Tasks Feed -->
+                <Card class="flex flex-col border border-slate-800 bg-slate-900 shadow-sm" v-if="props.draftTasks && props.draftTasks.length">
+                    <CardHeader class="flex flex-row items-center justify-between gap-4 space-y-0 border-b border-slate-800/60 pb-3">
+                        <div>
+                            <CardTitle class="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-200 uppercase">
+                                📋 Actionable Post-Call Tasks
+                            </CardTitle>
+                            <CardDescription class="text-[10px] font-medium tracking-widest text-slate-450 uppercase">
+                                Action items parsed from phone recordings
+                            </CardDescription>
+                        </div>
+                        <Badge variant="outline" class="rounded border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 uppercase">
+                            AI Embeddings
+                        </Badge>
+                    </CardHeader>
+                    <CardContent class="pt-4 space-y-3">
+                        <div 
+                            v-for="task in props.draftTasks" 
+                            :key="task.id" 
+                            class="flex items-start justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs transition-all"
+                            :class="[task.status === 'completed' ? 'opacity-50 line-through border-slate-900 bg-slate-950/20' : '']"
+                        >
+                            <div class="flex-1 space-y-1">
+                                <div class="flex items-center gap-1.5">
+                                    <span 
+                                        class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider"
+                                        :class="[task.task_type === 'order_parts' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20']"
+                                    >
+                                        {{ task.task_type === 'order_parts' ? 'Order Parts' : 'Callback Customer' }}
+                                    </span>
+                                    <span class="text-[10px] text-slate-500 font-mono" v-if="task.call_id">
+                                        Call: {{ task.call_id.substring(0, 8) }}
+                                    </span>
+                                </div>
+                                <p class="text-slate-350 leading-snug">{{ task.description }}</p>
+                                <div class="text-[9px] text-slate-500" v-if="task.booking">
+                                    Linked to booking for {{ task.booking.customer_phone }}
+                                </div>
+                            </div>
+                            <div v-if="task.status === 'pending'">
+                                <Button 
+                                    size="sm" 
+                                    class="h-7 text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-2.5"
+                                    @click="completeDraftTask(task)"
+                                >
+                                    Done
+                                </Button>
+                            </div>
+                            <div v-else class="text-emerald-450 font-bold text-[10px] uppercase tracking-wider pt-1 flex items-center gap-1">
+                                ✓ Done
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

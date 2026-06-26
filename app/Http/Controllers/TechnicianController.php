@@ -107,4 +107,101 @@ class TechnicianController extends Controller
             ]),
         ]);
     }
+
+    /**
+     * Show the technician skill-up progression roadmap view.
+     */
+    public function skillUp(Request $request): InertiaResponse
+    {
+        $user = $request->user();
+
+        if ($user->tenant_id) {
+            TenantScope::setTenantId($user->tenant_id);
+        }
+
+        $employee = Employee::where('user_id', $user->id)->first();
+
+        if (! $employee) {
+            abort(403, 'User is not linked to any technician employee profile.');
+        }
+
+        $today = now()->startOfDay();
+        $bookings = Booking::where('employee_id', $employee->id)
+            ->whereDate('scheduled_start', $today)
+            ->get();
+
+        $mascotState = 0; // Idle
+
+        // State 3 (Sad Error): If route delay occurs (ETA exceeded scheduled start)
+        $hasDelay = $bookings->contains(function ($booking) {
+            return in_array($booking->status, ['booked', 'en_route']) && $booking->scheduled_start->isPast();
+        });
+
+        // State 1 (Scanning / Active Emergency): If there are active emergency bookings
+        $hasEmergency = $bookings->contains(function ($booking) {
+            if (in_array($booking->status, ['completed', 'canceled'])) {
+                return false;
+            }
+            if ($booking->priority_state === 'emergency') {
+                return true;
+            }
+
+            return ! empty($booking->urgency_markers) && count($booking->urgency_markers) > 0;
+        });
+
+        // State 2 (Victory / Positive CSAT): If technician has completed bookings with positive CSAT
+        $completedPhones = $bookings->where('status', 'completed')->pluck('customer_phone')->filter()->toArray();
+        $hasPositiveCsat = false;
+        if (! empty($completedPhones)) {
+            $hasPositiveCsat = CallLog::whereIn('customer_phone', $completedPhones)
+                ->where('csat_score', '>=', 80)
+                ->exists();
+        }
+
+        if ($hasEmergency) {
+            $mascotState = 1; // Scanning/Triage
+        } elseif ($hasDelay) {
+            $mascotState = 3; // Sad Error/Delay
+        } elseif ($hasPositiveCsat || $bookings->where('status', 'completed')->isNotEmpty()) {
+            $mascotState = 2; // Victory/Happy
+        }
+
+        return Inertia::render('technician/SkillUp', [
+            'employee' => $employee,
+            'mascotState' => $mascotState,
+            'hasEmergency' => $hasEmergency,
+            'hasDelay' => $hasDelay,
+            'hasPositiveCsat' => $hasPositiveCsat,
+            'milestones' => [
+                [
+                    'id' => 1,
+                    'title' => 'Emergency Triage Hero',
+                    'description' => 'Successfully handle a high urgency trade call.',
+                    'status' => $hasEmergency ? 'active' : 'completed',
+                    'icon' => '🔥',
+                ],
+                [
+                    'id' => 2,
+                    'title' => '5 Consecutive Five-Star Reviews',
+                    'description' => 'Maintain top client satisfaction ratings across calls.',
+                    'status' => $hasPositiveCsat ? 'completed' : 'locked',
+                    'icon' => '⭐️',
+                ],
+                [
+                    'id' => 3,
+                    'title' => 'Fastest Diagnostic ETA',
+                    'description' => 'Arrive on site within 5 minutes of predicted route schedule.',
+                    'status' => $hasDelay ? 'locked' : 'completed',
+                    'icon' => '⚡',
+                ],
+                [
+                    'id' => 4,
+                    'title' => 'Master Heat Pump Certified',
+                    'description' => 'Verify advanced heat pump diagnostics through call logs.',
+                    'status' => 'locked',
+                    'icon' => '❄️',
+                ],
+            ],
+        ]);
+    }
 }

@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\Api\BookingStatusController;
+use App\Http\Controllers\Api\CallAnalysisWebhookController;
 use App\Http\Controllers\Api\CallFlowController;
 use App\Http\Controllers\Api\CallRedactionController;
 use App\Http\Controllers\Api\CallWebhookController;
@@ -36,6 +37,7 @@ Route::get('/user', function (Request $request) {
 
 Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class, LanguageDetectionMiddleware::class]);
 Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([BlockSuspendedTenantCalls::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::post('/webhooks/call-analysis', [CallAnalysisWebhookController::class, 'handle'])->name('webhook.call-analysis');
 Route::post('/webhooks/process-payment', [PaymentWebhookController::class, 'handle'])->name('webhook.process-payment');
 Route::post('/webhooks/sms/{tenant_id?}', [SmsWebhookController::class, 'handle'])->name('webhook.sms')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/ivr/{tenant_id?}', [IvrController::class, 'handle'])->name('webhook.ivr')->middleware([RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
@@ -44,6 +46,7 @@ Route::match(['get', 'post'], '/mcp', [McpController::class, 'handle'])->name('m
 Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class, TrafficRouterMiddleware::class]);
 Route::post('/web-calls/refresh-token', [WebCallController::class, 'refreshToken'])->middleware('auth:sanctum');
 Route::put('/bookings/{booking}/status', [BookingStatusController::class, 'update'])->middleware('auth:sanctum');
+Route::post('/bookings/{booking}/location', [BookingStatusController::class, 'updateLocation'])->middleware('auth:sanctum');
 Route::post('/settings/dictionary', [PronunciationDictionaryController::class, 'store'])->middleware('auth:sanctum');
 Route::post('/call-logs/{callLog}/redact', [CallRedactionController::class, 'redact'])->middleware('auth:sanctum');
 Route::post('/web-calls/barge', [WebCallController::class, 'barge'])->middleware('auth:sanctum');

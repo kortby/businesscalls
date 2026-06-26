@@ -16,7 +16,7 @@ import {
     X,
     User,
 } from '@lucide/vue';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import PasskeyRegister from '@/components/PasskeyRegister.vue';
 import CoachingWidget from '@/components/CoachingWidget.vue';
@@ -249,6 +249,83 @@ const getStatusLabel = (status: string) => {
             return 'Pending';
     }
 };
+
+// GPS live location tracking loop
+let gpsInterval: any = null;
+
+const sendGpsPing = async (bookingId: number) => {
+    if (!navigator.geolocation) {
+        return;
+    }
+    navigator.geolocation.getCurrentPosition(
+        async (position) => {
+            try {
+                await fetch(`/api/bookings/${bookingId}/location`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN':
+                            (
+                                document.querySelector(
+                                    'meta[name="csrf-token"]',
+                                ) as HTMLMetaElement
+                            )?.content || '',
+                        Accept: 'application/json',
+                    },
+                    body: JSON.stringify({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                    }),
+                });
+            } catch (err) {
+                console.error('Failed to post location:', err);
+            }
+        },
+        (err) => {
+            console.warn('Geolocation error:', err);
+        },
+        { enableHighAccuracy: true }
+    );
+};
+
+const startGpsTrackingIfNeeded = () => {
+    const enRouteBooking = props.bookings.find(b => b.status === 'en_route');
+    if (enRouteBooking) {
+        if (!gpsInterval) {
+            // Ping immediately
+            sendGpsPing(enRouteBooking.id);
+            gpsInterval = setInterval(() => {
+                const active = props.bookings.find(b => b.status === 'en_route');
+                if (active) {
+                    sendGpsPing(active.id);
+                } else {
+                    stopGpsTracking();
+                }
+            }, 30000);
+        }
+    } else {
+        stopGpsTracking();
+    }
+};
+
+const stopGpsTracking = () => {
+    if (gpsInterval) {
+        clearInterval(gpsInterval);
+        gpsInterval = null;
+    }
+};
+
+onMounted(() => {
+    startGpsTrackingIfNeeded();
+});
+
+onBeforeUnmount(() => {
+    stopGpsTracking();
+});
+
+watch(() => props.bookings, () => {
+    startGpsTrackingIfNeeded();
+}, { deep: true });
 </script>
 
 <template>
@@ -338,13 +415,23 @@ const getStatusLabel = (status: string) => {
                     >
                 </div>
             </div>
-            <button
-                @click="handleLogout"
-                class="bg-slate-850 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-800 text-slate-400 transition-colors hover:bg-rose-950/20 hover:text-rose-400"
-                title="Logout"
-            >
-                <LogOut class="h-4 w-4" />
-            </button>
+            <div class="flex items-center gap-2">
+                <Link
+                    href="/technician/skill-up"
+                    class="flex h-9 items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 text-xs font-black text-amber-400 transition-all hover:bg-amber-500/20 shadow-xs cursor-pointer"
+                    title="Skill-Up Roadmap"
+                >
+                    <span>🏆</span>
+                    <span>Skill Up</span>
+                </Link>
+                <button
+                    @click="handleLogout"
+                    class="bg-slate-850 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-800 text-slate-400 transition-colors hover:bg-rose-950/20 hover:text-rose-400 animate-in fade-in"
+                    title="Logout"
+                >
+                    <LogOut class="h-4 w-4" />
+                </button>
+            </div>
         </header>
 
         <!-- Main Body -->
