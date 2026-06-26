@@ -18,7 +18,7 @@ test('authenticated users can visit the dashboard', function () {
 
 test('all navigation sidebar links resolve and load successfully', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
     $this->actingAs($user);
 
     $routes = [

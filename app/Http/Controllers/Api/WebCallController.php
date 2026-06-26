@@ -255,7 +255,11 @@ class WebCallController extends Controller
         ]);
 
         $user = $request->user();
-        if (! $user || ! $user->tenant_id) {
+        if (! $user || ! $user->isSupervisor()) {
+            return response()->json(['error' => 'Forbidden. Supervisor permissions required.'], 403);
+        }
+
+        if (! $user->tenant_id) {
             return response()->json(['error' => 'Unauthorized or missing tenant context.'], 403);
         }
 

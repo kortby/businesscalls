@@ -182,6 +182,7 @@ test('admin/onboarding-board renders correct milestones state', function () {
 
     $user = User::factory()->create([
         'tenant_id' => $tenant->id,
+        'is_supervisor' => true,
     ]);
 
     // 1. Initial State: all false

@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\StripeBillingController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\Settings\SecurityController;
 use App\Http\Controllers\Settings\TenantSettingsController;
+use App\Http\Middleware\EnsureSupervisor;
 use Illuminate\Auth\Middleware\RequirePassword;
 use Illuminate\Support\Facades\Route;
 
@@ -13,10 +14,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('settings/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    Route::get('settings/prompt', [TenantSettingsController::class, 'edit'])->name('settings.prompt.edit');
-    Route::patch('settings/prompt', [TenantSettingsController::class, 'update'])->name('settings.prompt.update');
+    Route::middleware([EnsureSupervisor::class])->group(function () {
+        Route::get('settings/prompt', [TenantSettingsController::class, 'edit'])->name('settings.prompt.edit');
+        Route::patch('settings/prompt', [TenantSettingsController::class, 'update'])->name('settings.prompt.update');
 
-    Route::get('settings/billing', [StripeBillingController::class, 'index'])->name('settings.billing.index');
+        Route::get('settings/billing', [StripeBillingController::class, 'index'])->name('settings.billing.index');
+    });
 });
 
 Route::middleware(['auth', 'verified'])->group(function () {

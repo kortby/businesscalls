@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import {
     LayoutGrid,
     Calendar,
@@ -76,167 +77,202 @@ import {
 } from '@/routes/admin';
 import type { NavItem } from '@/types';
 
-const coreNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Bookings',
-        href: bookingsIndex(),
-        icon: Calendar,
-    },
-    {
-        title: 'Availabilities',
-        href: availabilitiesIndex(),
-        icon: Clock,
-    },
-    {
-        title: 'Employees',
-        href: employeesIndex(),
-        icon: Wrench,
-    },
-    {
-        title: 'Customers',
-        href: customersIndex(),
-        icon: Users,
-    },
-    {
-        title: 'Customer Jobs',
-        href: jobsIndex(),
-        icon: Briefcase,
-    },
-    {
-        title: 'Conversations',
-        href: conversationsIndex(),
-        icon: MessageSquare,
-    },
-];
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+const isSupervisor = computed(() => !!user.value?.is_supervisor);
 
-const hudNavItems: NavItem[] = [
-    {
-        title: 'Live Dispatch Map',
-        href: adminDispatchMap(),
-        icon: Map,
-    },
-    {
-        title: 'Live Call Monitor',
-        href: adminCallMonitor(),
-        icon: Activity,
-    },
-    {
-        title: 'Supervisor HUD',
-        href: adminSupervisorHud(),
-        icon: Shield,
-    },
-    {
-        title: 'Telephony Status HUD',
-        href: adminStatusHud(),
-        icon: HeartPulse,
-    },
-    {
-        title: 'Pre-Flight Audit',
-        href: adminPreFlightAudit(),
-        icon: ClipboardCheck,
-    },
-    {
-        title: 'Diagnostics Panel',
-        href: adminDiagnostics(),
-        icon: Settings2,
-    },
-    {
-        title: 'SLA Diagnostics',
-        href: adminSlaDiagnostics(),
-        icon: Zap,
-    },
-    {
-        title: 'System Health',
-        href: adminHealth(),
-        icon: Server,
-    },
-    {
-        title: 'IVR Call Flow',
-        href: adminCallFlow(),
-        icon: GitBranch,
-    },
-];
+const sidebarNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Operations',
+            icon: Briefcase,
+            items: [
+                {
+                    title: 'Bookings',
+                    href: bookingsIndex(),
+                    icon: Calendar,
+                },
+                {
+                    title: 'Availabilities',
+                    href: availabilitiesIndex(),
+                    icon: Clock,
+                },
+                {
+                    title: 'Employees',
+                    href: employeesIndex(),
+                    icon: Wrench,
+                },
+                {
+                    title: 'Customers',
+                    href: customersIndex(),
+                    icon: Users,
+                },
+                {
+                    title: 'Customer Jobs',
+                    href: jobsIndex(),
+                    icon: Briefcase,
+                },
+                {
+                    title: 'Conversations',
+                    href: conversationsIndex(),
+                    icon: MessageSquare,
+                },
+            ],
+        },
+    ];
 
-const insightsNavItems: NavItem[] = [
-    {
-        title: 'SaaS Profit HUD',
-        href: adminSaasProfit(),
-        icon: TrendingUp,
-    },
-    {
-        title: 'Onboarding Quest',
-        href: adminOnboardingQuest(),
-        icon: Sparkles,
-    },
-    {
-        title: 'Onboarding Customize',
-        href: adminOnboardingBoard(),
-        icon: Flame,
-    },
-    {
-        title: 'Streak Hub',
-        href: adminStreakHub(),
-        icon: CalendarCheck,
-    },
-    {
-        title: 'CSAT Feedback',
-        href: adminCsatFeedback(),
-        icon: ThumbsUp,
-    },
-    {
-        title: 'Achievements',
-        href: adminAchievements(),
-        icon: Award,
-    },
-    {
-        title: 'Leaderboard',
-        href: adminLeaderboard(),
-        icon: Trophy,
-    },
-    {
-        title: 'Billing Hub',
-        href: adminBillingHub(),
-        icon: CreditCard,
-    },
-    {
-        title: 'Loyalty Panel',
-        href: adminLoyalty(),
-        icon: Users,
-    },
-    {
-        title: 'Audit Logs',
-        href: adminAuditLogs(),
-        icon: FileText,
-    },
-];
+    if (isSupervisor.value) {
+        items.push(
+            {
+                title: 'Live HUDs',
+                icon: Activity,
+                items: [
+                    {
+                        title: 'Live Dispatch Map',
+                        href: adminDispatchMap(),
+                        icon: Map,
+                    },
+                    {
+                        title: 'Live Call Monitor',
+                        href: adminCallMonitor(),
+                        icon: Activity,
+                    },
+                    {
+                        title: 'Supervisor HUD',
+                        href: adminSupervisorHud(),
+                        icon: Shield,
+                    },
+                    {
+                        title: 'Telephony Status HUD',
+                        href: adminStatusHud(),
+                        icon: HeartPulse,
+                    },
+                    {
+                        title: 'IVR Call Flow',
+                        href: adminCallFlow(),
+                        icon: GitBranch,
+                    },
+                ],
+            },
+            {
+                title: 'Insights',
+                icon: TrendingUp,
+                items: [
+                    {
+                        title: 'SaaS Profit HUD',
+                        href: adminSaasProfit(),
+                        icon: TrendingUp,
+                    },
+                    {
+                        title: 'CSAT Feedback',
+                        href: adminCsatFeedback(),
+                        icon: ThumbsUp,
+                    },
+                    {
+                        title: 'Leaderboard',
+                        href: adminLeaderboard(),
+                        icon: Trophy,
+                    },
+                    {
+                        title: 'Achievements',
+                        href: adminAchievements(),
+                        icon: Award,
+                    },
+                    {
+                        title: 'Streak Hub',
+                        href: adminStreakHub(),
+                        icon: CalendarCheck,
+                    },
+                ],
+            },
+            {
+                title: 'Administration',
+                icon: Settings2,
+                items: [
+                    {
+                        title: 'Billing Hub',
+                        href: adminBillingHub(),
+                        icon: CreditCard,
+                    },
+                    {
+                        title: 'Loyalty Panel',
+                        href: adminLoyalty(),
+                        icon: Users,
+                    },
+                    {
+                        title: 'Audit Logs',
+                        href: adminAuditLogs(),
+                        icon: FileText,
+                    },
+                    {
+                        title: 'Pre-Flight Audit',
+                        href: adminPreFlightAudit(),
+                        icon: ClipboardCheck,
+                    },
+                    {
+                        title: 'Diagnostics Panel',
+                        href: adminDiagnostics(),
+                        icon: Settings2,
+                    },
+                    {
+                        title: 'SLA Diagnostics',
+                        href: adminSlaDiagnostics(),
+                        icon: Zap,
+                    },
+                    {
+                        title: 'System Health',
+                        href: adminHealth(),
+                        icon: Server,
+                    },
+                    {
+                        title: 'Onboarding Quest',
+                        href: adminOnboardingQuest(),
+                        icon: Sparkles,
+                    },
+                    {
+                        title: 'Onboarding Customize',
+                        href: adminOnboardingBoard(),
+                        icon: Flame,
+                    },
+                    {
+                        title: 'Integrations',
+                        href: adminIntegrations(),
+                        icon: Link2,
+                    },
+                    {
+                        title: 'Experiments',
+                        href: adminExperiments(),
+                        icon: FlaskConical,
+                    },
+                ],
+            }
+        );
+    }
 
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Mascot Shop',
-        href: adminMascotShop(),
-        icon: Sparkles,
-    },
-    {
-        title: 'Integrations',
-        href: adminIntegrations(),
-        icon: Link2,
-    },
-    {
-        title: 'Experiments',
-        href: adminExperiments(),
-        icon: FlaskConical,
-    },
-    {
+    return items;
+});
+
+const footerNavItems = computed<NavItem[]>(() => {
+    const items: NavItem[] = [];
+    if (isSupervisor.value) {
+        items.push({
+            title: 'Mascot Shop',
+            href: adminMascotShop(),
+            icon: Sparkles,
+        });
+    }
+    items.push({
         title: 'Documentation',
         href: docs(),
         icon: HelpCircle,
-    },
-];
+    });
+    return items;
+});
 </script>
 
 <template>
@@ -254,9 +290,7 @@ const footerNavItems: NavItem[] = [
         </SidebarHeader>
 
         <SidebarContent class="space-y-4">
-            <NavMain :items="coreNavItems" title="Operations & Scheduling" />
-            <NavMain :items="hudNavItems" title="Dispatch & Telephony HUDs" />
-            <NavMain :items="insightsNavItems" title="Revenue & Performance Insights" />
+            <NavMain :items="sidebarNavItems" title="Navigation" />
         </SidebarContent>
 
         <SidebarFooter>

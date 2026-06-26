@@ -123,6 +123,7 @@ test('Authenticated users can load Streak Calendar Hub', function () {
     $user = User::factory()->create([
         'tenant_id' => $tenant->id,
         'email_verified_at' => now(),
+        'is_supervisor' => true,
     ]);
 
     $response = $this->actingAs($user)

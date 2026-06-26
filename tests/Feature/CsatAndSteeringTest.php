@@ -149,7 +149,7 @@ test('DispatchWebhookController triggers emergency steering safety patch to Vapi
 
 test('admin/csat-feedback dashboard returns correctly calculated CSAT index and SLA fields', function () {
     $tenant = Tenant::factory()->create();
-    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);
     $employee = Employee::factory()->create(['tenant_id' => $tenant->id]);
 
     TenantScope::setTenantId($tenant->id);
