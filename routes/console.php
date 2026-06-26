@@ -11,3 +11,4 @@ use Illuminate\Support\Facades\Schedule;
 
 Schedule::command('audit:clean')->weekly();
 Schedule::command('compliance:audit')->daily();
+Schedule::command('app:process-maintenance-agreements')->daily();

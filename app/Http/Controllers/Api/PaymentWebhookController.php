@@ -90,33 +90,33 @@ class PaymentWebhookController extends Controller
                 }
 
                 $status = 'success';
-                $chargeId = 'ch_mock_'.uniqid();
+                $chargeId = 'pi_mock_'.uniqid();
             } else {
                 $stripe = new StripeClient($stripeKey);
 
-                // Create ephemeral card token
-                $token = $stripe->tokens->create([
-                    'card' => [
-                        'number' => $cardNumber,
-                        'exp_month' => $expMonth,
-                        'exp_year' => $expYear,
-                        'cvc' => $cvv,
-                    ],
-                ]);
-
-                // Create charge
-                $charge = $stripe->charges->create([
+                // Create and confirm a PaymentIntent with the given card parameters
+                $paymentIntent = $stripe->paymentIntents->create([
                     'amount' => $amountInCents,
                     'currency' => 'usd',
-                    'source' => $token->id,
-                    'description' => "Voice checkout call: {$callId} (Tenant: {$tenant->name})",
+                    'payment_method_data' => [
+                        'type' => 'card',
+                        'card' => [
+                            'number' => $cardNumber,
+                            'exp_month' => $expMonth,
+                            'exp_year' => $expYear,
+                            'cvc' => $cvv,
+                        ],
+                    ],
+                    'confirm' => true,
+                    'off_session' => true,
+                    'description' => "Voice checkout PaymentIntent call: {$callId} (Tenant: {$tenant->name})",
                 ]);
 
-                if ($charge->paid) {
+                if (in_array($paymentIntent->status, ['succeeded', 'requires_capture'])) {
                     $status = 'success';
-                    $chargeId = $charge->id;
+                    $chargeId = $paymentIntent->id;
                 } else {
-                    $errorMessage = 'Charge payment failed.';
+                    $errorMessage = 'PaymentIntent confirmation failed with status: '.$paymentIntent->status;
                 }
             }
         } catch (\Exception $e) {

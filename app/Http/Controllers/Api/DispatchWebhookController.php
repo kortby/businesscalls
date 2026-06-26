@@ -9,10 +9,13 @@ use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Employee;
+use App\Models\PaymentTransaction;
+use App\Models\Pricebook;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\TenantOAuthToken;
 use App\Services\DispatchRebalancerService;
+use App\Services\RouteOptimizerService;
 use App\Services\WorkflowIntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -192,6 +195,43 @@ class DispatchWebhookController extends Controller
             return response()->json($result);
         }
 
+        // Check if this is a pricebook fee quote tool call trigger
+        if ($functionName && in_array($functionName, ['get_diagnostic_fee', 'getDiagnosticFee', 'quote_fee', 'quote_diagnostic_fee'])) {
+            $serviceTypeInput = $arguments['service_type'] ?? $request->input('service_type') ?? '';
+            $problemDesc = $arguments['problem'] ?? $request->input('problem') ?? $arguments['job_details'] ?? $request->input('job_details') ?? '';
+
+            $pricebookItem = Pricebook::where('tenant_id', $tenant->id)
+                ->where(function ($query) use ($serviceTypeInput, $problemDesc) {
+                    $query->whereRaw('lower(category) = ?', [strtolower($serviceTypeInput)])
+                        ->orWhereRaw('lower(item_code) = ?', [strtolower($problemDesc)])
+                        ->orWhereRaw('lower(description) like ?', ['%'.strtolower($problemDesc).'%']);
+                })
+                ->first();
+
+            $fee = $pricebookItem ? (float) $pricebookItem->flat_rate_price : 75.00;
+            $diagRequired = $pricebookItem ? (bool) $pricebookItem->diagnostic_required : true;
+
+            $result = [
+                'status' => 'success',
+                'diagnostic_fee' => $fee,
+                'diagnostic_required' => $diagRequired,
+                'message' => 'The diagnostic trip fee is $'.number_format($fee, 2),
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $result,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($result);
+        }
+
         $customerPhone = $arguments['customer_phone'] ?? $request->input('customer_phone');
         $serviceType = $arguments['service_type'] ?? $request->input('service_type');
         $requestedTime = $arguments['requested_time'] ?? $request->input('requested_time');
@@ -298,13 +338,10 @@ class DispatchWebhookController extends Controller
             return $isAvailable;
         });
 
+        $optimizer = app(RouteOptimizerService::class);
         $candidates = [];
         foreach ($employees as $employee) {
-            $techLat = $employee->latitude ?? 37.7749;
-            $techLng = $employee->longitude ?? -122.4194;
-            $distance = sqrt(pow($techLat - $jobLat, 2) + pow($techLng - $jobLng, 2)) * 111.0;
-            $theta = 1.0 - ($distance / 50.0);
-            $theta = max(0.0, min(1.0, $theta));
+            $theta = $optimizer->calculateDensityScore($employee, $requestedTimeCarbon, $jobLat, $jobLng);
 
             if ($priorityState === 'emergency') {
                 $candidates[] = [
@@ -337,6 +374,56 @@ class DispatchWebhookController extends Controller
 
         $assignedEmployee = count($candidates) > 0 ? $candidates[0]['employee'] : null;
 
+        // Resolve call ID early for compliance checking
+        $callId = $request->input('call_id')
+            ?? $request->input('call.id')
+            ?? $request->input('message.call.id')
+            ?? $request->input('message.callId');
+
+        // Confirm payment authorization before booking the job if diagnostic fee applies
+        $pricebookItem = Pricebook::where('tenant_id', $tenant->id)
+            ->whereRaw('lower(category) = ?', [strtolower($serviceType)])
+            ->first();
+
+        $diagnosticRequired = $pricebookItem ? $pricebookItem->diagnostic_required : false;
+
+        if ($diagnosticRequired) {
+            $hasPaid = false;
+            if ($callId) {
+                $hasPaid = PaymentTransaction::where('tenant_id', $tenant->id)
+                    ->where('call_id', $callId)
+                    ->where('status', 'success')
+                    ->exists();
+            }
+
+            if (! $hasPaid) {
+                $paymentErrorMessage = 'Diagnostic deposit authorization is required before booking this appointment.';
+                event(new DispatchUpdated($tenant->id, [
+                    'type' => 'error',
+                    'message' => $paymentErrorMessage,
+                ]));
+
+                $paymentResult = [
+                    'status' => 'error',
+                    'message' => $paymentErrorMessage,
+                    'error_code' => 'payment_required',
+                ];
+
+                if ($toolCallId) {
+                    return response()->json([
+                        'results' => [
+                            [
+                                'toolCallId' => $toolCallId,
+                                'result' => $paymentResult,
+                            ],
+                        ],
+                    ], 402);
+                }
+
+                return response()->json($paymentResult, 402);
+            }
+        }
+
         // 6. Handle Schedule Conflicts or Failures
         if (! $assignedEmployee) {
             $conflictMessage = "No available technician found with skill '{$serviceType}' at the requested time. Routing call to voicemail fallback.";
@@ -345,11 +432,6 @@ class DispatchWebhookController extends Controller
                 'type' => 'error',
                 'message' => $conflictMessage,
             ]));
-
-            $callId = $request->input('call_id')
-                ?? $request->input('call.id')
-                ?? $request->input('message.call.id')
-                ?? $request->input('message.callId');
 
             if ($callId) {
                 $callLog = CallLog::where('call_id', $callId)->first();
@@ -393,11 +475,6 @@ class DispatchWebhookController extends Controller
             'latitude' => $jobLat,
             'longitude' => $jobLng,
         ]);
-
-        $callId = $request->input('call_id')
-            ?? $request->input('call.id')
-            ?? $request->input('message.call.id')
-            ?? $request->input('message.callId');
 
         if ($callId) {
             Cache::put("call_booking_map:{$callId}", $booking->id, 86400); // 1 day cache

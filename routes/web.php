@@ -43,6 +43,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('admin/onboarding', [AdminController::class, 'onboardingQuest'])->name('admin.onboarding');
     Route::get('admin/onboarding-setup', [AdminController::class, 'onboardingSetup'])->name('admin.onboarding-setup');
     Route::get('admin/dispatch-map', [AdminController::class, 'dispatchMap'])->name('admin.dispatch-map');
+    Route::get('admin/saas-profit', [AdminController::class, 'saasProfitHUD'])->name('admin.saas-profit');
     Route::get('admin/leaderboard', [AdminController::class, 'leaderboard'])->name('admin.leaderboard');
     Route::get('admin/mascot-shop', [AdminController::class, 'mascotShop'])->name('admin.mascot-shop');
     Route::post('admin/mascot-shop/purchase', [AdminController::class, 'purchaseMascotSkin'])->name('admin.mascot-shop.purchase');

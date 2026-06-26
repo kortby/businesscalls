@@ -14,6 +14,7 @@ use App\Models\FailoverLog;
 use App\Models\KnowledgeBase;
 use App\Models\OutboundCampaign;
 use App\Models\PaymentTransaction;
+use App\Models\Pricebook;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\TenantIntegration;
@@ -23,6 +24,7 @@ use App\Services\PdfGeneratorService;
 use App\Services\TelephonyProvisioningService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -1188,6 +1190,94 @@ class AdminController extends Controller
             'alpha' => $alpha,
             'beta' => $beta,
             'tMax' => $tMax,
+        ]);
+    }
+
+    /**
+     * Display the SaaS ROI & Profit HUD (Duolingo style UI).
+     */
+    public function saasProfitHUD(): Response
+    {
+        $user = auth()->user();
+        $tenant = Tenant::find($user->tenant_id);
+
+        TenantScope::setTenantId($tenant->id);
+
+        // 1. Rescued Revenue Calculation:
+        // Bookings booked/completed created outside 8 AM - 6 PM on weekdays, or any time on weekends
+        $rescuedBookings = Booking::where('tenant_id', $tenant->id)
+            ->where(function ($query) {
+                // sqlite hours checks
+                $query->whereRaw("strftime('%H', created_at) < '08'")
+                    ->orWhereRaw("strftime('%H', created_at) >= '18'")
+                    ->orWhereRaw("strftime('%w', created_at) in ('0', '6')");
+            })
+            ->get();
+
+        $estimatedRevenueRescued = 0.0;
+        foreach ($rescuedBookings as $booking) {
+            // Find matched pricebook flat rate, or default to $150
+            $pricebook = Pricebook::where('tenant_id', $tenant->id)
+                ->where('category', 'like', '%'.$booking->job_details.'%')
+                ->first();
+            $estimatedRevenueRescued += $pricebook ? (float) $pricebook->flat_rate_price : 150.00;
+        }
+
+        // 2. Billable Transit Saved (Density Optimizations):
+        // Count bookings scheduled today, multiply by 0.5 hours saved, times $75 hourly labor rate
+        $todayBookingsCount = Booking::where('tenant_id', $tenant->id)
+            ->whereDate('scheduled_start', Carbon::today())
+            ->count();
+
+        $driveTimeHoursSaved = $todayBookingsCount * 0.5;
+        $billableDriveTimeSaved = $driveTimeHoursSaved * 75.00;
+
+        // 3. Completed Maintenance Agreements Today
+        $completedMaintenanceAgreementsToday = Booking::where('tenant_id', $tenant->id)
+            ->where('status', 'completed')
+            ->whereDate('updated_at', Carbon::today())
+            ->count();
+
+        // 4. SaaS Cost & ROI calculation
+        $subscriptionCost = $tenant->plan === 'Enterprise' ? 999.00 : 299.00;
+        $capturedSavings = $estimatedRevenueRescued + $billableDriveTimeSaved;
+        $phiRoi = $subscriptionCost > 0 ? ($capturedSavings / $subscriptionCost) : 1.0;
+
+        // 5. Determine Mascot State Trigger
+        // State 0 = Idle, State 1 = Optimizing (campaign processing), State 2 = Victory (revenue > $300), State 3 = Error
+        $mascotState = 0;
+
+        // Check if any campaign is currently processing in background
+        $isProcessing = OutboundCampaign::where('tenant_id', $tenant->id)
+            ->where('status', 'processing')
+            ->exists();
+
+        // Check for billing disconnect or failed payments today
+        $hasFailedPayment = PaymentTransaction::where('tenant_id', $tenant->id)
+            ->where('status', 'failed')
+            ->whereDate('created_at', Carbon::today())
+            ->exists();
+
+        $stripeSecretMissing = empty(config('cashier.secret')) && empty(env('STRIPE_SECRET'));
+
+        if ($hasFailedPayment || $stripeSecretMissing) {
+            $mascotState = 3; // Error / Warning
+        } elseif ($isProcessing) {
+            $mascotState = 1; // Scanning / Optimizing
+        } elseif ($capturedSavings >= 300.0) {
+            $mascotState = 2; // Goal Met / Victory
+        }
+
+        return Inertia::render('Admin/SaaSProfitHUD', [
+            'tenant' => $tenant,
+            'estimatedRevenueRescued' => round($estimatedRevenueRescued, 2),
+            'billableDriveTimeSaved' => round($billableDriveTimeSaved, 2),
+            'completedMaintenanceAgreementsToday' => $completedMaintenanceAgreementsToday,
+            'capturedSavings' => round($capturedSavings, 2),
+            'phiRoi' => round($phiRoi, 3),
+            'mascotState' => $mascotState,
+            'targetRevenue' => 300.0,
+            'subscriptionCost' => $subscriptionCost,
         ]);
     }
 }
