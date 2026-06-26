@@ -441,31 +441,31 @@ const spendPercentage = computed(() => {
 <template>
     <Head title="Supervisor HUD" />
 
-    <div class="mx-auto flex max-w-[1400px] flex-col gap-8 p-4 sm:p-6 md:p-8 bg-slate-950 text-slate-100 min-h-screen">
+    <div class="mx-auto flex max-w-[1400px] flex-col gap-8 p-4 sm:p-6 md:p-8 text-foreground min-h-screen">
         
         <!-- Duolingo style Geometric Title Banner -->
-        <div class="relative overflow-hidden rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-[6px_6px_0px_0px_rgba(16,185,129,0.3)]">
+        <div class="relative overflow-hidden rounded-3xl border-4 border-border bg-card p-6 sm:p-8 text-card-foreground shadow-[6px_6px_0px_0px_rgba(16,185,129,0.3)]">
             <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
                 <div>
-                    <h1 class="text-3xl font-black tracking-tight text-white sm:text-4xl flex items-center gap-3">
+                    <h1 class="text-3xl font-black tracking-tight text-foreground sm:text-4xl flex items-center gap-3">
                         <span class="rounded-2xl border-4 border-emerald-500 bg-emerald-600 px-3 py-1 text-white shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]">HUD</span>
                         Supervisor Control Dashboard
                     </h1>
-                    <p class="text-slate-400 font-bold mt-2 text-sm sm:text-base">
+                    <p class="text-muted-foreground font-bold mt-2 text-sm sm:text-base">
                         Real-time call console, packet telemetry metrics, Rive mascot bindings, and private whispers.
                     </p>
                 </div>
                 
                 <!-- Spend limit gauge with thick borders -->
-                <div class="flex flex-col gap-2 min-w-[280px] bg-slate-950 p-4 rounded-2xl border-4 border-slate-800">
-                    <div class="flex justify-between text-xs font-black tracking-widest text-slate-400 uppercase">
+                <div class="flex flex-col gap-2 min-w-[280px] bg-muted/50 dark:bg-slate-950 p-4 rounded-2xl border-4 border-border dark:border-slate-800">
+                    <div class="flex justify-between text-xs font-black tracking-widest text-muted-foreground uppercase">
                         <span>Tenant Billing Limit</span>
                         <span :class="[isLimitReached ? 'text-rose-500' : 'text-emerald-500']">
                             ${{ currentSpendUsage.toFixed(2) }} / ${{ spendLimit.toFixed(2) }}
                         </span>
                     </div>
                     
-                    <div class="h-4 w-full bg-slate-850 rounded-full overflow-hidden border-2 border-slate-700">
+                    <div class="h-4 w-full bg-muted dark:bg-slate-900 rounded-full overflow-hidden border-2 border-border dark:border-slate-700">
                         <div 
                             class="h-full rounded-full transition-all duration-300"
                             :class="[
@@ -516,12 +516,12 @@ const spendPercentage = computed(() => {
             <div class="flex flex-col gap-8 lg:col-span-2">
                 
                 <!-- Live Call Console (Grid of ongoing calls) -->
-                <div class="rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 flex flex-col gap-6 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.5)]">
-                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b-4 border-slate-800 pb-4">
-                        <h2 class="text-xl font-black text-white flex items-center gap-2">
+                <div class="rounded-3xl border-4 border-border bg-card p-6 flex flex-col gap-6 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.15)] text-card-foreground">
+                    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b-4 border-border pb-4">
+                        <h2 class="text-xl font-black text-foreground flex items-center gap-2">
                             <Activity class="h-6 w-6 text-emerald-500 animate-pulse" />
                             Live Call Console
-                            <span class="rounded-full bg-slate-950 px-3 py-0.5 text-xs font-black text-emerald-400 border-2 border-slate-800">
+                            <span class="rounded-full bg-emerald-50 dark:bg-emerald-950/40 px-3 py-0.5 text-xs font-black text-emerald-700 dark:text-emerald-400 border-2 border-emerald-500/20 dark:border-emerald-800">
                                 {{ ongoingCalls.length }} Ongoing
                             </span>
                         </h2>
@@ -529,7 +529,7 @@ const spendPercentage = computed(() => {
                         <div class="flex gap-2">
                             <button 
                                 @click="startMockCall"
-                                class="inline-flex items-center gap-1.5 rounded-2xl border-4 border-emerald-700 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 text-xs font-black tracking-wider uppercase transition-all active:translate-y-[2px] active:border-b-2"
+                                class="inline-flex items-center gap-1.5 rounded-2xl border-4 border-emerald-700 bg-emerald-500 hover:bg-emerald-400 text-white px-4 py-2 text-xs font-black tracking-wider uppercase transition-all active:translate-y-[2px] active:border-b-2 cursor-pointer"
                             >
                                 <Play class="h-4 w-4" /> Simulate Call
                             </button>
@@ -539,11 +539,11 @@ const spendPercentage = computed(() => {
                     <!-- Call list empty state -->
                     <div 
                         v-if="ongoingCalls.length === 0" 
-                        class="flex flex-col items-center justify-center py-16 px-4 text-center border-4 border-dashed border-slate-800 rounded-2xl bg-slate-950/50"
+                        class="flex flex-col items-center justify-center py-16 px-4 text-center border-4 border-dashed border-border rounded-2xl bg-muted/30"
                     >
-                        <Phone class="h-16 w-16 text-slate-700 animate-bounce mb-4" />
-                        <h3 class="text-lg font-black text-slate-400">All call channels are currently quiet</h3>
-                        <p class="text-xs text-slate-500 mt-2 max-w-sm font-bold">
+                        <Phone class="h-16 w-16 text-muted-foreground/60 animate-bounce mb-4" />
+                        <h3 class="text-lg font-black text-muted-foreground">All call channels are currently quiet</h3>
+                        <p class="text-xs text-muted-foreground/80 mt-2 max-w-sm font-bold">
                             Simulate inbound technician streams to view active packet metrics, speech wave amplitude, and dispatch triggers.
                         </p>
                     </div>
@@ -557,40 +557,40 @@ const spendPercentage = computed(() => {
                             class="relative rounded-2xl border-4 p-4 cursor-pointer transition-all flex flex-col gap-4 shadow-sm"
                             :class="[
                                 selectedCallId === call.call_id 
-                                    ? 'border-emerald-500 bg-emerald-950/20 shadow-[4px_4px_0_0_rgba(16,185,129,0.2)]' 
-                                    : 'border-slate-800 bg-slate-950 hover:border-slate-700'
+                                    ? 'border-emerald-500 bg-emerald-500/5 dark:bg-emerald-950/20 shadow-[4px_4px_0_0_rgba(16,185,129,0.2)]' 
+                                    : 'border-border bg-muted/20 dark:bg-slate-950 hover:border-slate-400 dark:hover:border-slate-700'
                             ]"
                         >
                             <!-- Card Header -->
                             <div class="flex justify-between items-start">
                                 <div>
-                                    <h4 class="font-black text-base text-white tracking-tight">
+                                    <h4 class="font-black text-base text-foreground tracking-tight">
                                         {{ call.customer_name }}
                                     </h4>
-                                    <p class="text-xs text-slate-400 font-mono mt-0.5">{{ call.customer_phone }}</p>
+                                    <p class="text-xs text-muted-foreground font-mono mt-0.5">{{ call.customer_phone }}</p>
                                 </div>
                                 
                                 <div class="flex items-center gap-2">
                                     <span 
                                         class="inline-flex items-center gap-1 rounded-lg px-2.5 py-0.5 text-[9px] font-black uppercase border-2"
                                         :class="{
-                                            'bg-amber-950/60 text-amber-400 border-amber-800': call.status === 'ringing',
-                                            'bg-emerald-950/60 text-emerald-400 border-emerald-800': call.status === 'connected',
-                                            'bg-rose-950/60 text-rose-400 border-rose-800': call.status === 'degraded',
-                                            'bg-slate-900 text-slate-400 border-slate-750': call.status === 'completed' || call.status === 'disconnected',
+                                            'bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-800': call.status === 'ringing',
+                                            'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-800': call.status === 'connected',
+                                            'bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-400 border-rose-300 dark:border-rose-800': call.status === 'degraded',
+                                            'bg-secondary text-secondary-foreground border-border': call.status === 'completed' || call.status === 'disconnected',
                                         }"
                                     >
                                         {{ call.status }}
                                     </span>
                                     
-                                    <span class="text-xs font-black font-mono text-slate-400 flex items-center gap-0.5">
+                                    <span class="text-xs font-black font-mono text-muted-foreground flex items-center gap-0.5">
                                         <Clock class="h-3 w-3" /> {{ formatTime(call.duration) }}
                                     </span>
                                 </div>
                             </div>
 
                             <!-- Real-time Amplitude Waveform (Dynamic height bars) -->
-                            <div class="flex items-center gap-1.5 border-y-2 border-slate-800 py-3 bg-slate-900/50 rounded-xl px-2">
+                            <div class="flex items-center gap-1.5 border-y border-border py-3 bg-muted/40 dark:bg-slate-900/50 rounded-xl px-2">
                                 <div class="flex-1 flex items-end justify-between h-8">
                                     <div 
                                         v-for="i in 18" 
@@ -603,35 +603,35 @@ const spendPercentage = computed(() => {
                                         }"
                                     ></div>
                                 </div>
-                                <span class="text-[10px] font-black font-mono text-slate-400 w-8 text-right">{{ call.amplitude }}dB</span>
+                                <span class="text-[10px] font-black font-mono text-muted-foreground w-8 text-right">{{ call.amplitude }}dB</span>
                             </div>
 
                             <!-- Packet metric grid -->
-                            <div class="grid grid-cols-3 gap-2 text-[10px] font-mono text-slate-400 bg-slate-900 p-2.5 rounded-xl border-2 border-slate-850">
-                                <div>Jitter: <span class="font-black text-white">{{ call.jitter.toFixed(1) }}ms</span></div>
-                                <div>Latency: <span class="font-black text-white">{{ call.latency.toFixed(0) }}ms</span></div>
-                                <div :class="[call.packet_loss > 5.0 ? 'text-rose-500 font-black' : '']">Loss: {{ call.packet_loss.toFixed(1) }}%</div>
+                            <div class="grid grid-cols-3 gap-2 text-[10px] font-mono text-muted-foreground bg-muted/60 dark:bg-slate-900 p-2.5 rounded-xl border border-border dark:border-slate-800/80">
+                                <div>Jitter: <span class="font-black text-foreground">{{ call.jitter.toFixed(1) }}ms</span></div>
+                                <div>Latency: <span class="font-black text-foreground">{{ call.latency.toFixed(0) }}ms</span></div>
+                                <div :class="[call.packet_loss > 5.0 ? 'text-rose-600 dark:text-rose-500 font-black' : '']">Loss: {{ call.packet_loss.toFixed(1) }}%</div>
                             </div>
 
                             <!-- Card Simulation Controls -->
                             <div class="flex gap-2 justify-end pt-1">
                                 <button 
                                     @click.stop="triggerMockPacketLoss(call.call_id, 8.2)"
-                                    class="rounded-xl border-2 border-rose-900 bg-rose-950 hover:bg-rose-900/60 text-rose-400 px-3 py-1 text-[9px] font-black uppercase transition-colors"
+                                    class="rounded-xl border border-rose-500/20 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-600 dark:text-rose-400 px-3 py-1 text-[9px] font-black uppercase transition-colors cursor-pointer"
                                 >
                                     Force Loss
                                 </button>
                                 <button 
                                     v-if="call.status !== 'completed' && call.status !== 'disconnected'"
                                     @click.stop="completeCall(call.call_id)"
-                                    class="rounded-xl border-2 border-emerald-900 bg-emerald-950 hover:bg-emerald-900/60 text-emerald-400 px-3 py-1 text-[9px] font-black uppercase transition-colors"
+                                    class="rounded-xl border border-emerald-500/20 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-600 dark:text-emerald-400 px-3 py-1 text-[9px] font-black uppercase transition-colors cursor-pointer"
                                 >
                                     Book Job
                                 </button>
                                 <button 
                                     v-if="call.status !== 'completed' && call.status !== 'disconnected'"
                                     @click.stop="disconnectCall(call.call_id)"
-                                    class="rounded-xl border-2 border-slate-800 bg-slate-900 hover:bg-slate-800 text-slate-400 px-3 py-1 text-[9px] font-black uppercase transition-colors"
+                                    class="rounded-xl border border-border bg-secondary hover:bg-secondary/80 text-secondary-foreground px-3 py-1 text-[9px] font-black uppercase transition-colors cursor-pointer"
                                 >
                                     Drop Line
                                 </button>
@@ -646,11 +646,11 @@ const spendPercentage = computed(() => {
                 </div>
 
                 <!-- Speech Transcript Balloons -->
-                <div class="rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.5)]">
-                    <h2 class="text-xl font-black text-white flex items-center gap-2 border-b-4 border-slate-800 pb-4">
+                <div class="rounded-3xl border-4 border-border bg-card p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.15)] text-card-foreground">
+                    <h2 class="text-xl font-black text-foreground flex items-center gap-2 border-b-4 border-border pb-4">
                         <Volume2 class="h-6 w-6 text-emerald-500" />
                         Scrolling Speech Transcript
-                        <span v-if="selectedCall" class="text-xs font-bold text-slate-400">
+                        <span v-if="selectedCall" class="text-xs font-bold text-muted-foreground">
                             - Tracking call session <span class="font-mono text-emerald-400">{{ selectedCall.call_id.substring(0, 8) }}</span>
                         </span>
                     </h2>
@@ -658,16 +658,16 @@ const spendPercentage = computed(() => {
                     <!-- Empty state -->
                     <div 
                         v-if="!selectedCall" 
-                        class="flex flex-col items-center justify-center text-center text-slate-500 py-12"
+                        class="flex flex-col items-center justify-center text-center text-muted-foreground py-12"
                     >
-                        <VolumeX class="h-12 w-12 text-slate-800 mb-3" />
+                        <VolumeX class="h-12 w-12 text-muted-foreground/40 mb-3" />
                         <span class="text-xs font-bold">Select an ongoing call to inspect active transcript streams.</span>
                     </div>
 
                     <!-- Transcript balloons -->
                     <div 
                         v-else 
-                        class="flex flex-col gap-4 overflow-y-auto max-h-[350px] p-4 bg-slate-950 rounded-2xl border-4 border-slate-850"
+                        class="flex flex-col gap-4 overflow-y-auto max-h-[350px] p-4 bg-muted/20 dark:bg-slate-950 rounded-2xl border-4 border-border dark:border-slate-850"
                     >
                         <div 
                             v-for="(t, idx) in selectedCall.transcripts" 
@@ -675,15 +675,15 @@ const spendPercentage = computed(() => {
                             class="flex flex-col gap-1 max-w-[80%] rounded-2xl px-4 py-3 text-xs transition-all border-4 shadow-sm"
                             :class="[
                                 t.sender === 'Customer' 
-                                    ? 'bg-slate-900 text-slate-100 self-start border-slate-800' 
+                                    ? 'bg-card text-foreground self-start border-border shadow-xs' 
                                     : t.sender === 'Assistant'
                                       ? 'bg-emerald-600 text-white self-end border-emerald-700 shadow-[2px_2px_0px_0px_rgba(15,23,42,1)]'
-                                      : 'bg-amber-950/40 text-amber-400 self-center text-center border-amber-900/60'
+                                      : 'bg-amber-50 dark:bg-amber-950/40 text-amber-850 dark:text-amber-450 self-center text-center border-amber-200 dark:border-amber-900/60'
                             ]"
                         >
                             <span 
                                 class="text-[9px] font-black tracking-widest uppercase"
-                                :class="[t.sender === 'Assistant' ? 'text-emerald-200' : 'text-slate-400']"
+                                :class="[t.sender === 'Assistant' ? 'text-emerald-200' : 'text-muted-foreground']"
                             >
                                 {{ t.sender }}
                             </span>
@@ -697,8 +697,8 @@ const spendPercentage = computed(() => {
             <div class="flex flex-col gap-8">
                 
                 <!-- Playful Mascot widget -->
-                <div class="rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.5)]">
-                    <h3 class="text-lg font-black text-white flex items-center gap-2 border-b-4 border-slate-800 pb-4">
+                <div class="rounded-3xl border-4 border-border bg-card p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.15)] text-card-foreground">
+                    <h3 class="text-lg font-black text-foreground flex items-center gap-2 border-b-4 border-border pb-4">
                         <Sparkles class="h-5 w-5 text-amber-500" />
                         Rive Mascot HUD Bindings
                     </h3>
@@ -714,25 +714,25 @@ const spendPercentage = computed(() => {
                     </div>
 
                     <!-- Mascot trigger mapping list -->
-                    <div class="flex flex-col gap-2.5 text-xs bg-slate-950 p-4 rounded-2xl border-4 border-slate-800 font-bold text-slate-300">
-                        <div class="text-[10px] font-black text-slate-500 uppercase tracking-widest pb-1 border-b border-slate-800">
+                    <div class="flex flex-col gap-2.5 text-xs bg-muted/40 dark:bg-slate-950 p-4 rounded-2xl border-4 border-border dark:border-slate-800 font-bold text-muted-foreground">
+                        <div class="text-[10px] font-black text-muted-foreground uppercase tracking-widest pb-1 border-b border-border">
                             Active Machine Triggers
                         </div>
                         <div class="flex justify-between items-center py-0.5">
                             <span>WebRTC Scanning Radar</span>
-                            <span class="rounded bg-emerald-950/80 px-2 py-0.5 text-[10px] font-black text-emerald-400 border border-emerald-800" :class="[mascotState === 1 ? 'ring-2 ring-emerald-500' : '']">
+                            <span class="rounded bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 text-[10px] font-black text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800" :class="[mascotState === 1 ? 'ring-2 ring-emerald-500' : '']">
                                 Trigger 1
                             </span>
                         </div>
                         <div class="flex justify-between items-center py-0.5">
                             <span>Victory Celebration</span>
-                            <span class="rounded bg-amber-950/80 px-2 py-0.5 text-[10px] font-black text-amber-400 border border-amber-800" :class="[mascotState === 2 ? 'ring-2 ring-amber-500' : '']">
+                            <span class="rounded bg-amber-50 dark:bg-amber-950/80 px-2 py-0.5 text-[10px] font-black text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-800" :class="[mascotState === 2 ? 'ring-2 ring-amber-500' : '']">
                                 Trigger 2
                             </span>
                         </div>
                         <div class="flex justify-between items-center py-0.5">
                             <span>Disappointed Error / Lock</span>
-                            <span class="rounded bg-rose-950/80 px-2 py-0.5 text-[10px] font-black text-rose-400 border border-rose-800" :class="[mascotState === 3 ? 'ring-2 ring-rose-500' : '']">
+                            <span class="rounded bg-rose-50 dark:bg-rose-950/80 px-2 py-0.5 text-[10px] font-black text-rose-700 dark:text-rose-400 border border-rose-300 dark:border-rose-800" :class="[mascotState === 3 ? 'ring-2 ring-rose-500' : '']">
                                 Trigger 3
                             </span>
                         </div>
@@ -740,34 +740,34 @@ const spendPercentage = computed(() => {
                 </div>
 
                 <!-- Real-Time Supervisor Whisper Panel -->
-                <div class="rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.5)]">
-                    <h3 class="text-lg font-black text-white flex items-center gap-2 border-b-4 border-slate-800 pb-4">
+                <div class="rounded-3xl border-4 border-border bg-card p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.15)] text-card-foreground">
+                    <h3 class="text-lg font-black text-foreground flex items-center gap-2 border-b-4 border-border pb-4">
                         <Zap class="h-5 w-5 text-amber-400" />
                         Whisper coaching
                     </h3>
 
-                    <div v-if="!selectedCall" class="text-xs font-bold text-slate-500 text-center py-8">
+                    <div v-if="!selectedCall" class="text-xs font-bold text-muted-foreground text-center py-8">
                         Select an active line to start whisper coaching.
                     </div>
 
                     <form v-else @submit.prevent="sendWhisper" class="flex flex-col gap-4">
-                        <div class="bg-slate-950 p-3.5 rounded-2xl border-4 border-slate-800">
-                            <span class="text-[10px] font-black text-slate-500 uppercase tracking-widest block">Recipient Technician</span>
-                            <span class="font-extrabold text-white text-sm mt-1 block">
+                        <div class="bg-muted/40 dark:bg-slate-950 p-3.5 rounded-2xl border-4 border-border dark:border-slate-800">
+                            <span class="text-[10px] font-black text-muted-foreground uppercase tracking-widest block">Recipient Technician</span>
+                            <span class="font-extrabold text-foreground text-sm mt-1 block">
                                 Dynamic call stream: {{ selectedCall.customer_name }}
                             </span>
-                            <span class="text-[11px] font-mono text-emerald-400 mt-0.5 block">
+                            <span class="text-[11px] font-mono text-emerald-600 dark:text-emerald-400 mt-0.5 block">
                                 Channel: tenant.{{ tenant.id }}.coaching.{{ selectedCall.call_id.substring(0, 8) }}
                             </span>
                         </div>
 
                         <div class="flex flex-col gap-1.5">
-                            <label class="text-xs font-black text-slate-400 uppercase tracking-wider">Coaching tip message</label>
+                            <label class="text-xs font-black text-muted-foreground uppercase tracking-wider">Coaching tip message</label>
                             <textarea 
                                 v-model="whisperMessage"
                                 placeholder="Type secret instructions here... (e.g. 'Offer standard diagnostic waive')"
                                 rows="3"
-                                class="rounded-2xl border-4 border-slate-800 bg-slate-950 text-white p-3 text-xs font-extrabold focus:border-emerald-500 focus:outline-none placeholder-slate-600 shadow-inner"
+                                class="rounded-2xl border-4 border-border bg-muted/20 dark:bg-slate-950 text-foreground p-3 text-xs font-extrabold focus:border-emerald-500 focus:outline-none placeholder-muted-foreground/60 shadow-inner"
                                 required
                             ></textarea>
                         </div>
@@ -778,8 +778,8 @@ const spendPercentage = computed(() => {
                             class="rounded-xl border-2 px-3 py-2 text-xs font-bold"
                             :class="[
                                 whisperStatus.type === 'success' 
-                                    ? 'bg-emerald-950/40 border-emerald-800 text-emerald-400' 
-                                    : 'bg-rose-950/40 border-rose-800 text-rose-400'
+                                    ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-250 dark:border-emerald-800 text-emerald-800 dark:text-emerald-400' 
+                                    : 'bg-rose-50 dark:bg-rose-950/40 border-rose-250 dark:border-rose-800 text-rose-800 dark:text-rose-400'
                             ]"
                         >
                             {{ whisperStatus.message }}
@@ -788,7 +788,7 @@ const spendPercentage = computed(() => {
                         <button 
                             type="submit"
                             :disabled="isSendingWhisper || !whisperMessage.trim()"
-                            class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border-4 border-emerald-700 bg-emerald-500 hover:bg-emerald-400 text-white py-3 text-xs font-black tracking-wider uppercase transition-all active:translate-y-[2px] active:border-b-2 disabled:opacity-40 disabled:pointer-events-none"
+                            class="w-full inline-flex items-center justify-center gap-2 rounded-2xl border-4 border-emerald-700 bg-emerald-500 hover:bg-emerald-400 text-white py-3 text-xs font-black tracking-wider uppercase transition-all active:translate-y-[2px] active:border-b-2 disabled:opacity-40 disabled:pointer-events-none cursor-pointer"
                         >
                             <Send class="h-4.5 w-4.5" />
                             {{ isSendingWhisper ? 'Broadcasting...' : 'Send Whisper tip' }}
@@ -797,35 +797,35 @@ const spendPercentage = computed(() => {
                 </div>
 
                 <!-- WebRTC websocket telemetry log -->
-                <div class="rounded-3xl border-4 border-slate-800 bg-slate-900 p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.5)] flex-1">
-                    <h3 class="text-lg font-black text-white flex items-center gap-2 border-b-4 border-slate-800 pb-4">
+                <div class="rounded-3xl border-4 border-border bg-card p-6 flex flex-col gap-4 shadow-[4px_4px_0px_0px_rgba(30,41,59,0.15)] text-card-foreground flex-1">
+                    <h3 class="text-lg font-black text-foreground flex items-center gap-2 border-b-4 border-border pb-4">
                         <Database class="h-5 w-5 text-emerald-500" />
                         WebSocket events log
                     </h3>
                     
-                    <div class="flex-1 overflow-y-auto max-h-[220px] rounded-2xl bg-slate-950 p-4 font-mono text-[10px] text-slate-400 flex flex-col gap-2.5 border-4 border-slate-850">
-                        <div v-if="telemetryAlerts.length === 0" class="text-slate-700 text-center py-8 font-bold">
+                    <div class="flex-1 overflow-y-auto max-h-[220px] rounded-2xl bg-muted/20 dark:bg-slate-950 p-4 font-mono text-[10px] text-muted-foreground flex flex-col gap-2.5 border-4 border-border dark:border-slate-850">
+                        <div v-if="telemetryAlerts.length === 0" class="text-muted-foreground/60 text-center py-8 font-bold">
                             Waiting for socket frames...
                         </div>
                         <div 
                             v-for="alert in telemetryAlerts" 
                             :key="alert.id"
-                            class="border-b border-slate-900 pb-2 last:border-0"
+                            class="border-b border-border/60 pb-2 last:border-0"
                         >
-                            <span class="text-emerald-500">[{{ alert.timestamp }}]</span>
+                            <span class="text-emerald-600 dark:text-emerald-500">[{{ alert.timestamp }}]</span>
                             <span 
                                 class="ml-1 px-1 rounded text-[9px] uppercase font-black"
                                 :class="{
-                                    'bg-rose-900 text-rose-300': alert.type === 'degraded' || alert.type === 'error' || alert.type === 'warning',
-                                    'bg-cyan-900 text-cyan-300': alert.type === 'telemetry',
-                                    'bg-emerald-950/80 text-emerald-400 border border-emerald-800': alert.type === 'success',
-                                    'bg-slate-800 text-slate-350': alert.type === 'status',
-                                    'bg-amber-900 text-amber-300': alert.type === 'whisper',
+                                    'bg-rose-50 dark:bg-rose-900 text-rose-800 dark:text-rose-300 border border-rose-200 dark:border-rose-800': alert.type === 'degraded' || alert.type === 'error' || alert.type === 'warning',
+                                    'bg-cyan-50 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-300 border border-cyan-200 dark:border-cyan-800': alert.type === 'telemetry',
+                                    'bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800': alert.type === 'success',
+                                    'bg-muted text-muted-foreground border border-border': alert.type === 'status',
+                                    'bg-amber-50 dark:bg-amber-900 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800': alert.type === 'whisper',
                                 }"
                             >
                                 {{ alert.type }}
                             </span>
-                            <p class="mt-1 text-slate-350 leading-relaxed">{{ alert.message }}</p>
+                            <p class="mt-1 text-foreground/90 leading-relaxed">{{ alert.message }}</p>
                         </div>
                     </div>
                 </div>

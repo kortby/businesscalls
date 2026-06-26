@@ -1093,7 +1093,7 @@ const shiftValidation = computed(() => {
             <div
                 v-for="alert in emergencyAlerts"
                 :key="alert.call_id"
-                class="flex animate-pulse flex-col items-start justify-between gap-4 rounded-3xl border-4 border-b-8 border-rose-500 bg-rose-50 p-5 shadow-md md:flex-row md:items-center dark:bg-rose-950/20"
+                class="flex animate-pulse flex-col items-start justify-between gap-4 rounded-3xl border-4 border-b-8 border-rose-300 bg-rose-50 p-5 shadow-md md:flex-row md:items-center dark:border-rose-800 dark:bg-rose-950/20"
             >
                 <div class="flex items-start gap-4">
                     <div
@@ -1126,7 +1126,7 @@ const shiftValidation = computed(() => {
                         v-if="alert.recording_url"
                         :href="alert.recording_url"
                         target="_blank"
-                        class="cursor-pointer rounded-xl border-2 border-b-4 border-rose-500 border-rose-700 bg-rose-500 px-4 py-2.5 text-xs font-black tracking-wide text-white uppercase hover:border-rose-600 hover:bg-rose-400 active:border-b-0"
+                        class="cursor-pointer rounded-xl border-2 border-b-4 border-rose-600 bg-rose-500 px-4 py-2.5 text-xs font-black tracking-wide text-white uppercase hover:bg-rose-600/90 active:border-b-0"
                     >
                         Listen Voicemail
                     </a>
@@ -1136,7 +1136,7 @@ const shiftValidation = computed(() => {
                                 (a) => a.call_id !== alert.call_id,
                             )
                         "
-                        class="cursor-pointer rounded-xl border border-b-4 bg-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-200/80 hover:bg-slate-300"
+                        class="cursor-pointer rounded-xl border border-b-4 border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700"
                     >
                         Dismiss
                     </button>
@@ -1476,10 +1476,10 @@ const shiftValidation = computed(() => {
                                             class="grid grid-cols-3 gap-2 border-b pb-2 text-center text-[10px]"
                                         >
                                             <div
-                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                                class="rounded border bg-muted/40 p-1"
                                             >
                                                 <span
-                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    class="block text-[8px] tracking-wider text-muted-foreground uppercase"
                                                     >Jitter</span
                                                 >
                                                 <span
@@ -1487,8 +1487,8 @@ const shiftValidation = computed(() => {
                                                     :class="
                                                         activeCall.telemetry
                                                             .jitter > 30
-                                                            ? 'text-red-400'
-                                                            : 'text-emerald-400'
+                                                            ? 'text-red-600 dark:text-red-400'
+                                                            : 'text-emerald-600 dark:text-emerald-400'
                                                     "
                                                 >
                                                     {{
@@ -1499,10 +1499,10 @@ const shiftValidation = computed(() => {
                                                 </span>
                                             </div>
                                             <div
-                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                                class="rounded border bg-muted/40 p-1"
                                             >
                                                 <span
-                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    class="block text-[8px] tracking-wider text-muted-foreground uppercase"
                                                     >Latency</span
                                                 >
                                                 <span
@@ -1510,8 +1510,8 @@ const shiftValidation = computed(() => {
                                                     :class="
                                                         activeCall.telemetry
                                                             .latency > 250
-                                                            ? 'text-red-400'
-                                                            : 'text-emerald-400'
+                                                            ? 'text-red-600 dark:text-red-400'
+                                                            : 'text-emerald-600 dark:text-emerald-400'
                                                     "
                                                 >
                                                     {{
@@ -1522,10 +1522,10 @@ const shiftValidation = computed(() => {
                                                 </span>
                                             </div>
                                             <div
-                                                class="rounded border border-slate-900 bg-slate-950/40 p-1"
+                                                class="rounded border bg-muted/40 p-1"
                                             >
                                                 <span
-                                                    class="block text-[8px] tracking-wider text-slate-400 uppercase"
+                                                    class="block text-[8px] tracking-wider text-muted-foreground uppercase"
                                                     >Loss</span
                                                 >
                                                 <span
@@ -1533,8 +1533,8 @@ const shiftValidation = computed(() => {
                                                     :class="
                                                         activeCall.telemetry
                                                             .packetLoss > 2
-                                                            ? 'text-red-400'
-                                                            : 'text-emerald-400'
+                                                            ? 'text-red-600 dark:text-red-400'
+                                                            : 'text-emerald-600 dark:text-emerald-400'
                                                     "
                                                 >
                                                     {{
@@ -1552,7 +1552,7 @@ const shiftValidation = computed(() => {
                                                 >Speech Transcript</span
                                             >
                                             <div
-                                                class="max-h-[80px] overflow-y-auto rounded-lg bg-slate-950/40 p-2 font-mono text-[10px] leading-tight text-slate-300"
+                                                class="max-h-[80px] overflow-y-auto rounded-lg border bg-muted/30 p-2 font-mono text-[10px] leading-tight text-foreground/90"
                                             >
                                                 {{
                                                     activeCall.transcript ||
@@ -1624,7 +1624,7 @@ const shiftValidation = computed(() => {
                                 class="mx-auto h-12 w-12 animate-bounce text-rose-500"
                             />
                             <h3
-                                class="text-lg font-black tracking-tight text-slate-950 uppercase dark:text-white"
+                                class="text-lg font-black tracking-tight text-foreground uppercase"
                             >
                                 Dispatch Panel Locked
                             </h3>
@@ -2053,10 +2053,10 @@ const shiftValidation = computed(() => {
             <div class="flex flex-col gap-8">
                 <!-- Live Event Logs Feed -->
                 <Card
-                    class="flex h-[350px] flex-col border border-slate-800 bg-slate-950 text-emerald-400"
+                    class="flex h-[350px] flex-col border bg-slate-950 dark:bg-black text-emerald-400 shadow-md"
                 >
                     <CardHeader
-                        class="flex flex-row items-center justify-between space-y-0 border-b border-slate-800/60 pb-3"
+                        class="flex flex-row items-center justify-between space-y-0 border-b border-border pb-3"
                     >
                         <CardTitle
                             class="flex items-center gap-2 text-sm font-bold tracking-wider text-emerald-400 uppercase"
@@ -2100,17 +2100,17 @@ const shiftValidation = computed(() => {
                 </Card>
 
                 <!-- Draft Tasks Feed -->
-                <Card class="flex flex-col border border-slate-800 bg-slate-900 shadow-sm" v-if="props.draftTasks && props.draftTasks.length">
-                    <CardHeader class="flex flex-row items-center justify-between gap-4 space-y-0 border-b border-slate-800/60 pb-3">
+                <Card class="flex flex-col shadow-sm" v-if="props.draftTasks && props.draftTasks.length">
+                    <CardHeader class="flex flex-row items-center justify-between gap-4 space-y-0 border-b pb-3">
                         <div>
-                            <CardTitle class="flex items-center gap-2 text-sm font-bold tracking-wider text-slate-200 uppercase">
+                            <CardTitle class="flex items-center gap-2 text-sm font-bold tracking-wider text-foreground uppercase">
                                 📋 Actionable Post-Call Tasks
                             </CardTitle>
-                            <CardDescription class="text-[10px] font-medium tracking-widest text-slate-450 uppercase">
+                            <CardDescription class="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
                                 Action items parsed from phone recordings
                             </CardDescription>
                         </div>
-                        <Badge variant="outline" class="rounded border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-400 uppercase">
+                        <Badge variant="outline" class="rounded border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase">
                             AI Embeddings
                         </Badge>
                     </CardHeader>
@@ -2118,36 +2118,36 @@ const shiftValidation = computed(() => {
                         <div 
                             v-for="task in props.draftTasks" 
                             :key="task.id" 
-                            class="flex items-start justify-between gap-3 p-3 rounded-xl border border-slate-800 bg-slate-950/60 text-xs transition-all"
-                            :class="[task.status === 'completed' ? 'opacity-50 line-through border-slate-900 bg-slate-950/20' : '']"
+                            class="flex items-start justify-between gap-3 p-3 rounded-xl border bg-accent/20 dark:bg-slate-950/60 text-xs transition-all"
+                            :class="[task.status === 'completed' ? 'opacity-50 line-through bg-muted/40' : '']"
                         >
                             <div class="flex-1 space-y-1">
                                 <div class="flex items-center gap-1.5">
                                     <span 
                                         class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider"
-                                        :class="[task.task_type === 'order_parts' ? 'bg-indigo-500/10 text-indigo-400 border border-indigo-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20']"
+                                        :class="[task.task_type === 'order_parts' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/30' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/30']"
                                     >
                                         {{ task.task_type === 'order_parts' ? 'Order Parts' : 'Callback Customer' }}
                                     </span>
-                                    <span class="text-[10px] text-slate-500 font-mono" v-if="task.call_id">
+                                    <span class="text-[10px] text-muted-foreground font-mono" v-if="task.call_id">
                                         Call: {{ task.call_id.substring(0, 8) }}
                                     </span>
                                 </div>
-                                <p class="text-slate-350 leading-snug">{{ task.description }}</p>
-                                <div class="text-[9px] text-slate-500" v-if="task.booking">
+                                <p class="text-foreground leading-snug">{{ task.description }}</p>
+                                <div class="text-[9px] text-muted-foreground" v-if="task.booking">
                                     Linked to booking for {{ task.booking.customer_phone }}
                                 </div>
                             </div>
                             <div v-if="task.status === 'pending'">
                                 <Button 
                                     size="sm" 
-                                    class="h-7 text-[10px] font-black uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-2.5"
+                                    class="h-7 text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-2.5"
                                     @click="completeDraftTask(task)"
                                 >
                                     Done
                                 </Button>
                             </div>
-                            <div v-else class="text-emerald-450 font-bold text-[10px] uppercase tracking-wider pt-1 flex items-center gap-1">
+                            <div v-else class="text-emerald-600 dark:text-emerald-400 font-bold text-[10px] uppercase tracking-wider pt-1 flex items-center gap-1">
                                 ✓ Done
                             </div>
                         </div>
@@ -2550,24 +2550,24 @@ const shiftValidation = computed(() => {
 
                     <!-- Simulated reCAPTCHA Widget (Duolingo flat style) -->
                     <div
-                        class="flex items-center justify-between rounded-2xl border-2 border-indigo-500/20 bg-indigo-500/5 p-4 shadow-xs"
+                        class="flex items-center justify-between rounded-2xl border bg-muted/30 p-4 shadow-xs"
                     >
                         <div class="flex items-center gap-3">
                             <input
                                 type="checkbox"
                                 checked
                                 disabled
-                                class="h-5 w-5 cursor-not-allowed rounded-lg border-2 border-indigo-500 bg-slate-900/50 text-indigo-600"
+                                class="h-5 w-5 cursor-not-allowed rounded-lg border border-indigo-500 bg-background text-indigo-600"
                             />
-                            <span class="text-xs font-extrabold text-slate-200"
+                            <span class="text-xs font-extrabold text-foreground"
                                 >I'm not a robot</span
                             >
                         </div>
                         <div
-                            class="text-right text-[9px] leading-tight font-semibold tracking-wider text-slate-500 uppercase"
+                            class="text-right text-[9px] leading-tight font-semibold tracking-wider text-muted-foreground uppercase"
                         >
                             reCAPTCHA verified<br />
-                            <span class="text-indigo-400">Privacy & Terms</span>
+                            <span class="text-indigo-600 dark:text-indigo-400">Privacy & Terms</span>
                         </div>
                     </div>
 
