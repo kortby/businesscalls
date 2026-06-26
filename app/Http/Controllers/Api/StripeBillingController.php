@@ -47,8 +47,8 @@ class StripeBillingController extends Controller
         // Apply Tenant database context
         TenantScope::setTenantId($tenant->id);
 
-        if ($tenant->is_test_mode) {
-            return response()->json(['url' => route('dashboard').'?mock_portal=true']);
+        if ($tenant->is_test_mode && (app()->environment('testing') || ! config('cashier.secret'))) {
+            return response()->json(['url' => route('dashboard', [], false).'?mock_portal=true']);
         }
 
         try {
@@ -56,8 +56,8 @@ class StripeBillingController extends Controller
                 $tenant->createAsStripeCustomer();
             }
 
-            // Generate Stripe hosted billing portal redirect URL
-            $url = $tenant->billingPortalUrl(route('dashboard'));
+            // Generate Stripe hosted billing portal redirect URL using current request host
+            $url = $tenant->billingPortalUrl($request->getSchemeAndHttpHost().route('dashboard', [], false));
 
             return response()->json(['url' => $url]);
         } catch (\Exception $e) {
@@ -92,7 +92,7 @@ class StripeBillingController extends Controller
 
         TenantScope::setTenantId($tenant->id);
 
-        if ($tenant->is_test_mode) {
+        if ($tenant->is_test_mode && (app()->environment('testing') || ! config('cashier.secret'))) {
             // Mock subscription upgrade instantly in test mode!
             $tenant->plan = $plan;
             $settings = $tenant->settings ?? [];
@@ -120,7 +120,7 @@ class StripeBillingController extends Controller
                 ],
             ]);
 
-            return response()->json(['url' => route('dashboard').'?checkout=success&test_mode=true']);
+            return response()->json(['url' => route('dashboard', [], false).'?checkout=success&test_mode=true']);
         }
 
         try {
@@ -128,11 +128,11 @@ class StripeBillingController extends Controller
                 $tenant->createAsStripeCustomer();
             }
 
-            // Generate Checkout session URL
+            // Generate Checkout session URL dynamically using current request host to prevent domain/port mismatch
             $checkout = $tenant->newSubscription('default', $priceId)
                 ->checkout([
-                    'success_url' => route('dashboard').'?checkout=success',
-                    'cancel_url' => route('settings.billing.index').'?checkout=cancel',
+                    'success_url' => $request->getSchemeAndHttpHost().route('dashboard', [], false).'?checkout=success',
+                    'cancel_url' => $request->getSchemeAndHttpHost().route('settings.billing.index', [], false).'?checkout=cancel',
                 ]);
 
             // Log compliance audit log for checkout intent
