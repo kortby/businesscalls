@@ -15,7 +15,7 @@ import {
     AlertCircle,
     Info,
 } from '@lucide/vue';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import { callStore } from '@/lib/store';
 
@@ -45,6 +45,10 @@ const logs = ref<
 >([]);
 let simulationInterval: any = null;
 
+const map = ref<any>(null);
+const markers = ref<any[]>([]);
+const routes = ref<any[]>([]);
+
 // Add log entry helper
 const addLog = (msg: string, type: 'info' | 'success' | 'warning' = 'info') => {
     const time = new Date().toLocaleTimeString([], {
@@ -60,42 +64,163 @@ const addLog = (msg: string, type: 'info' | 'success' | 'warning' = 'info') => {
     });
 };
 
-// Seed stable coordinates based on database records
-const getCoords = (type: 'tech' | 'booking', id: number) => {
-    // Semi-random but deterministic placement on 500x350 map grid
-    const seed = id * 43;
-    if (type === 'tech') {
-        const x = (seed % 340) + 80;
-        const y = ((seed >> 3) % 200) + 70;
-        return { x, y };
+// Dynamic Leaflet Loading and Mounting
+const initLeaflet = () => {
+    if (!document.getElementById('leaflet-css')) {
+        const link = document.createElement('link');
+        link.id = 'leaflet-css';
+        link.rel = 'stylesheet';
+        link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+        document.head.appendChild(link);
+    }
+
+    if (!document.getElementById('leaflet-js')) {
+        const script = document.createElement('script');
+        script.id = 'leaflet-js';
+        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+        script.onload = () => {
+            setupMap();
+        };
+        document.head.appendChild(script);
     } else {
-        const x = ((seed * 17) % 340) + 80;
-        const y = (((seed * 17) >> 3) % 200) + 70;
-        return { x, y };
+        const L = (window as any).L;
+        if (L) {
+            setupMap();
+        }
     }
 };
+
+const setupMap = () => {
+    const L = (window as any).L;
+    if (!L || !document.getElementById('live-dispatch-map')) return;
+
+    if (map.value) {
+        map.value.remove();
+        map.value = null;
+    }
+
+    map.value = L.map('live-dispatch-map', {
+        zoomControl: false,
+        attributionControl: false,
+    }).setView([37.7749, -122.4194], 13);
+
+    // Highly saturated voyager tiles styling
+    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+        maxZoom: 19,
+    }).addTo(map.value);
+
+    L.control.zoom({ position: 'bottomright' }).addTo(map.value);
+
+    refreshMapMarkers();
+};
+
+const refreshMapMarkers = () => {
+    const L = (window as any).L;
+    if (!L || !map.value) return;
+
+    markers.value.forEach(m => m.remove());
+    markers.value = [];
+    routes.value.forEach(r => r.remove());
+    routes.value = [];
+
+    // Draw Bookings Pins
+    localBookings.value.forEach(booking => {
+        const lat = booking.latitude ?? (37.7749 + (booking.id % 20) * 0.0015 - 0.015);
+        const lng = booking.longitude ?? (-122.4194 + (booking.id % 15) * 0.0015 - 0.012);
+
+        const color = booking.priority_state === 'emergency' 
+            ? '#EF4444' 
+            : (booking.status === 'completed' ? '#10B981' : '#3B82F6');
+
+        const bookingIcon = L.divIcon({
+            html: `<div class="w-8 h-8 rounded-full border-4 border-slate-900 bg-white flex items-center justify-center font-black text-[10px]" style="color: ${color}; box-shadow: 2px 2px 0px #0f172a;">#${booking.id}</div>`,
+            className: 'custom-booking-marker',
+            iconSize: [32, 32]
+        });
+
+        const marker = L.marker([lat, lng], { icon: bookingIcon })
+            .addTo(map.value)
+            .on('click', () => {
+                selectedNode.value = { type: 'booking', data: booking };
+            });
+
+        markers.value.push(marker);
+    });
+
+    // Draw Technicians & Route polylines
+    localTechnicians.value.forEach(tech => {
+        const tLat = tech.latitude ?? (37.7749 + (tech.id % 10) * 0.002 - 0.01);
+        const tLng = tech.longitude ?? (-122.4194 + (tech.id % 8) * 0.002 - 0.008);
+
+        const statusColor = tech.status === 'en_route' 
+            ? '#F59E0B' 
+            : (tech.status === 'on_site' ? '#EF4444' : '#10B981');
+
+        const initials = `${tech.first_name[0]}${tech.last_name[0]}`;
+
+        const techIcon = L.divIcon({
+            html: `<div class="w-10 h-10 rounded-full border-4 border-slate-900 flex items-center justify-center font-black text-white text-xs shadow-md" style="background-color: ${statusColor}; box-shadow: 3px 3px 0px #0f172a;">${initials}</div>`,
+            className: 'custom-tech-marker',
+            iconSize: [40, 40]
+        });
+
+        const marker = L.marker([tLat, tLng], { icon: techIcon })
+            .addTo(map.value)
+            .on('click', () => {
+                selectedNode.value = { type: 'tech', data: tech };
+            });
+
+        markers.value.push(marker);
+
+        // Find active bookings for this tech and connect route polylines
+        const techBookings = localBookings.value.filter(b => b.employee_id === tech.id && b.status === 'booked');
+        if (techBookings.length > 0) {
+            const routePoints = [[tLat, tLng]];
+            techBookings.forEach(tb => {
+                const bLat = tb.latitude ?? (37.7749 + (tb.id % 20) * 0.0015 - 0.015);
+                const bLng = tb.longitude ?? (-122.4194 + (tb.id % 15) * 0.0015 - 0.012);
+                routePoints.push([bLat, bLng]);
+            });
+
+            const polyline = L.polyline(routePoints, {
+                color: techBookings.some(b => b.priority_state === 'emergency') ? '#EF4444' : '#3B82F6',
+                weight: 4,
+                dashArray: '8, 6',
+                opacity: 0.85
+            }).addTo(map.value);
+
+            routes.value.push(polyline);
+        }
+    });
+};
+
+watch([localBookings, localTechnicians], () => {
+    refreshMapMarkers();
+}, { deep: true });
 
 // WebSocket integration using useEcho
 onMounted(() => {
     addLog('Live Dispatch Map system initialized.', 'success');
+    initLeaflet();
 
     if (tenantId) {
         // 1. Listening to dispatch/booking updates
         useEcho(`tenant.${tenantId}`, 'dispatch.updated', (payload: any) => {
             addLog(
                 `Websocket update: ${payload.message || 'Dispatch status changed'}`,
-                'info',
+                payload.type === 'error' ? 'warning' : 'info',
             );
 
-            // Set mascot state to Victory for booking confirmed
-            if (
-                payload.type === 'booking_created' ||
-                payload.type === 'booking_confirmed'
-            ) {
-                mascotState.value = 2;
+            // Mascot state transitions based on dispatch payload
+            if (payload.type === 'route_rebalanced' || payload.booking?.priority_state === 'emergency') {
+                mascotState.value = 1; // Scanning Radar
+            } else if (payload.type === 'success' || payload.type === 'booking_confirmed') {
+                mascotState.value = 2; // Victory
                 setTimeout(() => {
                     if (mascotState.value === 2) mascotState.value = 0;
                 }, 4000);
+            } else if (payload.type === 'error' || payload.type === 'route_failed') {
+                mascotState.value = 3; // Sad Error
             }
 
             if (payload.booking) {
@@ -148,6 +273,9 @@ onMounted(() => {
 
 onUnmounted(() => {
     stopCallSimulation();
+    if (map.value) {
+        map.value.remove();
+    }
 });
 
 // Simulation Helpers
@@ -171,7 +299,6 @@ const startCallSimulation = () => {
     localCalls.value.unshift(newCall);
     selectedNode.value = { type: 'call', data: newCall };
 
-    // Simulate speech amplitude swings
     simulationInterval = setInterval(() => {
         callStore.amplitude = 0.1 + Math.random() * 0.75;
     }, 150);
@@ -190,7 +317,6 @@ const simulateBookingConfirmation = () => {
     mascotState.value = 2; // Celebratory victory dance
     addLog('Simulation: New job dispatch booking confirmed!', 'success');
 
-    // Pick a random technician to assign
     const randomTech =
         localTechnicians.value[
             Math.floor(Math.random() * localTechnicians.value.length)
@@ -200,18 +326,20 @@ const simulateBookingConfirmation = () => {
     const newBooking = {
         id: Math.floor(Math.random() * 10000),
         customer_phone: randomPhone,
-        job_details: 'Emergency Circuit Panel Blowout',
-        status: 'pending',
+        job_details: 'Routine Maintenance Agreement',
+        status: 'booked',
+        priority_state: 'routine_maintenance',
         scheduled_start: new Date().toISOString(),
         employee_id: randomTech ? randomTech.id : null,
         employee: randomTech,
         created_at: new Date().toISOString(),
+        latitude: 37.7749 + (Math.random() * 0.02 - 0.01),
+        longitude: -122.4194 + (Math.random() * 0.02 - 0.01),
     };
 
     localBookings.value.unshift(newBooking);
     selectedNode.value = { type: 'booking', data: newBooking };
 
-    // Mark the selected tech status to en_route or busy
     if (randomTech) {
         const tIdx = localTechnicians.value.findIndex(
             (t) => t.id === randomTech.id,
@@ -221,12 +349,55 @@ const simulateBookingConfirmation = () => {
         }
     }
 
-    // Return mascot to idle state after 4 seconds
     setTimeout(() => {
         if (mascotState.value === 2) {
             mascotState.value = 0;
         }
     }, 4000);
+};
+
+// Simulate dynamic emergency insertion and schedule shift re-balancing
+const simulateEmergencyInsertion = () => {
+    mascotState.value = 1; // Scanning Radar
+    addLog('Simulation: Emergency Call Triage matching unassigned HVAC problem...', 'warning');
+
+    const randomTech =
+        localTechnicians.value[
+            Math.floor(Math.random() * localTechnicians.value.length)
+        ] || null;
+
+    if (!randomTech) return;
+
+    const emergencyBooking = {
+        id: Math.floor(Math.random() * 10000),
+        customer_phone: `+1 (555) 911-${Math.floor(Math.random() * 9000) + 1000}`,
+        job_details: 'AC Refrigerant Leak & Blowout (Requires EPA_608)',
+        status: 'booked',
+        priority_state: 'emergency',
+        required_certification: 'EPA_608',
+        scheduled_start: new Date().toISOString(),
+        employee_id: randomTech.id,
+        employee: randomTech,
+        created_at: new Date().toISOString(),
+        latitude: 37.7749 + (Math.random() * 0.01 - 0.005),
+        longitude: -122.4194 + (Math.random() * 0.01 - 0.005),
+    };
+
+    // Find and push back any subsequent bookings for this technician
+    localBookings.value.forEach(b => {
+        if (b.employee_id === randomTech.id && b.status === 'booked' && b.id !== emergencyBooking.id) {
+            const oldDate = new Date(b.scheduled_start);
+            b.scheduled_start = new Date(oldDate.getTime() + 120 * 60000).toISOString();
+            addLog(`Simulation: Pushed back Job #${b.id} by 120 minutes due to Emergency Insertion.`, 'info');
+        }
+    });
+
+    localBookings.value.unshift(emergencyBooking);
+    selectedNode.value = { type: 'booking', data: emergencyBooking };
+
+    randomTech.status = 'en_route';
+
+    addLog(`Simulation: Emergency inserted at front. Technician ${randomTech.first_name} routed.`, 'success');
 };
 
 const simulateTechnicianStatusUpdate = () => {
@@ -240,11 +411,25 @@ const simulateTechnicianStatusUpdate = () => {
     const nextStatus = statuses[Math.floor(Math.random() * statuses.length)];
 
     randomTech.status = nextStatus;
+
+    if (nextStatus === 'on_site' || nextStatus === 'completed') {
+        mascotState.value = 2; // Victory confetti
+        setTimeout(() => {
+            if (mascotState.value === 2) mascotState.value = 0;
+        }, 4000);
+    }
+
     addLog(
         `Simulation: Technician ${randomTech.first_name} is now ${nextStatus.replace('_', ' ')}.`,
         'info',
     );
     selectedNode.value = { type: 'tech', data: randomTech };
+};
+
+// Simulate Route Deviation & Uncertified matches
+const simulateRouteDeviationError = () => {
+    mascotState.value = 3; // Sad Error Mascot State
+    addLog('Simulation Error: Uncertified technician mismatch or route deviation detected!', 'warning');
 };
 
 const resetSimulation = () => {
@@ -369,9 +554,9 @@ const resetSimulation = () => {
 
         <!-- Main Layout Grid -->
         <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <!-- Left & Middle: Map & Dispatch Status -->
+            <!-- Left & Middle: Leaflet Map & Dispatch Status -->
             <div class="flex flex-col gap-8 lg:col-span-2">
-                <!-- Live SVG Map Box -->
+                <!-- Live Leaflet Map Container -->
                 <div
                     class="relative flex flex-col rounded-3xl border-4 border-slate-900 bg-white p-4 shadow-[4px_4px_0px_0px_rgba(15,23,42,1)] dark:border-slate-100 dark:bg-slate-900 dark:shadow-[4px_4px_0px_0px_rgba(255,255,255,1)]"
                 >
@@ -380,184 +565,15 @@ const resetSimulation = () => {
                             Interactive Dispatch Radar
                         </h2>
                         <span class="text-xs font-bold text-slate-400 uppercase"
-                            >Map Coordinates (Deterministic Grid)</span
+                            >Saturated Geographic HUD</span
                         >
                     </div>
 
-                    <!-- SVG Map Canvas -->
+                    <!-- Map container element -->
                     <div
-                        class="relative overflow-hidden rounded-2xl border-4 border-slate-900 bg-emerald-50/50 dark:bg-slate-950"
+                        class="relative overflow-hidden rounded-2xl border-4 border-slate-900 bg-emerald-50/50 dark:bg-slate-950 z-0"
                     >
-                        <svg
-                            viewBox="0 0 500 350"
-                            class="h-auto max-h-[380px] w-full"
-                        >
-                            <!-- Grid Overlay Patterns -->
-                            <defs>
-                                <pattern
-                                    id="mapGrid"
-                                    width="25"
-                                    height="25"
-                                    patternUnits="userSpaceOnUse"
-                                >
-                                    <path
-                                        d="M 25 0 L 0 0 0 25"
-                                        fill="none"
-                                        stroke="currentColor"
-                                        class="text-slate-900/10 dark:text-slate-100/10"
-                                        stroke-width="1.5"
-                                    />
-                                </pattern>
-                            </defs>
-                            <rect
-                                width="500"
-                                height="350"
-                                fill="url(#mapGrid)"
-                            />
-
-                            <!-- Dynamic Street Map Outline -->
-                            <g
-                                stroke="currentColor"
-                                class="text-slate-900/15 dark:text-slate-100/15"
-                                stroke-width="4"
-                                stroke-dasharray="3 3"
-                            >
-                                <line x1="50" y1="0" x2="50" y2="350" />
-                                <line x1="180" y1="0" x2="180" y2="350" />
-                                <line x1="320" y1="0" x2="320" y2="350" />
-                                <line x1="450" y1="0" x2="450" y2="350" />
-
-                                <line x1="0" y1="60" x2="500" y2="60" />
-                                <line x1="0" y1="160" x2="500" y2="160" />
-                                <line x1="0" y1="260" x2="500" y2="260" />
-                            </g>
-
-                            <!-- Live Dispatch Link Vectors (Line from Tech to Job Booking) -->
-                            <g
-                                v-for="booking in localBookings.filter(
-                                    (b) =>
-                                        b.employee_id &&
-                                        b.status !== 'completed',
-                                )"
-                                :key="`vector-${booking.id}`"
-                            >
-                                <line
-                                    :x1="
-                                        getCoords('tech', booking.employee_id).x
-                                    "
-                                    :y1="
-                                        getCoords('tech', booking.employee_id).y
-                                    "
-                                    :x2="getCoords('booking', booking.id).x"
-                                    :y2="getCoords('booking', booking.id).y"
-                                    stroke="#3B82F6"
-                                    stroke-width="3"
-                                    stroke-dasharray="6,4"
-                                    class="animate-pulse"
-                                />
-                            </g>
-
-                            <!-- Bookings Pins -->
-                            <g
-                                v-for="booking in localBookings"
-                                :key="`booking-pin-${booking.id}`"
-                                @click="
-                                    selectedNode = {
-                                        type: 'booking',
-                                        data: booking,
-                                    }
-                                "
-                                class="group cursor-pointer"
-                            >
-                                <circle
-                                    :cx="getCoords('booking', booking.id).x"
-                                    :cy="getCoords('booking', booking.id).y"
-                                    r="18"
-                                    fill="#3B82F6"
-                                    fill-opacity="0.15"
-                                    class="animate-ping"
-                                    style="animation-duration: 2.5s"
-                                />
-                                <circle
-                                    :cx="getCoords('booking', booking.id).x"
-                                    :cy="getCoords('booking', booking.id).y"
-                                    r="8"
-                                    :fill="
-                                        booking.status === 'completed'
-                                            ? '#10B981'
-                                            : '#3B82F6'
-                                    "
-                                    stroke="#0f172a"
-                                    stroke-width="2.5"
-                                    class="transform transition-all duration-300 group-hover:scale-125"
-                                />
-                                <!-- Mini marker tag -->
-                                <text
-                                    :x="getCoords('booking', booking.id).x"
-                                    :y="getCoords('booking', booking.id).y - 14"
-                                    font-size="9"
-                                    font-weight="900"
-                                    text-anchor="middle"
-                                    fill="currentColor"
-                                    class="animate-bounce rounded border border-slate-900 bg-white px-1 py-0.5 text-slate-800"
-                                >
-                                    Job #{{ booking.id }}
-                                </text>
-                            </g>
-
-                            <!-- Active Technicians Pins -->
-                            <g
-                                v-for="tech in localTechnicians"
-                                :key="`tech-pin-${tech.id}`"
-                                @click="
-                                    selectedNode = { type: 'tech', data: tech }
-                                "
-                                class="group cursor-pointer"
-                            >
-                                <circle
-                                    :cx="getCoords('tech', tech.id).x"
-                                    :cy="getCoords('tech', tech.id).y"
-                                    r="10"
-                                    :fill="
-                                        tech.status === 'en_route'
-                                            ? '#F59E0B'
-                                            : tech.status === 'on_site'
-                                              ? '#EF4444'
-                                              : '#10B981'
-                                    "
-                                    stroke="#0f172a"
-                                    stroke-width="2.5"
-                                    class="transform transition-all duration-300 group-hover:scale-125"
-                                />
-                                <polygon
-                                    :points="`${getCoords('tech', tech.id).x},${getCoords('tech', tech.id).y - 5} ${getCoords('tech', tech.id).x - 4},${getCoords('tech', tech.id).y + 3} ${getCoords('tech', tech.id).x + 4},${getCoords('tech', tech.id).y + 3}`"
-                                    fill="#ffffff"
-                                />
-                                <text
-                                    :x="getCoords('tech', tech.id).x"
-                                    :y="getCoords('tech', tech.id).y + 20"
-                                    font-size="8"
-                                    font-weight="900"
-                                    text-anchor="middle"
-                                    fill="currentColor"
-                                >
-                                    {{ tech.first_name }}
-                                </text>
-                            </g>
-
-                            <!-- Dynamic Sweep Line (Scanning Radar overlay) -->
-                            <line
-                                v-if="mascotState === 1"
-                                x1="0"
-                                y1="0"
-                                x2="500"
-                                y2="0"
-                                stroke="#F59E0B"
-                                stroke-width="4"
-                                opacity="0.6"
-                                class="scanner-line"
-                            />
-                        </svg>
+                        <div id="live-dispatch-map"></div>
                     </div>
 
                     <!-- Coordinates Map Legend -->
@@ -569,6 +585,12 @@ const resetSimulation = () => {
                                 class="h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-[#3B82F6]"
                             ></span>
                             <span>Pending Job</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span
+                                class="h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-[#EF4444]"
+                            ></span>
+                            <span>Emergency Job</span>
                         </div>
                         <div class="flex items-center gap-1.5">
                             <span
@@ -587,12 +609,6 @@ const resetSimulation = () => {
                                 class="h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-[#EF4444]"
                             ></span>
                             <span>Tech: On Site</span>
-                        </div>
-                        <div class="flex items-center gap-1.5">
-                            <span
-                                class="h-3.5 w-3.5 rounded-full border-2 border-slate-900 bg-[#10B981]"
-                            ></span>
-                            <span>Tech: Idle</span>
                         </div>
                     </div>
                 </div>
@@ -654,7 +670,7 @@ const resetSimulation = () => {
                                 Status
                             </div>
                             <div
-                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 capitalize"
+                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 capitalize text-slate-950"
                                 :class="[
                                     selectedNode.data.status === 'en_route'
                                         ? 'bg-amber-400'
@@ -668,15 +684,22 @@ const resetSimulation = () => {
                         </div>
                         <div>
                             <div class="text-xs text-slate-400 uppercase">
-                                Skills
+                                Skills & Licenses
                             </div>
                             <div class="mt-1 flex flex-wrap gap-1">
                                 <span
                                     v-for="skill in selectedNode.data.skills"
                                     :key="skill"
-                                    class="rounded border border-slate-900 px-1.5 py-0.5 text-xs"
+                                    class="rounded border border-slate-900 px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-800"
                                 >
                                     {{ skill }}
+                                </span>
+                                <span
+                                    v-for="cert in (selectedNode.data.certifications || [])"
+                                    :key="cert"
+                                    class="rounded border-2 border-slate-950 bg-amber-200 text-slate-950 px-1.5 py-0.5 text-xs font-black uppercase"
+                                >
+                                    {{ cert }}
                                 </span>
                             </div>
                         </div>
@@ -705,12 +728,15 @@ const resetSimulation = () => {
                         </div>
                         <div>
                             <div class="text-xs text-slate-400 uppercase">
-                                Status
+                                Priority State
                             </div>
                             <div
-                                class="inline-block rounded-lg border-2 border-slate-900 bg-blue-300 px-2.5 py-0.5 capitalize"
+                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 uppercase text-slate-950"
+                                :class="[
+                                    selectedNode.data.priority_state === 'emergency' ? 'bg-red-400' : 'bg-blue-300'
+                                ]"
                             >
-                                {{ selectedNode.data.status }}
+                                {{ selectedNode.data.priority_state || 'routine_maintenance' }}
                             </div>
                         </div>
                         <div>
@@ -802,11 +828,29 @@ const resetSimulation = () => {
                         </button>
 
                         <button
+                            @click="simulateEmergencyInsertion"
+                            class="duo-btn duo-btn-info flex w-full items-center justify-center gap-2"
+                            style="background-color: #ef4444; box-shadow: 0 4px 0 0 #b91c1c;"
+                        >
+                            <AlertCircle class="h-4 w-4 stroke-[3]" />
+                            Simulate Emergency Insertion
+                        </button>
+
+                        <button
                             @click="simulateTechnicianStatusUpdate"
                             class="duo-btn duo-btn-info flex w-full items-center justify-center gap-2"
                         >
                             <Navigation class="h-4 w-4 stroke-[3]" />
                             Update Tech Location
+                        </button>
+
+                        <button
+                            @click="simulateRouteDeviationError"
+                            class="duo-btn duo-btn-muted flex w-full items-center justify-center gap-2"
+                            style="background-color: #f87171; box-shadow: 0 4px 0 0 #dc2626;"
+                        >
+                            <AlertCircle class="h-4 w-4 stroke-[3]" />
+                            Simulate Route Deviation
                         </button>
 
                         <button
@@ -864,6 +908,14 @@ const resetSimulation = () => {
 </template>
 
 <style scoped>
+/* Leaflet map container sizing & visual styling */
+#live-dispatch-map {
+    width: 100%;
+    height: 420px;
+    filter: saturate(1.8) contrast(1.15) brightness(0.95);
+    background: #f0fdf4;
+}
+
 /* Duolingo Chunky Geometric Button Styling */
 .duo-btn {
     border-radius: 1rem;
@@ -947,21 +999,5 @@ const resetSimulation = () => {
 }
 .dark .duo-btn-muted:active {
     box-shadow: 0 0px 0 0 #1e293b;
-}
-
-/* Radar scanning animation rules */
-.scanner-line {
-    animation: sweep 2.5s infinite linear;
-}
-
-@keyframes sweep {
-    0% {
-        transform: translateY(0);
-        opacity: 0.9;
-    }
-    100% {
-        transform: translateY(350px);
-        opacity: 0.1;
-    }
 }
 </style>

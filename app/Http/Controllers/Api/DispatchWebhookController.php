@@ -12,6 +12,7 @@ use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use App\Models\TenantOAuthToken;
+use App\Services\DispatchRebalancerService;
 use App\Services\WorkflowIntegrationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -201,6 +202,40 @@ class DispatchWebhookController extends Controller
             ], 400);
         }
 
+        // Triage priority classification
+        $waterLeak = $arguments['water_leak'] ?? $request->input('water_leak') ?? $arguments['waterActiveLeak'] ?? $request->input('waterActiveLeak') ?? null;
+        $outdoorTemp = $arguments['outdoor_temp'] ?? $request->input('outdoor_temp') ?? $arguments['outdoorTemp'] ?? $request->input('outdoorTemp') ?? null;
+        $sparkingOutlets = $arguments['sparking_outlets'] ?? $request->input('sparking_outlets') ?? $arguments['sparkingOutlets'] ?? $request->input('sparkingOutlets') ?? null;
+        $partialOutage = $arguments['partial_outage'] ?? $request->input('partial_outage') ?? $arguments['partialOutage'] ?? $request->input('partialOutage') ?? null;
+        $burningSmell = $arguments['burning_smell'] ?? $request->input('burning_smell') ?? $arguments['burningSmell'] ?? $request->input('burningSmell') ?? null;
+        $emergencyTriage = $arguments['emergency_triage'] ?? $request->input('emergency_triage') ?? $arguments['emergencyTriage'] ?? $request->input('emergencyTriage') ?? null;
+
+        $priorityState = 'routine_maintenance';
+        if (strtolower($serviceType) === 'plumbing' && ($waterLeak === true || $waterLeak === 'yes' || $waterLeak === 1 || $waterLeak === '1')) {
+            $priorityState = 'emergency';
+        } elseif (strtolower($serviceType) === 'hvac' && $outdoorTemp !== null && ((float) $outdoorTemp < 32 || (float) $outdoorTemp > 95)) {
+            $priorityState = 'emergency';
+        } elseif (strtolower($serviceType) === 'electrical' && ($sparkingOutlets || $partialOutage || $burningSmell)) {
+            $priorityState = 'emergency';
+        } elseif ($emergencyTriage === true || $emergencyTriage === 'yes' || $emergencyTriage === 1 || $emergencyTriage === '1') {
+            $priorityState = 'emergency';
+        }
+
+        // Certification Filter
+        $requiredCert = $arguments['required_certification'] ?? $request->input('required_certification') ?? null;
+        if (! $requiredCert) {
+            $desc = strtolower($jobDetails.' '.$transcript);
+            if (strtolower($serviceType) === 'hvac' && (str_contains($desc, 'refrigerant') || str_contains($desc, 'freon') || str_contains($desc, 'coolant') || str_contains($desc, 'ac repair'))) {
+                $requiredCert = 'EPA_608';
+            } elseif (strtolower($serviceType) === 'plumbing' && (str_contains($desc, 'main line') || str_contains($desc, 'master'))) {
+                $requiredCert = 'Master_Plumber';
+            }
+        }
+
+        // Parse coordinates
+        $jobLat = (float) ($arguments['latitude'] ?? $request->input('latitude') ?? 37.7749);
+        $jobLng = (float) ($arguments['longitude'] ?? $request->input('longitude') ?? -122.4194);
+
         // Broadcast searching status to dashboard
         event(new DispatchUpdated($tenant->id, [
             'type' => 'searching',
@@ -238,15 +273,21 @@ class DispatchWebhookController extends Controller
         $dayOfWeek = $requestedTimeCarbon->dayOfWeek; // 0 (Sunday) to 6 (Saturday)
         $timeOnly = $requestedTimeCarbon->format('H:i:s');
 
-        // 5. Match Employees by Skill Trade Category
-        $employees = Employee::get()->filter(function ($employee) use ($serviceType) {
-            return is_array($employee->skills) && in_array($serviceType, $employee->skills);
-        });
+        // 5. Match Employees by Skill and shift availability
+        $employees = Employee::get()->filter(function ($employee) use ($serviceType, $dayOfWeek, $timeOnly, $requiredCert) {
+            $hasSkill = is_array($employee->skills) && in_array($serviceType, $employee->skills);
+            if (! $hasSkill) {
+                return false;
+            }
 
-        $assignedEmployee = null;
+            // Check hard constraint certifications
+            if ($requiredCert !== null) {
+                $hasCert = is_array($employee->certifications) && in_array($requiredCert, $employee->certifications);
+                if (! $hasCert) {
+                    return false;
+                }
+            }
 
-        foreach ($employees as $employee) {
-            // Check shift availability
             $isAvailable = Availability::where('employee_id', $employee->id)
                 ->where('day_of_week', $dayOfWeek)
                 ->where('is_active', true)
@@ -254,25 +295,47 @@ class DispatchWebhookController extends Controller
                 ->where('end_time', '>=', $timeOnly)
                 ->exists();
 
-            if (! $isAvailable) {
-                continue;
-            }
+            return $isAvailable;
+        });
 
-            // Check bookings schedule collision with a 1.5-hour (90 minutes) buffer
-            $bufferMinutes = 90;
-            $startBuffer = $requestedTimeCarbon->copy()->subMinutes($bufferMinutes);
-            $endBuffer = $requestedTimeCarbon->copy()->addMinutes($bufferMinutes);
+        $candidates = [];
+        foreach ($employees as $employee) {
+            $techLat = $employee->latitude ?? 37.7749;
+            $techLng = $employee->longitude ?? -122.4194;
+            $distance = sqrt(pow($techLat - $jobLat, 2) + pow($techLng - $jobLng, 2)) * 111.0;
+            $theta = 1.0 - ($distance / 50.0);
+            $theta = max(0.0, min(1.0, $theta));
 
-            $hasOverlap = Booking::where('employee_id', $employee->id)
-                ->where('status', 'booked')
-                ->whereBetween('scheduled_start', [$startBuffer, $endBuffer])
-                ->exists();
+            if ($priorityState === 'emergency') {
+                $candidates[] = [
+                    'employee' => $employee,
+                    'theta' => $theta,
+                ];
+            } else {
+                $bufferMinutes = 90;
+                $startBuffer = $requestedTimeCarbon->copy()->subMinutes($bufferMinutes);
+                $endBuffer = $requestedTimeCarbon->copy()->addMinutes($bufferMinutes);
 
-            if (! $hasOverlap) {
-                $assignedEmployee = $employee;
-                break;
+                $hasOverlap = Booking::where('employee_id', $employee->id)
+                    ->where('status', 'booked')
+                    ->whereBetween('scheduled_start', [$startBuffer, $endBuffer])
+                    ->exists();
+
+                if (! $hasOverlap) {
+                    $candidates[] = [
+                        'employee' => $employee,
+                        'theta' => $theta,
+                    ];
+                }
             }
         }
+
+        // Sort by theta compatibility
+        usort($candidates, function ($a, $b) {
+            return $b['theta'] <=> $a['theta'];
+        });
+
+        $assignedEmployee = count($candidates) > 0 ? $candidates[0]['employee'] : null;
 
         // 6. Handle Schedule Conflicts or Failures
         if (! $assignedEmployee) {
@@ -325,6 +388,10 @@ class DispatchWebhookController extends Controller
             'job_details' => "Automated AI dispatch for {$serviceType}",
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
+            'priority_state' => $priorityState,
+            'required_certification' => $requiredCert,
+            'latitude' => $jobLat,
+            'longitude' => $jobLng,
         ]);
 
         $callId = $request->input('call_id')
@@ -336,7 +403,12 @@ class DispatchWebhookController extends Controller
             Cache::put("call_booking_map:{$callId}", $booking->id, 86400); // 1 day cache
         }
 
-        SendTechnicianAlertJob::dispatch($booking);
+        if ($priorityState === 'emergency') {
+            $rebalancer = app(DispatchRebalancerService::class);
+            $rebalancer->rebalance($booking, $assignedEmployee);
+        } else {
+            SendTechnicianAlertJob::dispatch($booking);
+        }
 
         $successMessage = "Appointment booked successfully with {$assignedEmployee->first_name} {$assignedEmployee->last_name} at {$requestedTimeCarbon->format('Y-m-d H:i')}.";
 
