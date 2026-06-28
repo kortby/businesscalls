@@ -330,4 +330,117 @@ php artisan reverb:restart
 
 ---
 
+## 5. Browser Testing Guide for Every Feature
+
+This guide explains how to manually verify and explore each customer-facing and supervisor dashboard page inside the browser.
+
+### A. Operations Dashboard (`/dashboard`)
+*   **How to Test**:
+    1. Log in to the application and navigate to the base `/dashboard` URL.
+    2. Review the upper statistics panel displaying metrics like *Total Calls*, *Successful Bookings*, *Open Jobs*, and *CSAT Avg*.
+    3. Look at the *Daily Streak* card to verify that consecutive days of customer bookings calculate correctly.
+    4. Scroll down to see the *Draft Tasks* lists and click the **Complete** button on any task.
+*   **What to Expect**:
+    *   All cards show accurate numbers scoped strictly to the current tenant.
+    *   Clicking **Complete** on a Draft Task triggers a background PUT request, updating the status to completed and reloading the component's data reactively without a full page refresh.
+
+### B. Interactive Developer Docs (`/docs`)
+*   **How to Test**:
+    1. Navigate to `/docs` in your browser.
+    2. Click on the different categories (e.g., *Advanced Dispatch Tools*, *Technician Mobile App*, *Account & Settings*) in the sidebar or tables.
+*   **What to Expect**:
+    *   A clean list of routes displaying their HTTP methods, URIs, named route parameters, validation policies, and Markdown-rendered documentation content with syntax highlighting.
+
+### C. Technicians & Availabilities (`/employees`, `/availabilities`)
+*   **How to Test**:
+    1. Navigate to `/employees` to view the roster. Create a new technician profile with specific skills (e.g., `plumbing`, `hvac`) and certifications (e.g., `Master_Plumber`).
+    2. Navigate to `/availabilities`. Assign weekly working hours (e.g., Thursday 08:00 AM - 05:00 PM) to the new technician.
+*   **What to Expect**:
+    *   Form validations enforce fields like unique phone numbers and format rules.
+    *   Availabilities render on the visual calendar interface instantly when saved.
+
+### D. Booking Dispatch & Central Scheduler (`/bookings`)
+*   **How to Test**:
+    1. Open `/bookings`.
+    2. Click to manually schedule a new booking, assigning it to a technician, or edit/reschedule an existing slot.
+*   **What to Expect**:
+    *   Technician schedules reflect booking assignments in real time.
+    *   Validations prevent double-booking or scheduling technicians outside their active shift availability.
+
+### E. Live Call Monitor Hub (`/admin/call-monitor`)
+*   **How to Test**:
+    1. Access `/admin/call-monitor`.
+    2. Place or simulate an incoming call to the AI receptionist.
+*   **What to Expect**:
+    *   The monitor panel registers the call status as *Ongoing*.
+    *   The live customer transcript streams word-by-word into the dialogue box using WebSockets (Laravel Echo + Reverb).
+    *   Current call latency and cost metrics show in real time.
+
+### F. Supervisor HUD, Barging & Whisper (`/admin/supervisor-hud`)
+*   **How to Test**:
+    1. Open `/admin/supervisor-hud` during an active call.
+    2. Type coaching directions into the *Whisper text field* and click **Send**.
+    3. Click the **Barge-in** button to take over the call.
+*   **What to Expect**:
+    *   Whispering transmits supervisor context without interrupting the customer's call stream.
+    *   Clicking **Barge-in** updates the call status to *supervisor_barged*, halts AI speech parsing, and routes the audio channel directly to the supervisor.
+
+### G. Mascot Customization Shop (`/admin/mascot-shop`)
+*   **How to Test**:
+    1. Open `/admin/mascot-shop`.
+    2. Review your total points (calculated dynamically as `10 * Average CSAT`).
+    3. Select a locked avatar skin (e.g., *Victory Gold* costing 800 points) and click **Purchase & Activate**.
+*   **What to Expect**:
+    *   Points deduct instantly.
+    *   The skin status changes from *Locked* to *Active*, and the updated avatar skin visual persists across pages and refreshes.
+
+### H. Speech Timing Settings & CRM Integrations (`/admin/integrations`)
+*   **How to Test**:
+    1. Open `/admin/integrations`.
+    2. Locate the *Speech Timing Settings* form. Adjust the slider values for *Start Speaking Plan* (e.g., latency wait duration) and *Stop Speaking Plan* (threshold) and save.
+    3. Enter HubSpot or Salesforce credentials and toggle the integration status to **Active**.
+*   **What to Expect**:
+    *   Validations restrict inputs to safe bounds (Start: 400ms - 800ms; Stop: 0.1s - 2.0s).
+    *   Active CRM symbols render with badges indicating they are successfully synchronized.
+
+### I. Outbound A/B Experiments Board (`/admin/experiments`)
+*   **How to Test**:
+    1. Open `/admin/experiments`.
+    2. Fill out the form fields with different LLM greetings: Variant A (e.g. OpenAI/GPT-4o) and Variant B (e.g. Anthropic/Claude-3.5-Sonnet) with a 50/50 split and save.
+    3. Toggle the *Background Denoising* switch.
+*   **What to Expect**:
+    *   The active experiment launches, showing call counts and conversion coefficients for both groups.
+    *   The interface dynamically computes and displays the *Chi-Square score* showing statistical significance between the two prompt instruction groups.
+
+### J. System Health Console & Failover Telemetry (`/admin/status-hud`, `/admin/health`)
+*   **How to Test**:
+    1. Open `/admin/status-hud`.
+    2. Inspect the *Resilience Score* metric (which should be 1.0 / 100% if no recent LLM/TTS provider failures occurred).
+    3. Open `/admin/health` to view the webhook deduplication dashboard.
+*   **What to Expect**:
+    *   Displays active queue worker pools, database lock latencies, and lists simulated/recent webhook events (indicating duplicates, failed runs, and recovery rates).
+
+### K. SaaS Profit & ROI HUD (`/admin/saas-profit`)
+*   **How to Test**:
+    1. Navigate to `/admin/saas-profit`.
+    2. Review the financial metrics reflecting total subscription plans vs outbound conversion profits.
+*   **What to Expect**:
+    *   Graphs and numbers render accurately scoped to the tenant's data.
+
+### L. Technician Mobile PWA (`/technician/dashboard`, `/technician/skill-up`)
+*   **How to Test**:
+    1. Access `/technician/login` in your browser. Authenticate as a technician using a registered passkey.
+    2. View the mobile dashboard layout to review today's schedule and travel times.
+    3. Navigate to `/technician/skill-up`.
+*   **What to Expect**:
+    *   The PWA displays the technician's performance score $\Lambda$ calculated from completed jobs vs shift hours.
+    *   The animated mascot avatar switches emotion reactively:
+        *   **Scanning**: If the tech has an emergency call scheduled.
+        *   **Sad**: If a scheduled job's start time is in the past but remains uncompleted (indicating delay).
+        *   **Happy (Victory)**: If jobs are completed successfully with CSAT ratings $\ge 80$.
+    *   The milestones board lists unlocked/locked badges (e.g., *Emergency Triage Hero*).
+
+---
+
 *Welcome aboard! Reach out to the lead developer if you have questions regarding API keys or sandbox provisioning.*
+
