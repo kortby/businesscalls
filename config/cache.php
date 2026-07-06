@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Tenant;
 use Illuminate\Support\Str;
 
 return [
@@ -137,6 +138,8 @@ return [
     |
     */
 
-    'serializable_classes' => false,
+    'serializable_classes' => [
+        Tenant::class,
+    ],
 
 ];

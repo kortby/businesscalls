@@ -220,6 +220,19 @@ const handleBargeEnded = () => {
     isBarged.value = false;
 };
 
+const toggleSandboxMode = () => {
+    router.post(
+        '/settings/toggle-sandbox',
+        {},
+        {
+            preserveState: false,
+            onSuccess: () => {
+                window.location.reload();
+            },
+        },
+    );
+};
+
 // Sound effects or delay mascot state resets
 const transitionMascot = (newState: number) => {
     mascotState.value = newState;
@@ -1073,18 +1086,25 @@ const shiftValidation = computed(() => {
             </div>
 
             <div class="flex items-center gap-3">
-                <div
-                    class="flex items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-xs font-medium shadow-xs"
+                <button
+                    @click="toggleSandboxMode"
+                    class="flex cursor-pointer items-center gap-2 rounded-lg border bg-card px-3 py-1.5 text-xs font-medium shadow-xs transition-all hover:bg-accent focus:outline-hidden"
                 >
                     <Settings
                         class="animate-spin-slow h-4 w-4 text-muted-foreground"
                     />
                     <span class="text-muted-foreground">Webhook Status:</span>
                     <Badge
-                        class="bg-emerald-500 px-2 py-0.5 text-[10px] font-semibold text-white hover:bg-emerald-500"
-                        >Live</Badge
+                        :class="
+                            tenant?.is_test_mode
+                                ? 'bg-amber-500 hover:bg-amber-600 text-black'
+                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                        "
+                        class="px-2 py-0.5 text-[10px] font-semibold"
                     >
-                </div>
+                        {{ tenant?.is_test_mode ? 'Sandbox' : 'Live' }}
+                    </Badge>
+                </button>
             </div>
         </div>
 

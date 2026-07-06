@@ -66,27 +66,33 @@ const mascotState = computed(() => {
 
 // Echo websocket listener
 onMounted(() => {
-    if (props.tenantId) {
-        window.Echo.private(`tenant.${props.tenantId}`)
-            .listen('.AuditLogCreated', (e: any) => {
-                logs.value.unshift(e);
+    if (props.tenantId && window.Echo) {
+        try {
+            window.Echo.private(`tenant.${props.tenantId}`)
+                .listen('.AuditLogCreated', (e: any) => {
+                    logs.value.unshift(e);
 
-                // Set to Scanning Radar state (1)
-                activeStreamState.value = 1;
+                    // Set to Scanning Radar state (1)
+                    activeStreamState.value = 1;
 
-                // After 2.5 seconds, reset check to go back to 2 (unless a failure is present)
-                setTimeout(() => {
-                    if (activeStreamState.value === 1) {
-                        activeStreamState.value = null;
-                    }
-                }, 2500);
-            });
+                    // After 2.5 seconds, reset check to go back to 2 (unless a failure is present)
+                    setTimeout(() => {
+                        if (activeStreamState.value === 1) {
+                            activeStreamState.value = null;
+                        }
+                    }, 2500);
+                });
+        } catch (err) {
+            console.error('Echo subscription failed:', err);
+        }
     }
 });
 
 onUnmounted(() => {
-    if (props.tenantId) {
-        window.Echo.leave(`tenant.${props.tenantId}`);
+    if (props.tenantId && window.Echo) {
+        try {
+            window.Echo.leave(`tenant.${props.tenantId}`);
+        } catch (err) {}
     }
 });
 

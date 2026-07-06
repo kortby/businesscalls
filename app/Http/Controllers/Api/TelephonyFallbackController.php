@@ -31,6 +31,9 @@ class TelephonyFallbackController extends Controller
         // 2. Validate Twilio Request Signature
         $signature = $request->header('X-Twilio-Signature');
         $url = $request->fullUrl();
+        if (strcasecmp($request->header('X-Forwarded-Proto', ''), 'https') === 0) {
+            $url = preg_replace('/^http:/i', 'https:', $url);
+        }
         $params = $request->post();
 
         $token = $tenant ? ($tenant->getSetting('twilio_auth_token') ?? env('TWILIO_AUTH_TOKEN')) : env('TWILIO_AUTH_TOKEN');

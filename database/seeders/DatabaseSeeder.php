@@ -76,7 +76,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'first_name' => 'John',
             'last_name' => 'Doe',
-            'phone' => '555-010-1001',
+            'phone' => '+14157025409',
             'skills' => ['plumbing', 'drain-clearing', 'sewer-repair', 'water-heaters'],
         ]);
 
@@ -84,7 +84,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'first_name' => 'Jane',
             'last_name' => 'Smith',
-            'phone' => '555-020-2002',
+            'phone' => '+14157025409',
             'skills' => ['ac-diagnostics', 'heat-pump-install', 'ductwork', 'ventilation'],
         ]);
 
@@ -92,7 +92,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'first_name' => 'Mike',
             'last_name' => 'Miller',
-            'phone' => '555-030-3003',
+            'phone' => '+14157025409',
             'skills' => ['high-voltage', 'breaker-boxes', 'generator-wiring', 'ev-charging'],
         ]);
 
@@ -100,7 +100,7 @@ class DatabaseSeeder extends Seeder
             'tenant_id' => $tenant->id,
             'first_name' => 'Sarah',
             'last_name' => 'Connor',
-            'phone' => '555-040-0404',
+            'phone' => '+14157025409',
             'skills' => ['refrigerator-repair', 'dryer-maintenance', 'gas-stoves', 'dishwasher-install'],
         ]);
 
@@ -169,7 +169,7 @@ class DatabaseSeeder extends Seeder
         Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $plumber->id,
-            'customer_phone' => '555-901-2093',
+            'customer_phone' => '+14157025409',
             'job_details' => 'Sump pump overflow diagnostic & backup battery installation',
             'status' => 'booked',
             'scheduled_start' => $startOfWeek->copy()->addHours(10), // Monday 10:00
@@ -179,7 +179,7 @@ class DatabaseSeeder extends Seeder
         Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $plumber->id,
-            'customer_phone' => '555-894-3294',
+            'customer_phone' => '+14157025409',
             'job_details' => 'Leaky main water line valve replacement',
             'status' => 'booked',
             'scheduled_start' => $startOfWeek->copy()->addDays(2)->addHours(13), // Wednesday 13:00
@@ -189,7 +189,7 @@ class DatabaseSeeder extends Seeder
         Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $hvac->id,
-            'customer_phone' => '555-321-4567',
+            'customer_phone' => '+14157025409',
             'job_details' => 'AC condenser fan motor replacement and level check',
             'status' => 'booked',
             'scheduled_start' => $startOfWeek->copy()->addDays(1)->addHours(11), // Tuesday 11:00
@@ -199,7 +199,7 @@ class DatabaseSeeder extends Seeder
         Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $hvac->id,
-            'customer_phone' => '555-456-7890',
+            'customer_phone' => '+14157025409',
             'job_details' => 'Furnace tune-up & smart thermostat upgrade',
             'status' => 'booked',
             'scheduled_start' => $startOfWeek->copy()->addDays(3)->addHours(14)->addMinutes(30), // Thursday 14:30
@@ -284,7 +284,7 @@ class DatabaseSeeder extends Seeder
         $custSponge = Customer::create([
             'tenant_id' => $tenant->id,
             'name' => 'SpongeBob SquarePants',
-            'phone' => '+15551234567',
+            'phone' => '+14157025409',
             'email' => 'sponge@bikinibottom.com',
             'notes' => 'Loves Krabby Patties',
         ]);

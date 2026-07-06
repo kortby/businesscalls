@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AdminController;
+use App\Http\Controllers\Api\SandboxToggleController;
 use App\Http\Controllers\Api\StripeBillingController;
 use App\Http\Controllers\AvailabilityController;
 use App\Http\Controllers\BookingController;
@@ -111,6 +112,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'draftTasks' => DraftTask::with('booking')->latest()->take(10)->get(),
         ]);
     })->name('dashboard');
+
+    Route::post('/settings/toggle-sandbox', [SandboxToggleController::class, 'toggle'])->name('settings.toggle-sandbox');
 
     Route::put('/draft-tasks/{draftTask}/complete', function (DraftTask $draftTask) {
         $draftTask->update(['status' => 'completed']);

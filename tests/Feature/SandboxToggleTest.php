@@ -36,6 +36,18 @@ test('authenticated user can toggle sandbox mode state', function () {
         ->and($auditLog->payload['is_test_mode'])->toBeFalse();
 });
 
+test('inertia request to toggle sandbox mode redirects back', function () {
+    $tenant = Tenant::factory()->create(['is_test_mode' => true]);
+    $user = User::factory()->create(['tenant_id' => $tenant->id]);
+
+    $response = $this->actingAs($user)->post('/api/settings/toggle-sandbox', [], [
+        'X-Inertia' => 'true',
+    ]);
+
+    $response->assertRedirect();
+    expect($tenant->fresh()->is_test_mode)->toBeFalse();
+});
+
 test('stripe checkout is mocked when tenant is in test mode', function () {
     $tenant = Tenant::factory()->create(['is_test_mode' => true]);
     $user = User::factory()->create(['tenant_id' => $tenant->id, 'is_supervisor' => true]);

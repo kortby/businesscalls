@@ -40,14 +40,13 @@ class EnsureWebhookIdempotency
 
         $tenantId = null;
         if ($tenantIdOrSlug) {
-            $tenant = Cache::remember('tenant-session:'.$tenantIdOrSlug, 600, function () use ($tenantIdOrSlug) {
-                return Tenant::where('id', $tenantIdOrSlug)
+            $tenantId = Cache::remember('tenant-id-session:'.$tenantIdOrSlug, 600, function () use ($tenantIdOrSlug) {
+                $tenant = Tenant::where('id', $tenantIdOrSlug)
                     ->orWhere('slug', $tenantIdOrSlug)
                     ->first();
+
+                return $tenant ? $tenant->id : null;
             });
-            if ($tenant) {
-                $tenantId = $tenant->id;
-            }
         }
 
         $cacheKey = "idempotency:{$eventId}";

@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AuditLog;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 
 class SandboxToggleController extends Controller
@@ -13,7 +14,7 @@ class SandboxToggleController extends Controller
     /**
      * Toggle the sandbox/test mode state of the active tenant.
      */
-    public function toggle(Request $request): JsonResponse
+    public function toggle(Request $request): JsonResponse|RedirectResponse
     {
         $user = $request->user();
 
@@ -39,10 +40,14 @@ class SandboxToggleController extends Controller
             ],
         ]);
 
-        return response()->json([
-            'success' => true,
-            'is_test_mode' => (bool) $tenant->is_test_mode,
-            'message' => 'Sandbox mode updated successfully.',
-        ]);
+        if ($request->wantsJson() && ! $request->header('X-Inertia')) {
+            return response()->json([
+                'success' => true,
+                'is_test_mode' => (bool) $tenant->is_test_mode,
+                'message' => 'Sandbox mode updated successfully.',
+            ]);
+        }
+
+        return back();
     }
 }

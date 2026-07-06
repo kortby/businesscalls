@@ -96,7 +96,7 @@ const rightNavItems: NavItem[] = [
 
 const toggleSandboxMode = () => {
     router.post(
-        '/api/settings/toggle-sandbox',
+        '/settings/toggle-sandbox',
         {},
         {
             preserveState: false,

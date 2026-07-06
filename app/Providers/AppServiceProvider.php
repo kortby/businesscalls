@@ -18,6 +18,8 @@ use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Facades\Vite;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Illuminate\Support\Stringable;
@@ -39,6 +41,17 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        if (request()->header('X-Forwarded-Proto') === 'https' || request()->header('x-forwarded-proto') === 'https') {
+            URL::forceScheme('https');
+        }
+
+        if (! app()->runningInConsole()) {
+            $host = request()->getHost();
+            if (! in_array($host, ['localhost', '127.0.0.1', '[::1]'])) {
+                Vite::useHotFile(storage_path('vite.hot.disabled'));
+            }
+        }
+
         // Dynamically register master connection config
         $defaultConn = config('database.default');
         $defaultConfig = config("database.connections.{$defaultConn}");
