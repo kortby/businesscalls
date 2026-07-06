@@ -169,3 +169,37 @@ test('webhook endpoint handles call_analyzed event with valid signature', functi
         return $event->tenantId === $tenant->id && $event->callLog->call_id === 'call-123';
     });
 });
+
+test('webhook endpoint handles assistant-request event with valid signature and settings mapping', function () {
+    $tenant = Tenant::factory()->create([
+        'secret_key' => 'my-secret-key',
+        'settings' => [
+            'phone_mappings' => [
+                '+16196390411' => 'mapped-assistant-id',
+            ],
+            'voice_assistant_id' => 'fallback-assistant-id',
+        ],
+    ]);
+
+    $payload = [
+        'message' => [
+            'type' => 'assistant-request',
+            'phoneNumber' => [
+                'number' => '+16196390411',
+            ],
+        ],
+    ];
+    $body = json_encode($payload);
+    $signature = hash_hmac('sha256', $body, $tenant->secret_key);
+
+    $response = $this->postJson(
+        '/api/webhooks/call-events/'.$tenant->id,
+        $payload,
+        ['X-Signature' => $signature]
+    );
+
+    $response->assertOk()
+        ->assertJson([
+            'assistantId' => 'mapped-assistant-id',
+        ]);
+});

@@ -80,8 +80,30 @@ class CallWebhookController extends Controller
         }
 
         // 3. Parse call payload (Retell/Vapi payloads)
-        $event = $request->input('event') ?? $request->input('type');
+        $event = $request->input('event')
+            ?? $request->input('type')
+            ?? $request->input('message.type');
         $callData = $request->input('call') ?? $request->input('message.call') ?? $request->all();
+
+        // Handle Vapi assistant-request dynamic routing
+        if ($event === 'assistant-request' || $event === 'assistantRequest') {
+            $dialedNumber = $request->input('message.phoneNumber.number')
+                ?? $request->input('message.phone.number')
+                ?? $request->input('phoneNumber')
+                ?? '';
+
+            $phoneMappings = $tenant->getSetting('phone_mappings') ?? [];
+            $mappedAssistant = $phoneMappings[$dialedNumber] ?? null;
+
+            $assistantId = $mappedAssistant
+                ?? $tenant->getSetting('voice_assistant_id')
+                ?? env('VAPI_ASSISTANT_ID')
+                ?? 'default-assistant-id';
+
+            return response()->json([
+                'assistantId' => $assistantId,
+            ]);
+        }
 
         // Standardize event names if necessary (e.g. vapi uses call.started)
         if ($event === 'call.started') {

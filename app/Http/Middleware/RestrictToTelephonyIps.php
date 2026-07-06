@@ -13,6 +13,10 @@ class RestrictToTelephonyIps
      */
     public function handle(Request $request, Closure $next): Response
     {
+        if (app()->environment('local')) {
+            return $next($request);
+        }
+
         $allowlist = config('telephony.allowlist', [
             '100.20.5.228',
             '127.0.0.1',

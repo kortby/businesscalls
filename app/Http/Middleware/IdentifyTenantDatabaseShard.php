@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Tenant;
 use App\Models\TenantOAuthToken;
 use App\Models\TenantShard;
 use Closure;
@@ -21,6 +22,29 @@ class IdentifyTenantDatabaseShard
             ?? $request->route('tenant_id')
             ?? $request->header('X-Tenant-ID')
             ?? $request->header('x-tenant-id');
+
+        if (! $tenantId) {
+            // Fallback: parse from URL path if route parameter is not matched yet
+            $pathSegments = explode('/', trim($request->getPathInfo(), '/'));
+            foreach ($pathSegments as $segment) {
+                if (is_numeric($segment)) {
+                    $tenantId = $segment;
+                    break;
+                }
+            }
+
+            if (! $tenantId) {
+                foreach ($pathSegments as $segment) {
+                    if (! empty($segment) && ! in_array($segment, ['api', 'webhooks', 'telephony', 'settings', 'admin'])) {
+                        $tenant = Tenant::where('slug', $segment)->first();
+                        if ($tenant) {
+                            $tenantId = $tenant->id;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
 
         if (! $tenantId && $request->bearerToken()) {
             $tokenRecord = TenantOAuthToken::where('access_token', $request->bearerToken())->first();
