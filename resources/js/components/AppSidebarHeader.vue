@@ -1,9 +1,9 @@
 <script setup lang="ts">
+import { usePage, router } from '@inertiajs/vue3';
+import { computed } from 'vue';
 import Breadcrumbs from '@/components/Breadcrumbs.vue';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 import type { BreadcrumbItem } from '@/types';
-import { usePage, router } from '@inertiajs/vue3';
-import { computed } from 'vue';
 
 withDefaults(
     defineProps<{
@@ -57,15 +57,11 @@ const toggleSandboxMode = () => {
                     class="mr-1.5 inline-block h-2.5 w-2.5 rounded-full"
                     :class="
                         auth.user.tenant.is_test_mode
-                            ? 'bg-black animate-pulse'
-                            : 'bg-white animate-pulse'
+                            ? 'animate-pulse bg-black'
+                            : 'animate-pulse bg-white'
                     "
                 ></span>
-                {{
-                    auth.user.tenant.is_test_mode
-                        ? 'Test Mode'
-                        : 'Live Mode'
-                }}
+                {{ auth.user.tenant.is_test_mode ? 'Test Mode' : 'Live Mode' }}
             </button>
         </div>
     </header>

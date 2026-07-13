@@ -87,6 +87,7 @@ const deleteNode = (id: string) => {
     nodes.value.forEach((n) => {
         n.connections = n.connections.filter((c) => c.targetId !== id);
     });
+
     if (activeNodeId.value === id) {
         activeNodeId.value = null;
     }
@@ -103,8 +104,12 @@ const startDrag = (event: MouseEvent, node: Node) => {
 };
 
 const handleDrag = (event: MouseEvent) => {
-    if (!draggingNodeId.value) return;
+    if (!draggingNodeId.value) {
+        return;
+    }
+
     const node = nodes.value.find((n) => n.id === draggingNodeId.value);
+
     if (node) {
         node.x = Math.max(0, event.clientX - dragOffset.value.x);
         node.y = Math.max(0, event.clientY - dragOffset.value.y);
@@ -117,7 +122,10 @@ const endDrag = () => {
 
 // Add connection from active node
 const addConnection = () => {
-    if (!activeNode.value) return;
+    if (!activeNode.value) {
+        return;
+    }
+
     activeNode.value.connections.push({
         condition: '1',
         targetId: '',
@@ -127,6 +135,7 @@ const addConnection = () => {
 // Save call flow tree
 const saveFlow = async () => {
     isSaving.value = true;
+
     try {
         const response = await fetch('/api/settings/call-flow', {
             method: 'POST',
@@ -141,6 +150,7 @@ const saveFlow = async () => {
             },
             body: JSON.stringify({ call_flow_tree: nodes.value }),
         });
+
         if (response.ok) {
             router.reload();
         }

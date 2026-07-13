@@ -1,8 +1,7 @@
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
 import { Phone, PhoneOff, Mic, MicOff, Volume2 } from '@lucide/vue';
 import { ref, watch, onBeforeUnmount } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { callStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
@@ -11,6 +10,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from '@/components/ui/dialog';
+import { callStore } from '@/lib/store';
 
 const props = defineProps<{
     isOpen: boolean;
@@ -48,17 +48,19 @@ const startTelemetryCollection = (
     let alertSent = false;
 
     telemetryInterval = setInterval(async () => {
-        let stats = { jitter: 0, latency: 0, packetLoss: 0 };
+        const stats = { jitter: 0, latency: 0, packetLoss: 0 };
 
         if (provider === 'vapi' && vapiInstance) {
             const dailyCall =
                 typeof vapiInstance.getDailyCallObject === 'function'
                     ? vapiInstance.getDailyCallObject()
                     : vapiInstance.daily || null;
+
             if (dailyCall && typeof dailyCall.getNetworkStats === 'function') {
                 try {
                     const netStats = await dailyCall.getNetworkStats();
                     const latest = netStats?.stats?.latest;
+
                     if (latest) {
                         stats.latency =
                             (latest.networkRoundTripTime || 0) * 1000;
@@ -75,6 +77,7 @@ const startTelemetryCollection = (
         ) {
             try {
                 const pc = retellInstance.room?.engine?.subscriber?.pcTransport;
+
                 if (pc && typeof pc.getStats === 'function') {
                     const rawStats = await pc.getStats();
                     rawStats.forEach((report: any) => {
@@ -84,6 +87,7 @@ const startTelemetryCollection = (
                         ) {
                             stats.packetLoss = report.packetsLost || 0;
                         }
+
                         if (
                             report.type === 'candidate-pair' &&
                             report.state === 'succeeded'
@@ -101,12 +105,14 @@ const startTelemetryCollection = (
         // Standard Deviation Jitter Calculation
         if (stats.latency > 0) {
             latencies.push(stats.latency);
+
             if (latencies.length > 100) {
                 latencies.shift();
             }
         }
 
         const J = latencies.length;
+
         if (J > 0) {
             const sum = latencies.reduce((acc, val) => acc + val, 0);
             const avg = sum / J;
@@ -143,13 +149,18 @@ const startTelemetryCollection = (
         }
 
         // Check for threshold violations: jitter > 30 or packetLoss > 5% (0.05 or 5)
-        const hasViolation = stats.jitter > 30 || stats.packetLoss > 0.05 || stats.packetLoss > 5;
+        const hasViolation =
+            stats.jitter > 30 ||
+            stats.packetLoss > 0.05 ||
+            stats.packetLoss > 5;
+
         if (hasViolation) {
             if (violationStart === null) {
                 violationStart = Date.now();
             } else if (Date.now() - violationStart >= 3000) {
                 if (!alertSent) {
                     alertSent = true;
+
                     try {
                         await fetch('/api/telemetry/quality-degraded', {
                             method: 'POST',
@@ -194,8 +205,10 @@ const startTokenRotationLoop = (provider: string) => {
 
     rotationInterval = setInterval(async () => {
         const timeLeft = tokenExpiresAt - Date.now();
+
         if (timeLeft > 0 && timeLeft <= 5 * 60 * 1000) {
             console.log('Token is within 5 minutes of expiring. Rotating...');
+
             try {
                 const response = await fetch('/api/web-calls/refresh-token', {
                     method: 'POST',
@@ -223,20 +236,33 @@ const startTokenRotationLoop = (provider: string) => {
                         } else {
                             vapiInstance.sdkKey = newAccessToken;
                         }
+
                         console.log('Successfully rotated Vapi WebRTC token.');
                     } else if (provider === 'retell' && retellInstance) {
-                        if (typeof retellInstance.updateAccessToken === 'function') {
+                        if (
+                            typeof retellInstance.updateAccessToken ===
+                            'function'
+                        ) {
                             retellInstance.updateAccessToken(newAccessToken);
                         } else {
                             retellInstance.accessToken = newAccessToken;
                         }
-                        console.log('Successfully rotated Retell WebRTC token.');
+
+                        console.log(
+                            'Successfully rotated Retell WebRTC token.',
+                        );
                     }
                 } else {
-                    console.error('Failed to refresh WebRTC token:', response.statusText);
+                    console.error(
+                        'Failed to refresh WebRTC token:',
+                        response.statusText,
+                    );
                 }
             } catch (e) {
-                console.error('Error during WebRTC token rotation handshake:', e);
+                console.error(
+                    'Error during WebRTC token rotation handshake:',
+                    e,
+                );
             }
         }
     }, 10000);
@@ -263,20 +289,24 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
             if (Math.random() < 0.3) {
                 callStore.isSpeaking = !callStore.isSpeaking;
             }
+
             if (callStore.isSpeaking) {
                 callStore.amplitude = 0.15 + Math.random() * 0.45;
             } else {
                 callStore.amplitude = 0;
             }
         }, 150);
+
         return;
     }
 
     let attempts = 0;
     const interval = setInterval(() => {
         attempts++;
+
         if (attempts > 100 || !vapiInst) {
             clearInterval(interval);
+
             return;
         }
 
@@ -302,6 +332,7 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                                 (window as any).webkitAudioContext
                             )();
                         }
+
                         const source = audioCtx.createMediaStreamSource(
                             new MediaStream([event.track]),
                         );
@@ -315,14 +346,17 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                             if (analyser && dataArray) {
                                 analyser.getByteTimeDomainData(dataArray);
                                 let sum = 0;
+
                                 for (let i = 0; i < dataArray.length; i++) {
                                     const v = (dataArray[i] - 128) / 128;
                                     sum += v * v;
                                 }
+
                                 const rms = Math.sqrt(sum / dataArray.length);
                                 callStore.amplitude = rms;
                                 callStore.isSpeaking = rms > 0.03;
                             }
+
                             animationFrameId =
                                 requestAnimationFrame(updateAmplitude);
                         };
@@ -344,14 +378,17 @@ const stopAudioPolling = () => {
         clearInterval(simAudioInterval);
         simAudioInterval = null;
     }
+
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
+
     if (audioCtx) {
         audioCtx.close().catch(() => {});
         audioCtx = null;
     }
+
     analyser = null;
     dataArray = null;
     callStore.analyserNode = null;
@@ -360,7 +397,9 @@ const stopAudioPolling = () => {
 };
 
 const bindRetellListeners = (assistantId: string, callId: string) => {
-    if (!retellInstance) return;
+    if (!retellInstance) {
+        return;
+    }
 
     retellInstance.on('call_started', () => {
         callStatus.value = 'connected';
@@ -380,10 +419,12 @@ const bindRetellListeners = (assistantId: string, callId: string) => {
 
     retellInstance.on('error', (err: any) => {
         console.error('Retell error:', err);
+
         if (callStatus.value === 'connected' || isReconnecting.value) {
             handleReconnection('retell', assistantId, callId);
         } else {
-            errorMessage.value = err?.message || 'A network error occurred during the call.';
+            errorMessage.value =
+                err?.message || 'A network error occurred during the call.';
             callStatus.value = 'error';
             emit('call_ended');
             cleanupCall();
@@ -397,6 +438,7 @@ const bindRetellListeners = (assistantId: string, callId: string) => {
 
     retellInstance.on('close', () => {
         console.warn('Retell connection closed');
+
         if (callStatus.value === 'connected') {
             handleReconnection('retell', assistantId, callId);
         }
@@ -404,7 +446,9 @@ const bindRetellListeners = (assistantId: string, callId: string) => {
 };
 
 const bindVapiListeners = (assistantId: string, callId: string) => {
-    if (!vapiInstance) return;
+    if (!vapiInstance) {
+        return;
+    }
 
     vapiInstance.on('call-start', (call: any) => {
         callStatus.value = 'connected';
@@ -425,10 +469,12 @@ const bindVapiListeners = (assistantId: string, callId: string) => {
 
     vapiInstance.on('error', (err: any) => {
         console.error('Vapi error:', err);
+
         if (callStatus.value === 'connected' || isReconnecting.value) {
             handleReconnection('vapi', assistantId, callId);
         } else {
-            errorMessage.value = err?.message || 'Failed to establish WebRTC connection.';
+            errorMessage.value =
+                err?.message || 'Failed to establish WebRTC connection.';
             callStatus.value = 'error';
             emit('call_ended');
             cleanupCall();
@@ -442,16 +488,22 @@ const bindVapiListeners = (assistantId: string, callId: string) => {
 
     vapiInstance.on('close', () => {
         console.warn('Vapi connection closed');
+
         if (callStatus.value === 'connected') {
             handleReconnection('vapi', assistantId, callId);
         }
     });
 };
 
-const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: string, currentCallId: string) => {
+const handleReconnection = async (
+    provider: 'vapi' | 'retell',
+    assistantId: string,
+    currentCallId: string,
+) => {
     if (isReconnecting.value) {
         return;
     }
+
     isReconnecting.value = true;
     reconnectAttempts.value++;
 
@@ -461,10 +513,13 @@ const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: stri
         callStatus.value = 'error';
         emit('call_ended');
         cleanupCall();
+
         return;
     }
 
-    console.warn(`WebRTC connection dropped. Attempting auto-reconnection (${reconnectAttempts.value}/3)...`);
+    console.warn(
+        `WebRTC connection dropped. Attempting auto-reconnection (${reconnectAttempts.value}/3)...`,
+    );
     callStatus.value = 'connecting';
 
     try {
@@ -472,7 +527,12 @@ const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: stri
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CSRF-TOKEN': (document.querySelector('meta[name="csrf-token"]') as HTMLMetaElement)?.content || '',
+                'X-CSRF-TOKEN':
+                    (
+                        document.querySelector(
+                            'meta[name="csrf-token"]',
+                        ) as HTMLMetaElement
+                    )?.content || '',
                 Accept: 'application/json',
             },
         });
@@ -488,8 +548,11 @@ const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: stri
 
         if (provider === 'retell') {
             if (retellInstance) {
-                try { retellInstance.stopCall(); } catch (e) {}
+                try {
+                    retellInstance.stopCall();
+                } catch (e) {}
             }
+
             const { RetellWebClient } = await import('retell-client-js-sdk');
             retellInstance = new RetellWebClient();
             callStore.retellClient = retellInstance;
@@ -501,8 +564,11 @@ const handleReconnection = async (provider: 'vapi' | 'retell', assistantId: stri
             });
         } else {
             if (vapiInstance) {
-                try { vapiInstance.stop(); } catch (e) {}
+                try {
+                    vapiInstance.stop();
+                } catch (e) {}
             }
+
             const Vapi = (await import('@vapi-ai/web')).default;
             vapiInstance = new Vapi(newAccessToken);
             callStore.vapiClient = vapiInstance;

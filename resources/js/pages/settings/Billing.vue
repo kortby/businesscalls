@@ -44,7 +44,8 @@ const handlePortalRedirect = async () => {
         if (data.url) {
             window.location.href = data.url;
         } else {
-            errorMsg.value = data.error || 'Failed to generate billing portal link.';
+            errorMsg.value =
+                data.error || 'Failed to generate billing portal link.';
             loading.value = false;
         }
     } catch (e) {
@@ -79,7 +80,8 @@ const handleCheckout = async (planName: 'pro' | 'enterprise') => {
         if (data.url) {
             window.location.href = data.url;
         } else {
-            errorMsg.value = data.error || 'Failed to initiate checkout session.';
+            errorMsg.value =
+                data.error || 'Failed to initiate checkout session.';
             loading.value = false;
         }
     } catch (e) {

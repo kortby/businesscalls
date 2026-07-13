@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue';
 import { useEcho } from '@laravel/echo-vue';
 import { AlertCircle, X, MessageSquare } from '@lucide/vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 
 const props = defineProps<{
     tenantId: number | string;
@@ -25,7 +25,9 @@ const removeWhisper = (id: string) => {
 
 // Subscribe to a specific call's coaching channel
 const subscribeToCoaching = (callId: string) => {
-    if (activeCallChannels.value.some((c) => c.callId === callId)) return;
+    if (activeCallChannels.value.some((c) => c.callId === callId)) {
+        return;
+    }
 
     console.log(
         `[CoachingWidget] Subscribing to call whisper channel: tenant.${props.tenantId}.coaching.${callId}`,
@@ -70,13 +72,16 @@ const unsubscribeFromCoaching = (callId: string) => {
     const index = activeCallChannels.value.findIndex(
         (c) => c.callId === callId,
     );
+
     if (index !== -1) {
         console.log(
             `[CoachingWidget] Leaving whisper channel for call: ${callId}`,
         );
+
         try {
             window.Echo.leave(`tenant.${props.tenantId}.coaching.${callId}`);
         } catch (e) {}
+
         activeCallChannels.value.splice(index, 1);
     }
 };
@@ -99,12 +104,15 @@ onMounted(() => {
                 payload.customer_phone || payload.customerPhone;
             const callId = payload.call_id || payload.id;
 
-            if (!customerPhone || !callId) return;
+            if (!customerPhone || !callId) {
+                return;
+            }
 
             // Check if this call is for one of the technician's bookings
             const hasBooking = props.bookings.some((b) => {
                 const bPhoneClean = b.customer_phone.replace(/\D/g, '');
                 const payloadPhoneClean = customerPhone.replace(/\D/g, '');
+
                 return (
                     bPhoneClean.includes(payloadPhoneClean) ||
                     payloadPhoneClean.includes(bPhoneClean)
@@ -122,6 +130,7 @@ onMounted(() => {
                 payload,
             );
             const callId = payload.call_id || payload.id;
+
             if (callId) {
                 unsubscribeFromCoaching(callId);
             }

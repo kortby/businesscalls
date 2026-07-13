@@ -32,7 +32,7 @@ const sidebarNavItems = computed<NavItem[]>(() => {
             {
                 title: 'Billing',
                 href: '/settings/billing',
-            }
+            },
         );
     }
 
@@ -44,7 +44,7 @@ const sidebarNavItems = computed<NavItem[]>(() => {
         {
             title: 'Appearance',
             href: editAppearance(),
-        }
+        },
     );
 
     return items;

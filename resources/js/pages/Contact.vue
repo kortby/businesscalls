@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Head, Link, useForm } from '@inertiajs/vue3';
+import { Link, useForm } from '@inertiajs/vue3';
 import { Mail, Phone, MapPin, Send } from '@lucide/vue';
 import { ref } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import {
@@ -13,6 +14,8 @@ import {
     about,
     pricing,
     contact,
+    privacy,
+    terms,
 } from '@/routes';
 
 const form = useForm({
@@ -33,7 +36,19 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Contact - businesscalls" />
+    <SeoHead
+        title="Contact Us | Support for businesscalls"
+        description="Have questions about setting up your AI voice receptionist or routing calls to technicians? Contact our support team for integrations, pricing, and live setup assistance."
+        keywords="contact businesscalls, contractor dispatcher support, AI receptionist setup help, voice dispatch integrations"
+        :jsonLd="{
+            '@context': 'https://schema.org',
+            '@type': 'ContactPage',
+            name: 'Contact businesscalls',
+            description:
+                'Contact page for businesscalls, providing support and integration assistance for trade contractors.',
+            url: 'https://businesscalls.io/contact',
+        }"
+    />
 
     <div
         class="min-h-screen bg-slate-50 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-100"
@@ -115,12 +130,14 @@ const submit = () => {
                     <h1
                         class="text-4xl font-extrabold tracking-tight text-foreground"
                     >
-                        Get in Touch with Us
+                        Contact Our Trade Answering Experts
                     </h1>
                     <p class="text-sm leading-relaxed text-muted-foreground">
-                        Have questions about dynamic Vapi assistants, custom
-                        telephony setups, or multi-tenant scope isolation? Drop
-                        us a note!
+                        Have questions about dynamic AI voice receptionists,
+                        custom telephony integrations, travel buffers, or
+                        setting up multi-tenant technician shifts? Our support
+                        engineers are ready to help you optimize your business
+                        calls and streamline your dispatch workflows.
                     </p>
 
                     <div class="space-y-4 pt-4">
@@ -240,7 +257,7 @@ const submit = () => {
             <div
                 class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 text-xs font-semibold text-muted-foreground sm:flex-row sm:px-6"
             >
-                <p>© 2026 businesscalls Inc. All rights reserved.</p>
+                <p>© 2026 ShieldSuite Inc. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     <Link :href="home()" class="hover:text-foreground"
                         >Home</Link
@@ -250,6 +267,12 @@ const submit = () => {
                     >
                     <Link :href="pricing()" class="hover:text-foreground"
                         >Pricing</Link
+                    >
+                    <Link :href="privacy()" class="hover:text-foreground"
+                        >Privacy</Link
+                    >
+                    <Link :href="terms()" class="hover:text-foreground"
+                        >Terms</Link
                     >
                 </div>
             </div>

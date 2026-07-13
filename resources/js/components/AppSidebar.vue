@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
 import {
     LayoutGrid,
     Calendar,
@@ -31,6 +30,7 @@ import {
     CreditCard,
     FileText,
 } from '@lucide/vue';
+import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavFooter from '@/components/NavFooter.vue';
 import NavMain from '@/components/NavMain.vue';
@@ -45,12 +45,6 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard, docs } from '@/routes';
-import { index as availabilitiesIndex } from '@/routes/availabilities';
-import { index as bookingsIndex } from '@/routes/bookings';
-import { index as employeesIndex } from '@/routes/employees';
-import { index as customersIndex } from '@/routes/customers';
-import { index as jobsIndex } from '@/routes/jobs';
-import { index as conversationsIndex } from '@/routes/conversations';
 import {
     dispatchMap as adminDispatchMap,
     callMonitor as adminCallMonitor,
@@ -75,6 +69,12 @@ import {
     integrations as adminIntegrations,
     experiments as adminExperiments,
 } from '@/routes/admin';
+import { index as availabilitiesIndex } from '@/routes/availabilities';
+import { index as bookingsIndex } from '@/routes/bookings';
+import { index as conversationsIndex } from '@/routes/conversations';
+import { index as customersIndex } from '@/routes/customers';
+import { index as employeesIndex } from '@/routes/employees';
+import { index as jobsIndex } from '@/routes/jobs';
 import type { NavItem } from '@/types';
 
 const page = usePage();
@@ -259,7 +259,7 @@ const sidebarNavItems = computed<NavItem[]>(() => {
                         icon: FlaskConical,
                     },
                 ],
-            }
+            },
         );
     }
 
@@ -268,6 +268,7 @@ const sidebarNavItems = computed<NavItem[]>(() => {
 
 const footerNavItems = computed<NavItem[]>(() => {
     const items: NavItem[] = [];
+
     if (isSupervisor.value) {
         items.push({
             title: 'Mascot Shop',
@@ -275,11 +276,13 @@ const footerNavItems = computed<NavItem[]>(() => {
             icon: Sparkles,
         });
     }
+
     items.push({
         title: 'Documentation',
         href: docs(),
         icon: HelpCircle,
     });
+
     return items;
 });
 </script>

@@ -2,6 +2,11 @@
 import { Link } from '@inertiajs/vue3';
 import { ChevronRight } from '@lucide/vue';
 import {
+    Collapsible,
+    CollapsibleTrigger,
+    CollapsibleContent,
+} from '@/components/ui/collapsible';
+import {
     SidebarGroup,
     SidebarGroupLabel,
     SidebarMenu,
@@ -11,7 +16,6 @@ import {
     SidebarMenuSubButton,
     SidebarMenuSubItem,
 } from '@/components/ui/sidebar';
-import { Collapsible, CollapsibleTrigger, CollapsibleContent } from '@/components/ui/collapsible';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import type { NavItem } from '@/types';
 
@@ -22,7 +26,7 @@ withDefaults(
     }>(),
     {
         title: 'Platform',
-    }
+    },
 );
 
 const { isCurrentUrl } = useCurrentUrl();
@@ -38,22 +42,43 @@ const { isCurrentUrl } = useCurrentUrl();
                     <Collapsible
                         as-child
                         class="group/collapsible"
-                        :default-open="item.items.some(sub => isCurrentUrl(sub.href || ''))"
+                        :default-open="
+                            item.items.some((sub) =>
+                                isCurrentUrl(sub.href || ''),
+                            )
+                        "
                     >
                         <div>
                             <CollapsibleTrigger as-child>
                                 <SidebarMenuButton :tooltip="item.title">
-                                    <component :is="item.icon" v-if="item.icon" />
+                                    <component
+                                        :is="item.icon"
+                                        v-if="item.icon"
+                                    />
                                     <span>{{ item.title }}</span>
-                                    <ChevronRight class="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
+                                    <ChevronRight
+                                        class="ml-auto size-4 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90"
+                                    />
                                 </SidebarMenuButton>
                             </CollapsibleTrigger>
                             <CollapsibleContent>
                                 <SidebarMenuSub>
-                                    <SidebarMenuSubItem v-for="subItem in item.items" :key="subItem.title">
-                                        <SidebarMenuSubButton as-child :is-active="isCurrentUrl(subItem.href || '')">
+                                    <SidebarMenuSubItem
+                                        v-for="subItem in item.items"
+                                        :key="subItem.title"
+                                    >
+                                        <SidebarMenuSubButton
+                                            as-child
+                                            :is-active="
+                                                isCurrentUrl(subItem.href || '')
+                                            "
+                                        >
                                             <Link :href="subItem.href || ''">
-                                                <component :is="subItem.icon" v-if="subItem.icon" class="size-4 mr-2" />
+                                                <component
+                                                    :is="subItem.icon"
+                                                    v-if="subItem.icon"
+                                                    class="mr-2 size-4"
+                                                />
                                                 <span>{{ subItem.title }}</span>
                                             </Link>
                                         </SidebarMenuSubButton>

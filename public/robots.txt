@@ -1,2 +1,7 @@
 User-agent: *
-Disallow:
+Disallow: /admin
+Disallow: /dashboard
+Disallow: /technician
+Disallow: /track/
+
+Sitemap: https://businesscalls.io/sitemap.xml

@@ -20,7 +20,6 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import BargeControls from '@/components/BargeControls.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import SpectralVisualizer from '@/components/SpectralVisualizer.vue';
-import { callStore } from '@/lib/store';
 import StreakFlame from '@/components/StreakFlame.vue';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -41,17 +40,6 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import WebCallModal from '@/components/WebCallModal.vue';
-import {
-    store as storeAvailability,
-    destroy as destroyAvailability,
-} from '@/routes/availabilities';
-import {
-    store as storeBooking,
-    destroy as destroyBooking,
-} from '@/routes/bookings';
-import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import {
     Select,
@@ -60,6 +48,18 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
+import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
+import WebCallModal from '@/components/WebCallModal.vue';
+import { callStore } from '@/lib/store';
+import {
+    store as storeAvailability,
+    destroy as destroyAvailability,
+} from '@/routes/availabilities';
+import {
+    store as storeBooking,
+    destroy as destroyBooking,
+} from '@/routes/bookings';
 
 import type { Tenant } from '@/types';
 
@@ -133,9 +133,13 @@ const startWebCall = (phone: string) => {
 };
 
 const completeDraftTask = (task: any) => {
-    router.put(`/draft-tasks/${task.id}/complete`, {}, {
-        preserveScroll: true
-    });
+    router.put(
+        `/draft-tasks/${task.id}/complete`,
+        {},
+        {
+            preserveScroll: true,
+        },
+    );
 };
 
 // Local lists for real-time websocket appending
@@ -1097,8 +1101,8 @@ const shiftValidation = computed(() => {
                     <Badge
                         :class="
                             tenant?.is_test_mode
-                                ? 'bg-amber-500 hover:bg-amber-600 text-black'
-                                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                                ? 'bg-amber-500 text-black hover:bg-amber-600'
+                                : 'bg-emerald-500 text-white hover:bg-emerald-600'
                         "
                         class="px-2 py-0.5 text-[10px] font-semibold"
                     >
@@ -1156,7 +1160,7 @@ const shiftValidation = computed(() => {
                                 (a) => a.call_id !== alert.call_id,
                             )
                         "
-                        class="cursor-pointer rounded-xl border border-b-4 border-slate-300 dark:border-slate-700 bg-slate-200 dark:bg-slate-800 px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-slate-300 dark:hover:bg-slate-700"
+                        class="cursor-pointer rounded-xl border border-b-4 border-slate-300 bg-slate-200 px-4 py-2.5 text-xs font-bold text-slate-700 hover:bg-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
                     >
                         Dismiss
                     </button>
@@ -2073,7 +2077,7 @@ const shiftValidation = computed(() => {
             <div class="flex flex-col gap-8">
                 <!-- Live Event Logs Feed -->
                 <Card
-                    class="flex h-[350px] flex-col border bg-slate-950 dark:bg-black text-emerald-400 shadow-md"
+                    class="flex h-[350px] flex-col border bg-slate-950 text-emerald-400 shadow-md dark:bg-black"
                 >
                     <CardHeader
                         class="flex flex-row items-center justify-between space-y-0 border-b border-border pb-3"
@@ -2120,54 +2124,90 @@ const shiftValidation = computed(() => {
                 </Card>
 
                 <!-- Draft Tasks Feed -->
-                <Card class="flex flex-col shadow-sm" v-if="props.draftTasks && props.draftTasks.length">
-                    <CardHeader class="flex flex-row items-center justify-between gap-4 space-y-0 border-b pb-3">
+                <Card
+                    class="flex flex-col shadow-sm"
+                    v-if="props.draftTasks && props.draftTasks.length"
+                >
+                    <CardHeader
+                        class="flex flex-row items-center justify-between gap-4 space-y-0 border-b pb-3"
+                    >
                         <div>
-                            <CardTitle class="flex items-center gap-2 text-sm font-bold tracking-wider text-foreground uppercase">
+                            <CardTitle
+                                class="flex items-center gap-2 text-sm font-bold tracking-wider text-foreground uppercase"
+                            >
                                 📋 Actionable Post-Call Tasks
                             </CardTitle>
-                            <CardDescription class="text-[10px] font-medium tracking-widest text-muted-foreground uppercase">
+                            <CardDescription
+                                class="text-[10px] font-medium tracking-widest text-muted-foreground uppercase"
+                            >
                                 Action items parsed from phone recordings
                             </CardDescription>
                         </div>
-                        <Badge variant="outline" class="rounded border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 dark:text-amber-400 uppercase">
+                        <Badge
+                            variant="outline"
+                            class="rounded border-amber-500/20 bg-amber-500/10 px-1.5 py-0.5 text-[9px] font-bold text-amber-700 uppercase dark:text-amber-400"
+                        >
                             AI Embeddings
                         </Badge>
                     </CardHeader>
-                    <CardContent class="pt-4 space-y-3">
-                        <div 
-                            v-for="task in props.draftTasks" 
-                            :key="task.id" 
-                            class="flex items-start justify-between gap-3 p-3 rounded-xl border bg-accent/20 dark:bg-slate-950/60 text-xs transition-all"
-                            :class="[task.status === 'completed' ? 'opacity-50 line-through bg-muted/40' : '']"
+                    <CardContent class="space-y-3 pt-4">
+                        <div
+                            v-for="task in props.draftTasks"
+                            :key="task.id"
+                            class="flex items-start justify-between gap-3 rounded-xl border bg-accent/20 p-3 text-xs transition-all dark:bg-slate-950/60"
+                            :class="[
+                                task.status === 'completed'
+                                    ? 'bg-muted/40 line-through opacity-50'
+                                    : '',
+                            ]"
                         >
                             <div class="flex-1 space-y-1">
                                 <div class="flex items-center gap-1.5">
-                                    <span 
-                                        class="px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider"
-                                        :class="[task.task_type === 'order_parts' ? 'bg-indigo-50 dark:bg-indigo-950/40 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800/30' : 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 border border-amber-200 dark:border-amber-800/30']"
+                                    <span
+                                        class="rounded px-2 py-0.5 text-[9px] font-black tracking-wider uppercase"
+                                        :class="[
+                                            task.task_type === 'order_parts'
+                                                ? 'border border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-800/30 dark:bg-indigo-950/40 dark:text-indigo-300'
+                                                : 'border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800/30 dark:bg-amber-950/40 dark:text-amber-300',
+                                        ]"
                                     >
-                                        {{ task.task_type === 'order_parts' ? 'Order Parts' : 'Callback Customer' }}
+                                        {{
+                                            task.task_type === 'order_parts'
+                                                ? 'Order Parts'
+                                                : 'Callback Customer'
+                                        }}
                                     </span>
-                                    <span class="text-[10px] text-muted-foreground font-mono" v-if="task.call_id">
+                                    <span
+                                        class="font-mono text-[10px] text-muted-foreground"
+                                        v-if="task.call_id"
+                                    >
                                         Call: {{ task.call_id.substring(0, 8) }}
                                     </span>
                                 </div>
-                                <p class="text-foreground leading-snug">{{ task.description }}</p>
-                                <div class="text-[9px] text-muted-foreground" v-if="task.booking">
-                                    Linked to booking for {{ task.booking.customer_phone }}
+                                <p class="leading-snug text-foreground">
+                                    {{ task.description }}
+                                </p>
+                                <div
+                                    class="text-[9px] text-muted-foreground"
+                                    v-if="task.booking"
+                                >
+                                    Linked to booking for
+                                    {{ task.booking.customer_phone }}
                                 </div>
                             </div>
                             <div v-if="task.status === 'pending'">
-                                <Button 
-                                    size="sm" 
-                                    class="h-7 text-[10px] font-bold uppercase tracking-wider bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg px-2.5"
+                                <Button
+                                    size="sm"
+                                    class="h-7 rounded-lg bg-emerald-600 px-2.5 text-[10px] font-bold tracking-wider text-white uppercase hover:bg-emerald-500"
                                     @click="completeDraftTask(task)"
                                 >
                                     Done
                                 </Button>
                             </div>
-                            <div v-else class="text-emerald-600 dark:text-emerald-400 font-bold text-[10px] uppercase tracking-wider pt-1 flex items-center gap-1">
+                            <div
+                                v-else
+                                class="flex items-center gap-1 pt-1 text-[10px] font-bold tracking-wider text-emerald-600 uppercase dark:text-emerald-400"
+                            >
                                 ✓ Done
                             </div>
                         </div>
@@ -2587,7 +2627,9 @@ const shiftValidation = computed(() => {
                             class="text-right text-[9px] leading-tight font-semibold tracking-wider text-muted-foreground uppercase"
                         >
                             reCAPTCHA verified<br />
-                            <span class="text-indigo-600 dark:text-indigo-400">Privacy & Terms</span>
+                            <span class="text-indigo-600 dark:text-indigo-400"
+                                >Privacy & Terms</span
+                            >
                         </div>
                     </div>
 

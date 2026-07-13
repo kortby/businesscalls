@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 import { Head, router, Link, usePage } from '@inertiajs/vue3';
 import {
     Wrench,
@@ -17,11 +18,10 @@ import {
     User,
 } from '@lucide/vue';
 import { ref, computed, onMounted, onBeforeUnmount, watch } from 'vue';
+import CoachingWidget from '@/components/CoachingWidget.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import PasskeyRegister from '@/components/PasskeyRegister.vue';
-import CoachingWidget from '@/components/CoachingWidget.vue';
 import { Button } from '@/components/ui/button';
-import { BarcodeScanner } from '@capacitor-community/barcode-scanner';
 
 interface Booking {
     id: number;
@@ -74,6 +74,7 @@ const startScan = async () => {
     try {
         isScanning.value = true;
         const status = await BarcodeScanner.checkPermission({ force: true });
+
         if (status.granted) {
             BarcodeScanner.hideBackground();
             document.body.classList.add('scanner-active');
@@ -114,6 +115,7 @@ const stopScan = () => {
         BarcodeScanner.showBackground();
         BarcodeScanner.stopScan();
     } catch (e) {}
+
     document.body.classList.remove('scanner-active');
     isScanning.value = false;
 };
@@ -257,6 +259,7 @@ const sendGpsPing = async (bookingId: number) => {
     if (!navigator.geolocation) {
         return;
     }
+
     navigator.geolocation.getCurrentPosition(
         async (position) => {
             try {
@@ -284,18 +287,22 @@ const sendGpsPing = async (bookingId: number) => {
         (err) => {
             console.warn('Geolocation error:', err);
         },
-        { enableHighAccuracy: true }
+        { enableHighAccuracy: true },
     );
 };
 
 const startGpsTrackingIfNeeded = () => {
-    const enRouteBooking = props.bookings.find(b => b.status === 'en_route');
+    const enRouteBooking = props.bookings.find((b) => b.status === 'en_route');
+
     if (enRouteBooking) {
         if (!gpsInterval) {
             // Ping immediately
             sendGpsPing(enRouteBooking.id);
             gpsInterval = setInterval(() => {
-                const active = props.bookings.find(b => b.status === 'en_route');
+                const active = props.bookings.find(
+                    (b) => b.status === 'en_route',
+                );
+
                 if (active) {
                     sendGpsPing(active.id);
                 } else {
@@ -323,9 +330,13 @@ onBeforeUnmount(() => {
     stopGpsTracking();
 });
 
-watch(() => props.bookings, () => {
-    startGpsTrackingIfNeeded();
-}, { deep: true });
+watch(
+    () => props.bookings,
+    () => {
+        startGpsTrackingIfNeeded();
+    },
+    { deep: true },
+);
 </script>
 
 <template>
@@ -418,7 +429,7 @@ watch(() => props.bookings, () => {
             <div class="flex items-center gap-2">
                 <Link
                     href="/technician/skill-up"
-                    class="flex h-9 items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 text-xs font-black text-amber-400 transition-all hover:bg-amber-500/20 shadow-xs cursor-pointer"
+                    class="flex h-9 cursor-pointer items-center gap-1.5 rounded-full border border-amber-500/25 bg-amber-500/10 px-3 text-xs font-black text-amber-400 shadow-xs transition-all hover:bg-amber-500/20"
                     title="Skill-Up Roadmap"
                 >
                     <span>🏆</span>
@@ -426,7 +437,7 @@ watch(() => props.bookings, () => {
                 </Link>
                 <button
                     @click="handleLogout"
-                    class="bg-slate-850 flex h-9 w-9 cursor-pointer items-center justify-center rounded-full border border-slate-800 text-slate-400 transition-colors hover:bg-rose-950/20 hover:text-rose-400 animate-in fade-in"
+                    class="bg-slate-850 flex h-9 w-9 animate-in cursor-pointer items-center justify-center rounded-full border border-slate-800 text-slate-400 transition-colors fade-in hover:bg-rose-950/20 hover:text-rose-400"
                     title="Logout"
                 >
                     <LogOut class="h-4 w-4" />

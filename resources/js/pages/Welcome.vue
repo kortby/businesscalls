@@ -1,22 +1,17 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 import {
-    Phone,
-    Calendar,
     Clock,
-    CheckCircle2,
-    Zap,
     ShieldCheck,
     Sparkles,
     UserCheck,
-    MessageSquare,
-    Play,
     Star,
     ChevronDown,
 } from '@lucide/vue';
 import { ref, onMounted } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import SeoHead from '@/components/SeoHead.vue';
 import { Badge } from '@/components/ui/badge';
 import {
     dashboard,
@@ -26,6 +21,8 @@ import {
     about,
     pricing,
     contact,
+    privacy,
+    terms,
 } from '@/routes';
 
 const mascotState = ref<number>(0);
@@ -80,7 +77,25 @@ onMounted(() => {
 </script>
 
 <template>
-    <Head title="AI Voice Receptionist & Dispatch for Contractors" />
+    <SeoHead
+        title="AI Voice Receptionist & Smart Dispatch for Trade Contractors"
+        description="Streamline your plumbing, HVAC, or electrical business with an AI voice receptionist that automatically answers calls, checks shifts, and schedules bookings."
+        keywords="AI receptionist, contractor answering service, HVAC dispatch software, plumber booking system, electrical scheduling app, 24/7 call management"
+        :jsonLd="{
+            '@context': 'https://schema.org',
+            '@type': 'SoftwareApplication',
+            name: 'businesscalls',
+            operatingSystem: 'All',
+            applicationCategory: 'BusinessApplication',
+            description:
+                'AI voice receptionist and dynamic dispatch scheduler for trade contractors.',
+            offers: {
+                '@type': 'Offer',
+                price: '49.00',
+                priceCurrency: 'USD',
+            },
+        }"
+    />
 
     <div
         class="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary selection:text-primary-foreground dark:bg-slate-950 dark:text-slate-100"
@@ -212,11 +227,15 @@ onMounted(() => {
                     <p
                         class="max-w-[600px] text-lg leading-relaxed text-muted-foreground"
                     >
-                        Say goodbye to missed calls and double bookings.
-                        **businesscalls** automatically answers incoming calls,
-                        matches technician skills, validates active shifts,
-                        enforces travel buffers, and schedules bookings
-                        dynamically.
+                        Never miss another service call or lose a customer to
+                        the competition.
+                        <strong>businesscalls</strong> is the ultimate AI voice
+                        receptionist and automated dispatch scheduling platform
+                        built specifically for plumbing, HVAC, electrical, and
+                        other home service businesses. Our system automatically
+                        answers calls 24/7, qualifies customer needs, verifies
+                        technician availability, respects travel buffers, and
+                        books jobs directly into your dashboard.
                     </p>
 
                     <div class="flex flex-wrap gap-4 pt-2">
@@ -671,7 +690,7 @@ onMounted(() => {
             <div
                 class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 text-xs font-semibold text-muted-foreground sm:flex-row sm:px-6"
             >
-                <p>© 2026 businesscalls Inc. All rights reserved.</p>
+                <p>© 2026 ShieldSuite Inc. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     <Link :href="home()" class="hover:text-foreground"
                         >Home</Link
@@ -684,6 +703,12 @@ onMounted(() => {
                     >
                     <Link :href="contact()" class="hover:text-foreground"
                         >Contact</Link
+                    >
+                    <Link :href="privacy()" class="hover:text-foreground"
+                        >Privacy</Link
+                    >
+                    <Link :href="terms()" class="hover:text-foreground"
+                        >Terms</Link
                     >
                 </div>
             </div>

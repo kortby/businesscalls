@@ -9,6 +9,7 @@ use App\Http\Controllers\ConversationsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ServiceJobController;
+use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
 use App\Http\Controllers\TechnicianController;
 use App\Http\Controllers\TrackingController;
@@ -26,6 +27,9 @@ Route::inertia('/', 'Welcome')->name('home');
 Route::inertia('/about', 'About')->name('about');
 Route::inertia('/pricing', 'Pricing')->name('pricing');
 Route::inertia('/contact', 'Contact')->name('contact');
+Route::inertia('/privacy', 'Privacy')->name('privacy');
+Route::inertia('/terms', 'Terms')->name('terms');
+Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('technician/login', [TechnicianController::class, 'login'])->name('technician.login');
 Route::get('/track/{hash}', [TrackingController::class, 'show'])->name('booking.track');

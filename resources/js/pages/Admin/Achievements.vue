@@ -59,6 +59,7 @@ const getMilestoneInfo = (achievement: Achievement) => {
     });
 
     const nextMilestone = achievement.milestones.find((m) => !m.unlocked);
+
     if (nextMilestone) {
         nextTarget = nextMilestone.target;
         nextName = nextMilestone.name;
@@ -81,10 +82,14 @@ const getMilestoneInfo = (achievement: Achievement) => {
 // Calculate progress percentage
 const getProgressPercentage = (achievement: Achievement) => {
     const info = getMilestoneInfo(achievement);
-    if (info.allUnlocked) return 100;
+
+    if (info.allUnlocked) {
+        return 100;
+    }
 
     // Calculate progress towards the next milestone
     const progress = (achievement.metric / info.nextTarget) * 100;
+
     return Math.min(100, Math.max(0, progress));
 };
 
@@ -92,10 +97,12 @@ const getProgressPercentage = (achievement: Achievement) => {
 const handleCardHover = (achievement: Achievement, isHovered: boolean) => {
     if (!isHovered) {
         mascotState.value = 0; // Return to Idle
+
         return;
     }
 
     const info = getMilestoneInfo(achievement);
+
     if (info.activeLevel > 0) {
         mascotState.value = 2; // Victory state for unlocked levels
     } else {

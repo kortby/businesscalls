@@ -261,7 +261,8 @@ const filteredArticles = computed(() => {
 
 const currentArticle = computed(() => {
     return (
-        allArticles.value.find((art) => art.id === activeArticleId.value) || allArticles.value[0]
+        allArticles.value.find((art) => art.id === activeArticleId.value) ||
+        allArticles.value[0]
     );
 });
 
@@ -296,8 +297,8 @@ const getIcon = (iconName: string | any) => {
 
 const parseMarkdown = (markdown: string): string => {
     if (!markdown) {
-return '';
-}
+        return '';
+    }
 
     // Escape basic HTML tags to prevent malformed page structures
     let html = markdown
@@ -309,20 +310,29 @@ return '';
     html = html.replace(/^&gt;\s?/gm, '> ');
 
     // Parse GitHub alerts: > [!NOTE], > [!IMPORTANT], > [!WARNING], > [!TIP]
-    html = html.replace(/^>\s+\[!(NOTE|IMPORTANT|WARNING|TIP)\]\s*(.*)$/gm, (match, type, text) => {
-        const colors: Record<string, string> = {
-            NOTE: 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300',
-            IMPORTANT: 'bg-purple-500/10 border-purple-500 text-purple-700 dark:text-purple-300',
-            WARNING: 'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300',
-            TIP: 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300'
-        };
-        const colorClass = colors[type] || 'bg-muted border-muted-foreground/30';
+    html = html.replace(
+        /^>\s+\[!(NOTE|IMPORTANT|WARNING|TIP)\]\s*(.*)$/gm,
+        (match, type, text) => {
+            const colors: Record<string, string> = {
+                NOTE: 'bg-indigo-500/10 border-indigo-500 text-indigo-700 dark:text-indigo-300',
+                IMPORTANT:
+                    'bg-purple-500/10 border-purple-500 text-purple-700 dark:text-purple-300',
+                WARNING:
+                    'bg-amber-500/10 border-amber-500 text-amber-700 dark:text-amber-300',
+                TIP: 'bg-emerald-500/10 border-emerald-500 text-emerald-700 dark:text-emerald-300',
+            };
+            const colorClass =
+                colors[type] || 'bg-muted border-muted-foreground/30';
 
-        return `<div class="my-4 border-l-4 p-4 rounded-r-lg ${colorClass}"><strong class="block text-xs font-bold uppercase tracking-wider mb-1">${type}</strong>${text}</div>`;
-    });
+            return `<div class="my-4 border-l-4 p-4 rounded-r-lg ${colorClass}"><strong class="block text-xs font-bold uppercase tracking-wider mb-1">${type}</strong>${text}</div>`;
+        },
+    );
 
     // Parse general blockquotes: > some quote
-    html = html.replace(/^>\s+(?!\[)(.*)$/gm, '<blockquote class="border-l-4 border-muted-foreground/30 pl-4 italic my-4 text-muted-foreground">$1</blockquote>');
+    html = html.replace(
+        /^>\s+(?!\[)(.*)$/gm,
+        '<blockquote class="border-l-4 border-muted-foreground/30 pl-4 italic my-4 text-muted-foreground">$1</blockquote>',
+    );
 
     // Parse Code Blocks: ```json\n...\n```
     html = html.replace(/```(\w*)\n([\s\S]*?)\n```/g, (match, lang, code) => {
@@ -341,12 +351,17 @@ return '';
         if (line.startsWith('|') && line.endsWith('|')) {
             if (!inTable) {
                 inTable = true;
-                tableHtml = '<div class="my-6 overflow-x-auto rounded-xl border border-border/80"><table class="w-full border-collapse text-left text-xs sm:text-sm">';
-                
+                tableHtml =
+                    '<div class="my-6 overflow-x-auto rounded-xl border border-border/80"><table class="w-full border-collapse text-left text-xs sm:text-sm">';
+
                 // Header row
-                const cols = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
-                tableHtml += '<thead><tr class="border-b border-border bg-muted/50 font-semibold text-muted-foreground">';
-                cols.forEach(col => {
+                const cols = line
+                    .split('|')
+                    .map((c) => c.trim())
+                    .filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                tableHtml +=
+                    '<thead><tr class="border-b border-border bg-muted/50 font-semibold text-muted-foreground">';
+                cols.forEach((col) => {
                     tableHtml += `<th class="py-3 px-4 font-bold text-foreground">${col}</th>`;
                 });
                 tableHtml += '</tr></thead><tbody>';
@@ -356,9 +371,13 @@ return '';
                 }
 
                 // Data row
-                const cols = line.split('|').map(c => c.trim()).filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
-                tableHtml += '<tr class="border-b border-border/50 hover:bg-muted/20 transition-colors last:border-0">';
-                cols.forEach(col => {
+                const cols = line
+                    .split('|')
+                    .map((c) => c.trim())
+                    .filter((c, idx, arr) => idx > 0 && idx < arr.length - 1);
+                tableHtml +=
+                    '<tr class="border-b border-border/50 hover:bg-muted/20 transition-colors last:border-0">';
+                cols.forEach((col) => {
                     tableHtml += `<td class="py-3 px-4 text-foreground/80">${col}</td>`;
                 });
                 tableHtml += '</tr>';
@@ -382,23 +401,53 @@ return '';
     html = outputLines.join('\n');
 
     // Parse Headers
-    html = html.replace(/^## (.*)$/gm, '<h2 class="mt-8 mb-4 text-lg sm:text-xl font-bold tracking-tight text-foreground border-b pb-2">$1</h2>');
-    html = html.replace(/^### (.*)$/gm, '<h3 class="mt-6 mb-3 text-base sm:text-lg font-bold text-foreground">$1</h3>');
-    html = html.replace(/^# (.*)$/gm, '<h1 class="mt-10 mb-6 text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">$1</h1>');
+    html = html.replace(
+        /^## (.*)$/gm,
+        '<h2 class="mt-8 mb-4 text-lg sm:text-xl font-bold tracking-tight text-foreground border-b pb-2">$1</h2>',
+    );
+    html = html.replace(
+        /^### (.*)$/gm,
+        '<h3 class="mt-6 mb-3 text-base sm:text-lg font-bold text-foreground">$1</h3>',
+    );
+    html = html.replace(
+        /^# (.*)$/gm,
+        '<h1 class="mt-10 mb-6 text-xl sm:text-2xl font-extrabold tracking-tight text-foreground">$1</h1>',
+    );
 
     // Parse Lists
-    html = html.replace(/^\*\s+(.*)$/gm, '<li class="leading-relaxed list-disc ml-6 my-1.5">$1</li>');
-    html = html.replace(/^-\s+(.*)$/gm, '<li class="leading-relaxed list-disc ml-6 my-1.5">$1</li>');
-    html = html.replace(/^\d+\.\s+(.*)$/gm, '<li class="leading-relaxed list-decimal ml-6 my-1.5">$1</li>');
+    html = html.replace(
+        /^\*\s+(.*)$/gm,
+        '<li class="leading-relaxed list-disc ml-6 my-1.5">$1</li>',
+    );
+    html = html.replace(
+        /^-\s+(.*)$/gm,
+        '<li class="leading-relaxed list-disc ml-6 my-1.5">$1</li>',
+    );
+    html = html.replace(
+        /^\d+\.\s+(.*)$/gm,
+        '<li class="leading-relaxed list-decimal ml-6 my-1.5">$1</li>',
+    );
 
     // Wrap consecutive list items
-    html = html.replace(/((?:<li class="[^"]*list-disc[^"]*">.*?<\/li>\n?)+)/gs, '<ul class="my-4 space-y-1">$1</ul>');
-    html = html.replace(/((?:<li class="[^"]*list-decimal[^"]*">.*?<\/li>\n?)+)/gs, '<ol class="my-4 space-y-1">$1</ol>');
+    html = html.replace(
+        /((?:<li class="[^"]*list-disc[^"]*">.*?<\/li>\n?)+)/gs,
+        '<ul class="my-4 space-y-1">$1</ul>',
+    );
+    html = html.replace(
+        /((?:<li class="[^"]*list-decimal[^"]*">.*?<\/li>\n?)+)/gs,
+        '<ol class="my-4 space-y-1">$1</ol>',
+    );
 
     // Parse Inline styling (Bold, Code, Links)
-    html = html.replace(/\*\*([\s\S]*?)\*\*/g, '<strong class="font-semibold text-foreground">$1</strong>');
-    html = html.replace(/`([^`]+)`/g, '<code class="bg-muted px-1.5 py-0.5 rounded-md font-mono text-xs text-indigo-600 dark:text-indigo-400 font-semibold">$1</code>');
-    
+    html = html.replace(
+        /\*\*([\s\S]*?)\*\*/g,
+        '<strong class="font-semibold text-foreground">$1</strong>',
+    );
+    html = html.replace(
+        /`([^`]+)`/g,
+        '<code class="bg-muted px-1.5 py-0.5 rounded-md font-mono text-xs text-indigo-600 dark:text-indigo-400 font-semibold">$1</code>',
+    );
+
     // Links and buttons
     html = html.replace(/\[([^\]]+)\]\(([^)]+)\)/g, (match, text, url) => {
         if (url.startsWith('routes/')) {
@@ -412,19 +461,28 @@ return '';
 
     // Paragraph wrap for other lines
     const paragraphs = html.split('\n\n');
-    html = paragraphs.map(p => {
-        const t = p.trim();
+    html = paragraphs
+        .map((p) => {
+            const t = p.trim();
 
-        if (!t) {
-return '';
-}
+            if (!t) {
+                return '';
+            }
 
-        if (t.startsWith('<div') || t.startsWith('<h') || t.startsWith('<ul') || t.startsWith('<ol') || t.startsWith('<blockquote') || t.startsWith('<table')) {
-            return t;
-        }
+            if (
+                t.startsWith('<div') ||
+                t.startsWith('<h') ||
+                t.startsWith('<ul') ||
+                t.startsWith('<ol') ||
+                t.startsWith('<blockquote') ||
+                t.startsWith('<table')
+            ) {
+                return t;
+            }
 
-        return `<p class="leading-relaxed text-foreground/90 my-4 text-sm sm:text-base">${t.replace(/\n/g, '<br>')}</p>`;
-    }).join('\n');
+            return `<p class="leading-relaxed text-foreground/90 my-4 text-sm sm:text-base">${t.replace(/\n/g, '<br>')}</p>`;
+        })
+        .join('\n');
 
     return html;
 };
@@ -432,16 +490,16 @@ return '';
 // HTML-tag-safe highlighting filter for matches
 const highlightText = (text: string, query: string) => {
     if (!query.trim()) {
-return text;
-}
+        return text;
+    }
 
     const escapedQuery = query.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
     const regex = new RegExp(`(<[^>]+>)|(${escapedQuery})`, 'gi');
 
     return text.replace(regex, (match, tag, term) => {
         if (tag) {
-return tag;
-}
+            return tag;
+        }
 
         return `<mark class="bg-amber-100 text-amber-900 rounded-sm px-0.5 dark:bg-amber-950/80 dark:text-amber-200">${term}</mark>`;
     });
@@ -594,9 +652,13 @@ return tag;
                 <!-- Markdown Content body -->
                 <div
                     class="prose prose-slate dark:prose-invert mt-6 max-w-none"
-                    v-html="highlightText(parseMarkdown(currentArticle.content), searchQuery)"
-                >
-                </div>
+                    v-html="
+                        highlightText(
+                            parseMarkdown(currentArticle.content),
+                            searchQuery,
+                        )
+                    "
+                ></div>
 
                 <!-- Technical Code Block Section -->
                 <div v-if="currentArticle.codeBlock" class="mt-8 space-y-3">

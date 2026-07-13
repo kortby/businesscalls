@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Head } from '@inertiajs/vue3';
-import { ref, onMounted, computed } from 'vue';
 import {
     CheckCircle,
     XCircle,
@@ -13,6 +12,7 @@ import {
     Sparkles,
     Settings,
 } from '@lucide/vue';
+import { ref, onMounted, computed } from 'vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 
 const props = defineProps<{
@@ -28,19 +28,24 @@ const subActive = ref(props.subscriptionActive);
 const skinActive = ref(props.mascotSkinActive);
 const phoneActive = ref(props.phoneProvisioned);
 const isProcessing = ref(false);
-const showMessage = ref<{ type: 'success' | 'error'; text: string } | null>(null);
+const showMessage = ref<{ type: 'success' | 'error'; text: string } | null>(
+    null,
+);
 
 // Rive mascot state: 0 = Idle, 1 = Scanning, 2 = Victory, 3 = Error
 const mascotState = computed(() => {
     if (isProcessing.value) {
         return 1; // Scanning
     }
+
     if (subActive.value && skinActive.value && phoneActive.value) {
         return 2; // Victory
     }
+
     if (!subActive.value || !phoneActive.value) {
         return 3; // Error (if core billing/phone configurations are missing)
     }
+
     return 0; // Idle
 });
 
@@ -77,7 +82,9 @@ const toggleMascotSkin = () => {
     skinActive.value = !skinActive.value;
     showMessage.value = {
         type: 'success',
-        text: skinActive.value ? 'Theme toggle: Artboard skin customized successfully!' : 'Theme override: Reset to standard skin.',
+        text: skinActive.value
+            ? 'Theme toggle: Artboard skin customized successfully!'
+            : 'Theme override: Reset to standard skin.',
     };
 };
 
@@ -100,18 +107,31 @@ const resetMilestones = () => {
 <template>
     <Head title="Onboarding Customizer Board" />
 
-    <div class="min-h-screen bg-slate-900 py-8 px-4 text-slate-100 dark:bg-slate-950">
-        <div class="max-w-6xl mx-auto space-y-8">
+    <div
+        class="min-h-screen bg-slate-900 px-4 py-8 text-slate-100 dark:bg-slate-950"
+    >
+        <div class="mx-auto max-w-6xl space-y-8">
             <!-- Header Panel -->
-            <div class="flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 shadow-[0_8px_0_#334155]">
+            <div
+                class="flex flex-col items-center justify-between gap-6 rounded-3xl border-4 border-slate-700 bg-slate-800 p-6 shadow-[0_8px_0_#334155] md:flex-row"
+            >
                 <div class="flex items-center gap-4">
-                    <div class="p-3 bg-emerald-500 border-b-4 border-emerald-700 rounded-2xl">
-                        <Settings class="w-8 h-8 text-white" />
+                    <div
+                        class="rounded-2xl border-b-4 border-emerald-700 bg-emerald-500 p-3"
+                    >
+                        <Settings class="h-8 w-8 text-white" />
                     </div>
                     <div>
-                        <h1 class="text-3xl font-black tracking-tight text-white uppercase">Onboarding Customizer</h1>
-                        <p class="text-xs text-slate-400 font-bold uppercase mt-1 tracking-wider">
-                            Interactive Workspace Setup, Subagent Mappings & Rive Observers
+                        <h1
+                            class="text-3xl font-black tracking-tight text-white uppercase"
+                        >
+                            Onboarding Customizer
+                        </h1>
+                        <p
+                            class="mt-1 text-xs font-bold tracking-wider text-slate-400 uppercase"
+                        >
+                            Interactive Workspace Setup, Subagent Mappings &
+                            Rive Observers
                         </p>
                     </div>
                 </div>
@@ -120,19 +140,19 @@ const resetMilestones = () => {
                     <button
                         @click="simulateProvisioning"
                         :disabled="isProcessing"
-                        class="bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-black uppercase tracking-wider py-3 px-6 rounded-2xl border-b-4 border-indigo-850 active:border-b-0 active:mt-1 transition-all duration-75 text-xs shadow-lg cursor-pointer"
+                        class="border-indigo-850 cursor-pointer rounded-2xl border-b-4 bg-indigo-600 px-6 py-3 text-xs font-black tracking-wider text-white uppercase shadow-lg transition-all duration-75 hover:bg-indigo-500 active:mt-1 active:border-b-0 disabled:opacity-50"
                     >
                         Buy Line
                     </button>
                     <button
                         @click="triggerConfigurationError"
-                        class="bg-rose-600 hover:bg-rose-500 text-white font-black uppercase tracking-wider py-3 px-6 rounded-2xl border-b-4 border-rose-850 active:border-b-0 active:mt-1 transition-all duration-75 text-xs shadow-lg cursor-pointer"
+                        class="border-rose-850 cursor-pointer rounded-2xl border-b-4 bg-rose-600 px-6 py-3 text-xs font-black tracking-wider text-white uppercase shadow-lg transition-all duration-75 hover:bg-rose-500 active:mt-1 active:border-b-0"
                     >
                         Simulate Failure
                     </button>
                     <button
                         @click="resetMilestones"
-                        class="bg-slate-700 hover:bg-slate-650 text-white font-black uppercase tracking-wider py-3 px-6 rounded-2xl border-b-4 border-slate-900 active:border-b-0 active:mt-1 transition-all duration-75 text-xs shadow-lg cursor-pointer"
+                        class="hover:bg-slate-650 cursor-pointer rounded-2xl border-b-4 border-slate-900 bg-slate-700 px-6 py-3 text-xs font-black tracking-wider text-white uppercase shadow-lg transition-all duration-75 active:mt-1 active:border-b-0"
                     >
                         Reset Board
                     </button>
@@ -140,86 +160,172 @@ const resetMilestones = () => {
             </div>
 
             <!-- Content Grid -->
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div class="grid grid-cols-1 gap-8 lg:grid-cols-3">
                 <!-- Rive Mascot Card -->
-                <div class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 shadow-[0_8px_0_#334155] flex flex-col items-center justify-center min-h-[360px] relative overflow-hidden">
-                    <h2 class="text-lg font-black uppercase tracking-wider text-slate-300 mb-4">Mascot Status</h2>
-                    <div class="w-full max-w-[220px] aspect-square flex items-center justify-center">
+                <div
+                    class="relative flex min-h-[360px] flex-col items-center justify-center overflow-hidden rounded-3xl border-4 border-slate-700 bg-slate-800 p-6 shadow-[0_8px_0_#334155]"
+                >
+                    <h2
+                        class="mb-4 text-lg font-black tracking-wider text-slate-300 uppercase"
+                    >
+                        Mascot Status
+                    </h2>
+                    <div
+                        class="flex aspect-square w-full max-w-[220px] items-center justify-center"
+                    >
                         <DispatcherMascot :state="mascotState" />
                     </div>
                 </div>
 
                 <!-- Onboarding Checklist Table Card -->
-                <div class="lg:col-span-2 bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 shadow-[0_8px_0_#334155] flex flex-col justify-between">
+                <div
+                    class="flex flex-col justify-between rounded-3xl border-4 border-slate-700 bg-slate-800 p-6 shadow-[0_8px_0_#334155] lg:col-span-2"
+                >
                     <div>
-                        <h2 class="text-xl font-black uppercase tracking-wider text-white mb-6 border-b-4 border-slate-700 pb-3">
+                        <h2
+                            class="mb-6 border-b-4 border-slate-700 pb-3 text-xl font-black tracking-wider text-white uppercase"
+                        >
                             Workspace Setup Checklist
                         </h2>
 
                         <div class="overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
+                            <table class="w-full border-collapse text-left">
                                 <thead>
-                                    <tr class="border-b-2 border-slate-700 text-xs font-black uppercase tracking-wider text-slate-400">
-                                        <th class="py-2 px-4">Milestone Target</th>
-                                        <th class="py-2 px-4">Configuration Parameter</th>
-                                        <th class="py-2 px-4">Database Check</th>
-                                        <th class="py-2 px-4">Mascot Action</th>
-                                        <th class="py-2 px-4 text-right">Status</th>
+                                    <tr
+                                        class="border-b-2 border-slate-700 text-xs font-black tracking-wider text-slate-400 uppercase"
+                                    >
+                                        <th class="px-4 py-2">
+                                            Milestone Target
+                                        </th>
+                                        <th class="px-4 py-2">
+                                            Configuration Parameter
+                                        </th>
+                                        <th class="px-4 py-2">
+                                            Database Check
+                                        </th>
+                                        <th class="px-4 py-2">Mascot Action</th>
+                                        <th class="px-4 py-2 text-right">
+                                            Status
+                                        </th>
                                     </tr>
                                 </thead>
-                                <tbody class="divide-y divide-slate-700 text-sm font-bold text-slate-300">
+                                <tbody
+                                    class="divide-y divide-slate-700 text-sm font-bold text-slate-300"
+                                >
                                     <!-- SaaS Subscription -->
-                                    <tr class="hover:bg-slate-900/30 transition-colors">
-                                        <td class="py-3 px-4 flex items-center gap-2">
-                                            <CreditCard class="w-4 h-4 text-emerald-400" />
+                                    <tr
+                                        class="transition-colors hover:bg-slate-900/30"
+                                    >
+                                        <td
+                                            class="flex items-center gap-2 px-4 py-3"
+                                        >
+                                            <CreditCard
+                                                class="h-4 w-4 text-emerald-400"
+                                            />
                                             <span>SaaS Subscription</span>
                                         </td>
-                                        <td class="py-3 px-4 text-slate-400">Stripe Checkout Status</td>
-                                        <td class="py-3 px-4 text-slate-400"><code>subscriptions</code> Table</td>
-                                        <td class="py-3 px-4 text-slate-400">Billing Verification</td>
-                                        <td class="py-3 px-4 text-right">
-                                            <span v-if="subActive" class="text-emerald-400 flex items-center justify-end gap-1">
-                                                <CheckCircle class="w-4 h-4" /> Active
+                                        <td class="px-4 py-3 text-slate-400">
+                                            Stripe Checkout Status
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            <code>subscriptions</code> Table
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            Billing Verification
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span
+                                                v-if="subActive"
+                                                class="flex items-center justify-end gap-1 text-emerald-400"
+                                            >
+                                                <CheckCircle class="h-4 w-4" />
+                                                Active
                                             </span>
-                                            <button v-else @click="simulatePaymentGatewayCheck" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border-b-2 border-amber-700 cursor-pointer">
+                                            <button
+                                                v-else
+                                                @click="
+                                                    simulatePaymentGatewayCheck
+                                                "
+                                                class="cursor-pointer rounded-lg border-b-2 border-amber-700 bg-amber-500 px-2.5 py-1 text-[10px] font-black text-slate-950 uppercase hover:bg-amber-400"
+                                            >
                                                 Verify
                                             </button>
                                         </td>
                                     </tr>
 
                                     <!-- Mascot Skin -->
-                                    <tr class="hover:bg-slate-900/30 transition-colors">
-                                        <td class="py-3 px-4 flex items-center gap-2">
-                                            <User class="w-4 h-4 text-indigo-400" />
+                                    <tr
+                                        class="transition-colors hover:bg-slate-900/30"
+                                    >
+                                        <td
+                                            class="flex items-center gap-2 px-4 py-3"
+                                        >
+                                            <User
+                                                class="h-4 w-4 text-indigo-400"
+                                            />
                                             <span>Mascot Skin</span>
                                         </td>
-                                        <td class="py-3 px-4 text-slate-400">Artboard Skin Selection</td>
-                                        <td class="py-3 px-4 text-slate-400"><code>tenants.settings</code> JSON</td>
-                                        <td class="py-3 px-4 text-slate-400">UI Theme Toggle</td>
-                                        <td class="py-3 px-4 text-right">
-                                            <span v-if="skinActive" class="text-emerald-400 flex items-center justify-end gap-1">
-                                                <CheckCircle class="w-4 h-4" /> Customized
+                                        <td class="px-4 py-3 text-slate-400">
+                                            Artboard Skin Selection
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            <code>tenants.settings</code> JSON
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            UI Theme Toggle
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span
+                                                v-if="skinActive"
+                                                class="flex items-center justify-end gap-1 text-emerald-400"
+                                            >
+                                                <CheckCircle class="h-4 w-4" />
+                                                Customized
                                             </span>
-                                            <button v-else @click="toggleMascotSkin" class="bg-indigo-500 hover:bg-indigo-400 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border-b-2 border-indigo-700 cursor-pointer">
+                                            <button
+                                                v-else
+                                                @click="toggleMascotSkin"
+                                                class="cursor-pointer rounded-lg border-b-2 border-indigo-700 bg-indigo-500 px-2.5 py-1 text-[10px] font-black text-white uppercase hover:bg-indigo-400"
+                                            >
                                                 Customize
                                             </button>
                                         </td>
                                     </tr>
 
                                     <!-- Phone Provisioning -->
-                                    <tr class="hover:bg-slate-900/30 transition-colors">
-                                        <td class="py-3 px-4 flex items-center gap-2">
-                                            <Smartphone class="w-4 h-4 text-amber-400" />
+                                    <tr
+                                        class="transition-colors hover:bg-slate-900/30"
+                                    >
+                                        <td
+                                            class="flex items-center gap-2 px-4 py-3"
+                                        >
+                                            <Smartphone
+                                                class="h-4 w-4 text-amber-400"
+                                            />
                                             <span>Phone Provisioning</span>
                                         </td>
-                                        <td class="py-3 px-4 text-slate-400">Active Phone Line ID</td>
-                                        <td class="py-3 px-4 text-slate-400"><code>tenants.settings</code> JSON</td>
-                                        <td class="py-3 px-4 text-slate-400">Line Verification</td>
-                                        <td class="py-3 px-4 text-right">
-                                            <span v-if="phoneActive" class="text-emerald-400 flex items-center justify-end gap-1">
-                                                <CheckCircle class="w-4 h-4" /> Bound
+                                        <td class="px-4 py-3 text-slate-400">
+                                            Active Phone Line ID
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            <code>tenants.settings</code> JSON
+                                        </td>
+                                        <td class="px-4 py-3 text-slate-400">
+                                            Line Verification
+                                        </td>
+                                        <td class="px-4 py-3 text-right">
+                                            <span
+                                                v-if="phoneActive"
+                                                class="flex items-center justify-end gap-1 text-emerald-400"
+                                            >
+                                                <CheckCircle class="h-4 w-4" />
+                                                Bound
                                             </span>
-                                            <button v-else @click="simulateProvisioning" class="bg-amber-500 hover:bg-amber-400 text-slate-950 text-[10px] font-black uppercase px-2.5 py-1 rounded-lg border-b-2 border-amber-700 cursor-pointer">
+                                            <button
+                                                v-else
+                                                @click="simulateProvisioning"
+                                                class="cursor-pointer rounded-lg border-b-2 border-amber-700 bg-amber-500 px-2.5 py-1 text-[10px] font-black text-slate-950 uppercase hover:bg-amber-400"
+                                            >
                                                 Buy Line
                                             </button>
                                         </td>
@@ -230,8 +336,14 @@ const resetMilestones = () => {
                     </div>
 
                     <!-- Alerts Notice -->
-                    <div v-if="showMessage" class="mt-6 p-4 border-4 rounded-2xl text-xs font-black uppercase tracking-wide"
-                        :class="showMessage.type === 'success' ? 'bg-emerald-950/40 text-emerald-400 border-emerald-700 shadow-[0_4px_0_#047857]' : 'bg-rose-950/40 text-rose-400 border-rose-700 shadow-[0_4px_0_#be123c]'"
+                    <div
+                        v-if="showMessage"
+                        class="mt-6 rounded-2xl border-4 p-4 text-xs font-black tracking-wide uppercase"
+                        :class="
+                            showMessage.type === 'success'
+                                ? 'border-emerald-700 bg-emerald-950/40 text-emerald-400 shadow-[0_4px_0_#047857]'
+                                : 'border-rose-700 bg-rose-950/40 text-rose-400 shadow-[0_4px_0_#be123c]'
+                        "
                     >
                         {{ showMessage.text }}
                     </div>
@@ -239,28 +351,50 @@ const resetMilestones = () => {
             </div>
 
             <!-- Subagents Workflows Handovers Details Panel -->
-            <div class="bg-slate-800 border-4 border-slate-700 rounded-3xl p-6 shadow-[0_8px_0_#334155]">
-                <h2 class="text-xl font-black uppercase tracking-wider text-white mb-6 border-b-4 border-slate-700 pb-3">
+            <div
+                class="rounded-3xl border-4 border-slate-700 bg-slate-800 p-6 shadow-[0_8px_0_#334155]"
+            >
+                <h2
+                    class="mb-6 border-b-4 border-slate-700 pb-3 text-xl font-black tracking-wider text-white uppercase"
+                >
                     Modular Subagent Handovers Configuration
                 </h2>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 text-sm font-bold text-slate-300">
+                <div
+                    class="grid grid-cols-1 gap-8 text-sm font-bold text-slate-300 md:grid-cols-2"
+                >
                     <div class="space-y-4">
                         <p>
-                            Avoid bulky single-prompt scripts by splitting conversational tasks. The parent voice assistant (e.g. <strong>Receptionist Agent</strong>) hands off the customer cleanly to specialized child assistants (e.g. <strong>Payment Agent</strong> or <strong>CSAT Survey Agent</strong>).
+                            Avoid bulky single-prompt scripts by splitting
+                            conversational tasks. The parent voice assistant
+                            (e.g. <strong>Receptionist Agent</strong>) hands off
+                            the customer cleanly to specialized child assistants
+                            (e.g. <strong>Payment Agent</strong> or
+                            <strong>CSAT Survey Agent</strong>).
                         </p>
                         <p>
-                            Under Retell & Vapi settings, targets inherit transcription context to prevent silos, tracking index scoring via $\Phi_{\text{handoff}}$ formulas.
+                            Under Retell & Vapi settings, targets inherit
+                            transcription context to prevent silos, tracking
+                            index scoring via $\Phi_{\text{handoff}}$ formulas.
                         </p>
                     </div>
 
                     <!-- Visual subagents configuration spec mockup -->
-                    <div class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-4 space-y-3 font-mono text-xs">
-                        <div class="flex items-center justify-between text-indigo-400 font-bold uppercase tracking-wider border-b border-slate-700 pb-2">
+                    <div
+                        class="space-y-3 rounded-2xl border-2 border-slate-700 bg-slate-900 p-4 font-mono text-xs"
+                    >
+                        <div
+                            class="flex items-center justify-between border-b border-slate-700 pb-2 font-bold tracking-wider text-indigo-400 uppercase"
+                        >
                             <span>Subagent mapping payload</span>
-                            <span class="text-[9px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded-md">JSON</span>
+                            <span
+                                class="rounded-md bg-slate-800 px-2 py-0.5 text-[9px] text-slate-400"
+                                >JSON</span
+                            >
                         </div>
-                        <pre class="text-slate-300 overflow-x-auto text-[10px] leading-relaxed">
+                        <pre
+                            class="overflow-x-auto text-[10px] leading-relaxed text-slate-300"
+                        >
 {
   "parent_agent": "receptionist_voice_default",
   "child_agents": {

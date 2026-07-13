@@ -32,6 +32,7 @@ const cleanupRive = () => {
 
 const initRive = async () => {
     cleanupRive();
+
     if (!canvasRef.value) {
         return;
     }
@@ -44,11 +45,13 @@ const initRive = async () => {
 
         if (!response.ok || contentType.includes('text/html')) {
             hasRiveLoaded.value = false;
+
             return;
         }
 
         // Map skin name to Rive artboard name
         let artboardName = undefined;
+
         if (props.skin === 'robot') {
             artboardName = 'RobotDispatcher';
         } else if (props.skin === 'gold') {
@@ -105,6 +108,7 @@ const initRive = async () => {
 
 onMounted(() => {
     initRive();
+
     if (canvasRef.value) {
         resizeObserver = new ResizeObserver(() => {
             rInstance?.resizeDrawingSurfaceToCanvas();
@@ -142,6 +146,7 @@ onBeforeUnmount(() => {
     if (resizeObserver && canvasRef.value) {
         resizeObserver.unobserve(canvasRef.value);
     }
+
     cleanupRive();
 });
 </script>

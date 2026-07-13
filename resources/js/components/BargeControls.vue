@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { usePage } from '@inertiajs/vue3';
 import {
     Shield,
     Radio,
@@ -8,10 +9,9 @@ import {
     CheckCircle,
 } from '@lucide/vue';
 import { ref, onBeforeUnmount } from 'vue';
-import { usePage } from '@inertiajs/vue3';
-import { callStore } from '@/lib/store';
 import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { callStore } from '@/lib/store';
 
 const props = defineProps<{
     activeCall: {
@@ -51,17 +51,19 @@ const startTelemetryCollection = (
     const tenantId = (page.props as any).auth?.user?.tenant_id || 1;
 
     telemetryInterval = setInterval(async () => {
-        let stats = { jitter: 0, latency: 0, packetLoss: 0 };
+        const stats = { jitter: 0, latency: 0, packetLoss: 0 };
 
         if (provider === 'vapi' && vapiInstance) {
             const dailyCall =
                 typeof vapiInstance.getDailyCallObject === 'function'
                     ? vapiInstance.getDailyCallObject()
                     : vapiInstance.daily || null;
+
             if (dailyCall && typeof dailyCall.getNetworkStats === 'function') {
                 try {
                     const netStats = await dailyCall.getNetworkStats();
                     const latest = netStats?.stats?.latest;
+
                     if (latest) {
                         stats.latency =
                             (latest.networkRoundTripTime || 0) * 1000;
@@ -78,6 +80,7 @@ const startTelemetryCollection = (
         ) {
             try {
                 const pc = retellInstance.room?.engine?.subscriber?.pcTransport;
+
                 if (pc && typeof pc.getStats === 'function') {
                     const rawStats = await pc.getStats();
                     rawStats.forEach((report: any) => {
@@ -87,6 +90,7 @@ const startTelemetryCollection = (
                         ) {
                             stats.packetLoss = report.packetsLost || 0;
                         }
+
                         if (
                             report.type === 'candidate-pair' &&
                             report.state === 'succeeded'
@@ -107,12 +111,14 @@ const startTelemetryCollection = (
         // Standard Deviation Jitter Calculation
         if (stats.latency > 0) {
             latencies.push(stats.latency);
+
             if (latencies.length > 100) {
                 latencies.shift();
             }
         }
 
         const J = latencies.length;
+
         if (J > 0) {
             const sum = latencies.reduce((acc, val) => acc + val, 0);
             const avg = sum / J;
@@ -171,20 +177,24 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
             if (Math.random() < 0.3) {
                 callStore.isSpeaking = !callStore.isSpeaking;
             }
+
             if (callStore.isSpeaking) {
                 callStore.amplitude = 0.15 + Math.random() * 0.45;
             } else {
                 callStore.amplitude = 0;
             }
         }, 150);
+
         return;
     }
 
     let attempts = 0;
     const interval = setInterval(() => {
         attempts++;
+
         if (attempts > 100 || !vapiInst) {
             clearInterval(interval);
+
             return;
         }
 
@@ -210,6 +220,7 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                                 (window as any).webkitAudioContext
                             )();
                         }
+
                         const source = audioCtx.createMediaStreamSource(
                             new MediaStream([event.track]),
                         );
@@ -223,14 +234,17 @@ const startAudioPolling = (vapiInst: any, isSimulated = false) => {
                             if (analyser && dataArray) {
                                 analyser.getByteTimeDomainData(dataArray);
                                 let sum = 0;
+
                                 for (let i = 0; i < dataArray.length; i++) {
                                     const v = (dataArray[i] - 128) / 128;
                                     sum += v * v;
                                 }
+
                                 const rms = Math.sqrt(sum / dataArray.length);
                                 callStore.amplitude = rms;
                                 callStore.isSpeaking = rms > 0.03;
                             }
+
                             animationFrameId =
                                 requestAnimationFrame(updateAmplitude);
                         };
@@ -252,14 +266,17 @@ const stopAudioPolling = () => {
         clearInterval(simAudioInterval);
         simAudioInterval = null;
     }
+
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = null;
     }
+
     if (audioCtx) {
         audioCtx.close().catch(() => {});
         audioCtx = null;
     }
+
     analyser = null;
     dataArray = null;
     callStore.analyserNode = null;

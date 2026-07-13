@@ -10,11 +10,13 @@ const colors = ['#58cc02', '#1cb0f6', '#ffc800', '#ff4b4b'];
 
 onMounted(() => {
     const canvas = canvasRef.value;
+
     if (!canvas) {
         return;
     }
 
     const ctx = canvas.getContext('2d');
+
     if (!ctx) {
         return;
     }
@@ -50,6 +52,7 @@ onMounted(() => {
             callStore.analyserNode.getByteFrequencyData(dataArray);
 
             const step = Math.max(1, Math.floor(bufferLength / 128));
+
             for (let i = 0; i < 128; i++) {
                 frequencyData[i] = dataArray[i * step] || 0;
             }
@@ -75,6 +78,7 @@ onMounted(() => {
 
         // Draw multiple overlapping fluid waves
         const waveCount = 3;
+
         for (let w = 0; w < waveCount; w++) {
             ctx.beginPath();
             ctx.lineWidth = 4; // Thick borders (Duolingo style)
@@ -90,11 +94,15 @@ onMounted(() => {
                 const binIndex = Math.floor((i / width) * 128);
                 const freq = (frequencyData[binIndex] || 0) / 255.0;
 
-                const sineValue = Math.sin(i * 0.02 + phase * offsetMultiplier + w);
+                const sineValue = Math.sin(
+                    i * 0.02 + phase * offsetMultiplier + w,
+                );
                 const ampFactor = callStore.isSpeaking
                     ? Math.max(amplitude, 0.15)
                     : 0.05;
-                const y = centerY + sineValue * freq * (height * 0.4) * ampFactor * 2.2;
+                const y =
+                    centerY +
+                    sineValue * freq * (height * 0.4) * ampFactor * 2.2;
 
                 ctx.lineTo(i, y);
             }
@@ -113,6 +121,7 @@ onMounted(() => {
 
     onBeforeUnmount(() => {
         window.removeEventListener('resize', resizeCanvas);
+
         if (animationFrameId) {
             cancelAnimationFrame(animationFrameId);
         }
@@ -122,13 +131,14 @@ onMounted(() => {
 
 <template>
     <div
-        class="relative w-full h-32 overflow-hidden rounded-2xl border-4 border-slate-700 bg-slate-900 shadow-inner"
+        class="relative h-32 w-full overflow-hidden rounded-2xl border-4 border-slate-700 bg-slate-900 shadow-inner"
     >
-        <canvas ref="canvasRef" class="w-full h-full block"></canvas>
+        <canvas ref="canvasRef" class="block h-full w-full"></canvas>
         <div
-            class="absolute inset-0 pointer-events-none flex items-center justify-between px-4"
+            class="pointer-events-none absolute inset-0 flex items-center justify-between px-4"
         >
-            <span class="text-xs font-black uppercase tracking-wider text-slate-400"
+            <span
+                class="text-xs font-black tracking-wider text-slate-400 uppercase"
                 >WebGL Audio Spectrogram</span
             >
             <div class="flex items-center gap-1.5">
@@ -136,12 +146,12 @@ onMounted(() => {
                     class="h-2.5 w-2.5 rounded-full"
                     :class="[
                         callStore.isSpeaking
-                            ? 'bg-emerald-500 animate-ping'
-                            : 'bg-slate-500 animate-pulse',
+                            ? 'animate-ping bg-emerald-500'
+                            : 'animate-pulse bg-slate-500',
                     ]"
                 ></span>
                 <span
-                    class="text-[10px] font-black text-slate-300 uppercase tracking-widest"
+                    class="text-[10px] font-black tracking-widest text-slate-300 uppercase"
                 >
                     {{ callStore.isSpeaking ? 'Speaking' : 'Muted' }}
                 </span>

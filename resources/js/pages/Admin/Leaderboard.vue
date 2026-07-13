@@ -34,7 +34,9 @@ const selectedTech = computed(() => {
 
 // Compute mascot state dynamically based on the ranking of the selected technician
 const mascotState = computed(() => {
-    if (!selectedTech.value) return 0;
+    if (!selectedTech.value) {
+        return 0;
+    }
 
     // Top 3 get celebratory state (2)
     if (selectedIndex.value < 3) {

@@ -84,6 +84,7 @@ const initLeaflet = () => {
         document.head.appendChild(script);
     } else {
         const L = (window as any).L;
+
         if (L) {
             setupMap();
         }
@@ -92,7 +93,10 @@ const initLeaflet = () => {
 
 const setupMap = () => {
     const L = (window as any).L;
-    if (!L || !document.getElementById('live-dispatch-map')) return;
+
+    if (!L || !document.getElementById('live-dispatch-map')) {
+        return;
+    }
 
     if (map.value) {
         map.value.remove();
@@ -105,9 +109,12 @@ const setupMap = () => {
     }).setView([37.7749, -122.4194], 13);
 
     // Highly saturated voyager tiles styling
-    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-        maxZoom: 19,
-    }).addTo(map.value);
+    L.tileLayer(
+        'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
+        {
+            maxZoom: 19,
+        },
+    ).addTo(map.value);
 
     L.control.zoom({ position: 'bottomright' }).addTo(map.value);
 
@@ -116,26 +123,34 @@ const setupMap = () => {
 
 const refreshMapMarkers = () => {
     const L = (window as any).L;
-    if (!L || !map.value) return;
 
-    markers.value.forEach(m => m.remove());
+    if (!L || !map.value) {
+        return;
+    }
+
+    markers.value.forEach((m) => m.remove());
     markers.value = [];
-    routes.value.forEach(r => r.remove());
+    routes.value.forEach((r) => r.remove());
     routes.value = [];
 
     // Draw Bookings Pins
-    localBookings.value.forEach(booking => {
-        const lat = booking.latitude ?? (37.7749 + (booking.id % 20) * 0.0015 - 0.015);
-        const lng = booking.longitude ?? (-122.4194 + (booking.id % 15) * 0.0015 - 0.012);
+    localBookings.value.forEach((booking) => {
+        const lat =
+            booking.latitude ?? 37.7749 + (booking.id % 20) * 0.0015 - 0.015;
+        const lng =
+            booking.longitude ?? -122.4194 + (booking.id % 15) * 0.0015 - 0.012;
 
-        const color = booking.priority_state === 'emergency' 
-            ? '#EF4444' 
-            : (booking.status === 'completed' ? '#10B981' : '#3B82F6');
+        const color =
+            booking.priority_state === 'emergency'
+                ? '#EF4444'
+                : booking.status === 'completed'
+                  ? '#10B981'
+                  : '#3B82F6';
 
         const bookingIcon = L.divIcon({
             html: `<div class="w-8 h-8 rounded-full border-4 border-slate-900 bg-white flex items-center justify-center font-black text-[10px]" style="color: ${color}; box-shadow: 2px 2px 0px #0f172a;">#${booking.id}</div>`,
             className: 'custom-booking-marker',
-            iconSize: [32, 32]
+            iconSize: [32, 32],
         });
 
         const marker = L.marker([lat, lng], { icon: bookingIcon })
@@ -148,20 +163,24 @@ const refreshMapMarkers = () => {
     });
 
     // Draw Technicians & Route polylines
-    localTechnicians.value.forEach(tech => {
-        const tLat = tech.latitude ?? (37.7749 + (tech.id % 10) * 0.002 - 0.01);
-        const tLng = tech.longitude ?? (-122.4194 + (tech.id % 8) * 0.002 - 0.008);
+    localTechnicians.value.forEach((tech) => {
+        const tLat = tech.latitude ?? 37.7749 + (tech.id % 10) * 0.002 - 0.01;
+        const tLng =
+            tech.longitude ?? -122.4194 + (tech.id % 8) * 0.002 - 0.008;
 
-        const statusColor = tech.status === 'en_route' 
-            ? '#F59E0B' 
-            : (tech.status === 'on_site' ? '#EF4444' : '#10B981');
+        const statusColor =
+            tech.status === 'en_route'
+                ? '#F59E0B'
+                : tech.status === 'on_site'
+                  ? '#EF4444'
+                  : '#10B981';
 
         const initials = `${tech.first_name[0]}${tech.last_name[0]}`;
 
         const techIcon = L.divIcon({
             html: `<div class="w-10 h-10 rounded-full border-4 border-slate-900 flex items-center justify-center font-black text-white text-xs shadow-md" style="background-color: ${statusColor}; box-shadow: 3px 3px 0px #0f172a;">${initials}</div>`,
             className: 'custom-tech-marker',
-            iconSize: [40, 40]
+            iconSize: [40, 40],
         });
 
         const marker = L.marker([tLat, tLng], { icon: techIcon })
@@ -173,20 +192,29 @@ const refreshMapMarkers = () => {
         markers.value.push(marker);
 
         // Find active bookings for this tech and connect route polylines
-        const techBookings = localBookings.value.filter(b => b.employee_id === tech.id && b.status === 'booked');
+        const techBookings = localBookings.value.filter(
+            (b) => b.employee_id === tech.id && b.status === 'booked',
+        );
+
         if (techBookings.length > 0) {
             const routePoints = [[tLat, tLng]];
-            techBookings.forEach(tb => {
-                const bLat = tb.latitude ?? (37.7749 + (tb.id % 20) * 0.0015 - 0.015);
-                const bLng = tb.longitude ?? (-122.4194 + (tb.id % 15) * 0.0015 - 0.012);
+            techBookings.forEach((tb) => {
+                const bLat =
+                    tb.latitude ?? 37.7749 + (tb.id % 20) * 0.0015 - 0.015;
+                const bLng =
+                    tb.longitude ?? -122.4194 + (tb.id % 15) * 0.0015 - 0.012;
                 routePoints.push([bLat, bLng]);
             });
 
             const polyline = L.polyline(routePoints, {
-                color: techBookings.some(b => b.priority_state === 'emergency') ? '#EF4444' : '#3B82F6',
+                color: techBookings.some(
+                    (b) => b.priority_state === 'emergency',
+                )
+                    ? '#EF4444'
+                    : '#3B82F6',
                 weight: 4,
                 dashArray: '8, 6',
-                opacity: 0.85
+                opacity: 0.85,
             }).addTo(map.value);
 
             routes.value.push(polyline);
@@ -194,9 +222,13 @@ const refreshMapMarkers = () => {
     });
 };
 
-watch([localBookings, localTechnicians], () => {
-    refreshMapMarkers();
-}, { deep: true });
+watch(
+    [localBookings, localTechnicians],
+    () => {
+        refreshMapMarkers();
+    },
+    { deep: true },
+);
 
 // WebSocket integration using useEcho
 onMounted(() => {
@@ -212,14 +244,25 @@ onMounted(() => {
             );
 
             // Mascot state transitions based on dispatch payload
-            if (payload.type === 'route_rebalanced' || payload.booking?.priority_state === 'emergency') {
+            if (
+                payload.type === 'route_rebalanced' ||
+                payload.booking?.priority_state === 'emergency'
+            ) {
                 mascotState.value = 1; // Scanning Radar
-            } else if (payload.type === 'success' || payload.type === 'booking_confirmed') {
+            } else if (
+                payload.type === 'success' ||
+                payload.type === 'booking_confirmed'
+            ) {
                 mascotState.value = 2; // Victory
                 setTimeout(() => {
-                    if (mascotState.value === 2) mascotState.value = 0;
+                    if (mascotState.value === 2) {
+                        mascotState.value = 0;
+                    }
                 }, 4000);
-            } else if (payload.type === 'error' || payload.type === 'route_failed') {
+            } else if (
+                payload.type === 'error' ||
+                payload.type === 'route_failed'
+            ) {
                 mascotState.value = 3; // Sad Error
             }
 
@@ -227,6 +270,7 @@ onMounted(() => {
                 const idx = localBookings.value.findIndex(
                     (b) => b.id === payload.booking.id,
                 );
+
                 if (idx !== -1) {
                     localBookings.value[idx] = payload.booking;
                 } else {
@@ -264,6 +308,7 @@ onMounted(() => {
             const existing = localCalls.value.find(
                 (c) => c.call_id === payload.call_id,
             );
+
             if (existing) {
                 existing.status = 'completed';
             }
@@ -273,6 +318,7 @@ onMounted(() => {
 
 onUnmounted(() => {
     stopCallSimulation();
+
     if (map.value) {
         map.value.remove();
     }
@@ -309,6 +355,7 @@ const stopCallSimulation = () => {
         clearInterval(simulationInterval);
         simulationInterval = null;
     }
+
     callStore.isSpeaking = false;
     callStore.amplitude = 0;
 };
@@ -344,6 +391,7 @@ const simulateBookingConfirmation = () => {
         const tIdx = localTechnicians.value.findIndex(
             (t) => t.id === randomTech.id,
         );
+
         if (tIdx !== -1) {
             localTechnicians.value[tIdx].status = 'en_route';
         }
@@ -359,14 +407,19 @@ const simulateBookingConfirmation = () => {
 // Simulate dynamic emergency insertion and schedule shift re-balancing
 const simulateEmergencyInsertion = () => {
     mascotState.value = 1; // Scanning Radar
-    addLog('Simulation: Emergency Call Triage matching unassigned HVAC problem...', 'warning');
+    addLog(
+        'Simulation: Emergency Call Triage matching unassigned HVAC problem...',
+        'warning',
+    );
 
     const randomTech =
         localTechnicians.value[
             Math.floor(Math.random() * localTechnicians.value.length)
         ] || null;
 
-    if (!randomTech) return;
+    if (!randomTech) {
+        return;
+    }
 
     const emergencyBooking = {
         id: Math.floor(Math.random() * 10000),
@@ -384,11 +437,20 @@ const simulateEmergencyInsertion = () => {
     };
 
     // Find and push back any subsequent bookings for this technician
-    localBookings.value.forEach(b => {
-        if (b.employee_id === randomTech.id && b.status === 'booked' && b.id !== emergencyBooking.id) {
+    localBookings.value.forEach((b) => {
+        if (
+            b.employee_id === randomTech.id &&
+            b.status === 'booked' &&
+            b.id !== emergencyBooking.id
+        ) {
             const oldDate = new Date(b.scheduled_start);
-            b.scheduled_start = new Date(oldDate.getTime() + 120 * 60000).toISOString();
-            addLog(`Simulation: Pushed back Job #${b.id} by 120 minutes due to Emergency Insertion.`, 'info');
+            b.scheduled_start = new Date(
+                oldDate.getTime() + 120 * 60000,
+            ).toISOString();
+            addLog(
+                `Simulation: Pushed back Job #${b.id} by 120 minutes due to Emergency Insertion.`,
+                'info',
+            );
         }
     });
 
@@ -397,11 +459,16 @@ const simulateEmergencyInsertion = () => {
 
     randomTech.status = 'en_route';
 
-    addLog(`Simulation: Emergency inserted at front. Technician ${randomTech.first_name} routed.`, 'success');
+    addLog(
+        `Simulation: Emergency inserted at front. Technician ${randomTech.first_name} routed.`,
+        'success',
+    );
 };
 
 const simulateTechnicianStatusUpdate = () => {
-    if (localTechnicians.value.length === 0) return;
+    if (localTechnicians.value.length === 0) {
+        return;
+    }
 
     const statuses = ['idle', 'en_route', 'on_site', 'completed'];
     const randomTech =
@@ -415,7 +482,9 @@ const simulateTechnicianStatusUpdate = () => {
     if (nextStatus === 'on_site' || nextStatus === 'completed') {
         mascotState.value = 2; // Victory confetti
         setTimeout(() => {
-            if (mascotState.value === 2) mascotState.value = 0;
+            if (mascotState.value === 2) {
+                mascotState.value = 0;
+            }
         }, 4000);
     }
 
@@ -429,7 +498,10 @@ const simulateTechnicianStatusUpdate = () => {
 // Simulate Route Deviation & Uncertified matches
 const simulateRouteDeviationError = () => {
     mascotState.value = 3; // Sad Error Mascot State
-    addLog('Simulation Error: Uncertified technician mismatch or route deviation detected!', 'warning');
+    addLog(
+        'Simulation Error: Uncertified technician mismatch or route deviation detected!',
+        'warning',
+    );
 };
 
 const resetSimulation = () => {
@@ -571,7 +643,7 @@ const resetSimulation = () => {
 
                     <!-- Map container element -->
                     <div
-                        class="relative overflow-hidden rounded-2xl border-4 border-slate-900 bg-emerald-50/50 dark:bg-slate-950 z-0"
+                        class="relative z-0 overflow-hidden rounded-2xl border-4 border-slate-900 bg-emerald-50/50 dark:bg-slate-950"
                     >
                         <div id="live-dispatch-map"></div>
                     </div>
@@ -670,7 +742,7 @@ const resetSimulation = () => {
                                 Status
                             </div>
                             <div
-                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 capitalize text-slate-950"
+                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 text-slate-950 capitalize"
                                 :class="[
                                     selectedNode.data.status === 'en_route'
                                         ? 'bg-amber-400'
@@ -690,14 +762,15 @@ const resetSimulation = () => {
                                 <span
                                     v-for="skill in selectedNode.data.skills"
                                     :key="skill"
-                                    class="rounded border border-slate-900 px-1.5 py-0.5 text-xs bg-slate-50 dark:bg-slate-800"
+                                    class="rounded border border-slate-900 bg-slate-50 px-1.5 py-0.5 text-xs dark:bg-slate-800"
                                 >
                                     {{ skill }}
                                 </span>
                                 <span
-                                    v-for="cert in (selectedNode.data.certifications || [])"
+                                    v-for="cert in selectedNode.data
+                                        .certifications || []"
                                     :key="cert"
-                                    class="rounded border-2 border-slate-950 bg-amber-200 text-slate-950 px-1.5 py-0.5 text-xs font-black uppercase"
+                                    class="rounded border-2 border-slate-950 bg-amber-200 px-1.5 py-0.5 text-xs font-black text-slate-950 uppercase"
                                 >
                                     {{ cert }}
                                 </span>
@@ -731,12 +804,18 @@ const resetSimulation = () => {
                                 Priority State
                             </div>
                             <div
-                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 uppercase text-slate-950"
+                                class="inline-block rounded-lg border-2 border-slate-900 px-2.5 py-0.5 text-slate-950 uppercase"
                                 :class="[
-                                    selectedNode.data.priority_state === 'emergency' ? 'bg-red-400' : 'bg-blue-300'
+                                    selectedNode.data.priority_state ===
+                                    'emergency'
+                                        ? 'bg-red-400'
+                                        : 'bg-blue-300',
                                 ]"
                             >
-                                {{ selectedNode.data.priority_state || 'routine_maintenance' }}
+                                {{
+                                    selectedNode.data.priority_state ||
+                                    'routine_maintenance'
+                                }}
                             </div>
                         </div>
                         <div>
@@ -830,7 +909,10 @@ const resetSimulation = () => {
                         <button
                             @click="simulateEmergencyInsertion"
                             class="duo-btn duo-btn-info flex w-full items-center justify-center gap-2"
-                            style="background-color: #ef4444; box-shadow: 0 4px 0 0 #b91c1c;"
+                            style="
+                                background-color: #ef4444;
+                                box-shadow: 0 4px 0 0 #b91c1c;
+                            "
                         >
                             <AlertCircle class="h-4 w-4 stroke-[3]" />
                             Simulate Emergency Insertion
@@ -847,7 +929,10 @@ const resetSimulation = () => {
                         <button
                             @click="simulateRouteDeviationError"
                             class="duo-btn duo-btn-muted flex w-full items-center justify-center gap-2"
-                            style="background-color: #f87171; box-shadow: 0 4px 0 0 #dc2626;"
+                            style="
+                                background-color: #f87171;
+                                box-shadow: 0 4px 0 0 #dc2626;
+                            "
                         >
                             <AlertCircle class="h-4 w-4 stroke-[3]" />
                             Simulate Route Deviation

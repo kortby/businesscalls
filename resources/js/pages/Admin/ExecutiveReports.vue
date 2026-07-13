@@ -26,6 +26,7 @@ const mascotState = computed(() => {
     if (props.averageCqs < 0.85 || props.avgLatencyDrift > 300.0) {
         return 3;
     }
+
     // If target met, show victory state, else idle
     return props.weeklyPerformanceTargetMet ? 2 : 0;
 });
