@@ -123,21 +123,30 @@ class VerifySystemReadiness extends Command
         }
 
         // Check 3: Real-Time Sockets
-        $this->comment("\nRunning Check 3: Real-Time Sockets (Laravel Reverb)...");
+        $this->comment("\nRunning Check 3: Real-Time Sockets (Laravel Reverb or Pusher)...");
         $driver = config('broadcasting.default');
         if ($driver === 'reverb') {
             $this->info('✔ Broadcasting default driver is [reverb].');
+            $appKey = env('REVERB_APP_KEY');
+            $host = env('REVERB_HOST');
+            if ($appKey && $host) {
+                $this->info("✔ Reverb host [{$host}] is configured with app key.");
+            } else {
+                $this->error('✘ Reverb app keys or hosts are missing in environment configuration.');
+                $success = false;
+            }
+        } elseif ($driver === 'pusher') {
+            $this->info('✔ Broadcasting default driver is [pusher].');
+            $appKey = env('PUSHER_APP_KEY');
+            $appId = env('PUSHER_APP_ID');
+            if ($appKey && $appId) {
+                $this->info('✔ Pusher keys are configured successfully.');
+            } else {
+                $this->error('✘ Pusher app keys or IDs are missing in environment configuration.');
+                $success = false;
+            }
         } else {
-            $this->error("✘ Broadcasting default driver is [{$driver}] (Requirement: reverb)");
-            $success = false;
-        }
-
-        $appKey = env('REVERB_APP_KEY');
-        $host = env('REVERB_HOST');
-        if ($appKey && $host) {
-            $this->info("✔ Reverb host [{$host}] is configured with app key.");
-        } else {
-            $this->error('✘ Reverb app keys or hosts are missing in environment configuration.');
+            $this->error("✘ Broadcasting default driver is [{$driver}] (Requirement: reverb or pusher)");
             $success = false;
         }
 
