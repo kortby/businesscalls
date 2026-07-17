@@ -24,7 +24,7 @@ test('robots.txt file exists and has correct directives', function () {
     $content = file_get_contents($path);
     expect($content)->toContain('User-agent: *');
     expect($content)->toContain('Disallow: /admin');
-    expect($content)->toContain('Sitemap: https://businesscalls.io/sitemap.xml');
+    expect($content)->toContain('Sitemap: https://justmascot.io/sitemap.xml');
 });
 
 test('public marketing pages return successful response', function () {

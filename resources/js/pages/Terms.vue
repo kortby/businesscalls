@@ -17,8 +17,8 @@ import {
 
 <template>
     <SeoHead
-        title="Terms of Service | businesscalls"
-        description="Read the Terms of Service for businesscalls, a product of ShieldSuite Inc. Understand licensing, subscription fees, and scheduling SLA rules."
+        title="Terms of Service | JustMascot"
+        description="Read the Terms of Service for JustMascot, a product of ShieldSuite Inc. Understand licensing, subscription fees, and scheduling SLA rules."
         keywords="terms of service, billing terms, SaaS license, contractor dispatcher SLA"
     />
 
@@ -33,15 +33,11 @@ import {
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <Link :href="home()" class="flex items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
-                    <span class="text-xl font-bold tracking-tight"
-                        >businesscalls</span
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0"
+                    />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </Link>
 
@@ -105,7 +101,7 @@ import {
                 class="prose prose-slate dark:prose-invert mt-8 max-w-none space-y-6 text-sm leading-relaxed text-muted-foreground"
             >
                 <p>
-                    Welcome to <strong>businesscalls</strong>. These Terms of
+                    Welcome to <strong>JustMascot</strong>. These Terms of
                     Service ("Terms") govern your access to and use of our
                     website, services, and software apps. The service is owned,
                     developed, and operated by <strong>ShieldSuite Inc.</strong>
@@ -159,7 +155,7 @@ import {
                     shall not be liable for any indirect, incidental, or
                     consequential damages (including lost profits, lost
                     contractor jobs, or data leaks) arising out of or relating
-                    to the use of businesscalls software.
+                    to the use of JustMascot software.
                 </p>
 
                 <h2 class="text-xl font-bold text-foreground">

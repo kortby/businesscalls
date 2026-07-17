@@ -89,7 +89,7 @@ const brandedIdForm = useForm({
         props.tenant.settings?.branded_business_name || props.tenant.name,
     brand_logo_url:
         props.tenant.settings?.branded_logo_url ||
-        'https://assets.businesscalls.io/logo.png',
+        'https://assets.justmascot.io/logo.png',
     physical_address:
         props.tenant.settings?.branded_physical_address ||
         '123 Main St, Seattle, WA 98101',

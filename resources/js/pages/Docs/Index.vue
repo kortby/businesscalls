@@ -61,8 +61,8 @@ const staticArticles: Article[] = [
         title: 'Introduction & Quick Start',
         icon: BookOpen,
         summary:
-            'Learn how businesscalls schedules technician appointments and automates client voice dispatch.',
-        content: `Welcome to **businesscalls**, the production-grade AI-driven voice receptionist and scheduling coordinator for trade contractors (HVAC, plumbing, electrical, and locksmiths). businesscalls bridges the gap between incoming client calls and real-time dispatcher scheduling.
+            'Learn how JustMascot schedules technician appointments and automates client voice dispatch.',
+        content: `Welcome to **JustMascot**, the production-grade AI-driven voice receptionist and scheduling coordinator for trade contractors (HVAC, plumbing, electrical, and locksmiths). JustMascot bridges the gap between incoming client calls and real-time dispatcher scheduling.
 
 ### Step-by-Step Setup:
 1. **Technician Setup**: Head to the **Employees** portal and add your technicians with their specific trade skills (e.g. plumbing, HVAC).
@@ -102,7 +102,7 @@ Broadcasts are sent via **Pusher Reverb** websocket channels to synchronize the 
         title: '1.5-Hour Overlap Buffer Engine',
         icon: Clock,
         summary:
-            'How businesscalls protects travel margins and prevents technician double-bookings.',
+            'How JustMascot protects travel margins and prevents technician double-bookings.',
         content: `To ensure technicians have sufficient travel time between appointments, the scheduling engine automatically enforces a **1.5-hour buffer** between appointments.
 
 ### How the Buffer Works:
@@ -132,7 +132,7 @@ $overlapExists = Booking::where('employee_id', $employeeId)
         icon: Lock,
         summary:
             'Secure database architecture isolating query scopes to ensure tenant data privacy.',
-        content: `businesscalls is a multi-tenant platform, meaning that multiple contracting companies run on the same application server but their data remains strictly isolated.
+        content: `JustMascot is a multi-tenant platform, meaning that multiple contracting companies run on the same application server but their data remains strictly isolated.
 
 ### Global Query Scoping:
 * **TenantScope**: Every query to model tables (employees, customers, bookings, etc.) automatically appends an active \`tenant_id\` condition.
@@ -158,7 +158,7 @@ $overlapExists = Booking::where('employee_id', $employeeId)
 
 ### Handshake Protocol:
 1. Every telephony request payload is signed using your unique **Tenant Secret Key**.
-2. When the webhook reaches businesscalls, the \`EnsureRegulatoryCompliance\` middleware recomputes the HMAC-SHA256 hash using the raw request body.
+2. When the webhook reaches JustMascot, the \`EnsureRegulatoryCompliance\` middleware recomputes the HMAC-SHA256 hash using the raw request body.
 3. If the recomputed hash matches the header signature, the request is processed; otherwise, it is blocked with an HTTP 403 Forbidden error. This secures technician schedules from malicious external API triggers.`,
         tags: [
             'hmac',
@@ -507,7 +507,7 @@ const highlightText = (text: string, query: string) => {
 </script>
 
 <template>
-    <Head title="Documentation - businesscalls" />
+    <Head title="Documentation - JustMascot" />
 
     <div class="mx-auto flex max-w-7xl flex-col gap-6 p-4 sm:p-6 md:p-8">
         <!-- Documentation Header Page Title and Search -->
@@ -520,7 +520,7 @@ const highlightText = (text: string, query: string) => {
                 </h1>
                 <p class="mt-1 text-sm text-muted-foreground">
                     Everything you need to know about setting up and using
-                    businesscalls.
+                    JustMascot.
                 </p>
             </div>
 

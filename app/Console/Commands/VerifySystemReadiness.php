@@ -39,7 +39,7 @@ class VerifySystemReadiness extends Command
     public function handle(): int
     {
         $this->info('==================================================');
-        $this->info('     BusinessCalls Production Launch Verification   ');
+        $this->info('     JustMascot Production Launch Verification   ');
         $this->info('==================================================');
 
         $success = true;

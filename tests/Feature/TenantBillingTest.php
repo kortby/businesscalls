@@ -82,5 +82,5 @@ test('generate invoices command aggregates call durations and calculates costs c
         ->and($htmlContent)->toContain('79.00')
         ->and($htmlContent)->toContain('1.40')
         ->and($htmlContent)->toContain('80.40')
-        ->and($htmlContent)->toContain('BusinessCalls');
+        ->and($htmlContent)->toContain('JustMascot');
 });

@@ -31,19 +31,19 @@ import {
 <template>
     <SeoHead
         title="About Us | Dedicated AI Voice Receptionists for Trades"
-        description="Learn how businesscalls is transforming scheduling for trade industries. Discover our mission to eliminate missed service calls for HVAC, plumbing, and electrical contractors."
-        keywords="about businesscalls, contractor answering services, trade scheduling platform, AI dispatcher mission, automation for contractors"
+        description="Learn how JustMascot is transforming scheduling for trade industries. Discover our mission to eliminate missed service calls for HVAC, plumbing, and electrical contractors."
+        keywords="about JustMascot, contractor answering services, trade scheduling platform, AI dispatcher mission, automation for contractors"
         :jsonLd="{
             '@context': 'https://schema.org',
             '@type': 'Organization',
-            name: 'businesscalls',
-            url: 'https://businesscalls.io',
-            logo: 'https://businesscalls.io/apple-touch-icon.png',
+            name: 'JustMascot',
+            url: 'https://justmascot.io',
+            logo: 'https://justmascot.io/apple-touch-icon.png',
             description:
                 'AI voice receptionist and scheduling automation provider for home service and trade contractors.',
             sameAs: [
-                'https://x.com/businesscalls',
-                'https://www.linkedin.com/company/businesscalls',
+                'https://x.com/justmascot',
+                'https://www.linkedin.com/company/justmascot',
             ],
         }"
     />
@@ -59,15 +59,11 @@ import {
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <Link :href="home()" class="flex items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform duration-300 hover:scale-105"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
-                    <span class="text-xl font-bold tracking-tight"
-                        >businesscalls</span
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0 transition-transform duration-300 hover:scale-105"
+                    />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </Link>
 
@@ -144,7 +140,7 @@ import {
                     Our Mission: Zero Missed Service Calls for Contractors
                 </h1>
                 <p class="text-lg leading-relaxed text-muted-foreground">
-                    At <strong>businesscalls</strong>, we build cutting-edge
+                    At <strong>JustMascot</strong>, we build cutting-edge
                     artificial intelligence dispatch systems specifically
                     engineered for plumbing, HVAC, and electrical service
                     businesses. Our mission is to ensure that no home service
@@ -294,7 +290,7 @@ import {
                         <p
                             class="mt-2 text-sm leading-relaxed text-muted-foreground"
                         >
-                            Today, <strong>businesscalls</strong> processes
+                            Today, <strong>JustMascot</strong> processes
                             thousands of calls daily, powering trade franchise
                             groups and local business owners alike, preventing
                             missed leads, and allowing technicians to focus
@@ -495,7 +491,7 @@ import {
                         <p
                             class="mt-2 text-xs leading-relaxed text-indigo-800 dark:text-indigo-400"
                         >
-                            Let businesscalls secure your phone lines,
+                            Let JustMascot secure your phone lines,
                             auto-route bookings, and grow your revenue today.
                         </p>
                         <Link

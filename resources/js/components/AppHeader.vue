@@ -8,7 +8,10 @@ import {
     Search,
     Calendar,
     Clock,
+    Sun,
+    Moon,
 } from '@lucide/vue';
+import { useAppearance } from '@/composables/useAppearance';
 import { computed } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
@@ -106,6 +109,12 @@ const toggleSandboxMode = () => {
         },
     );
 };
+
+const { appearance, updateAppearance } = useAppearance();
+
+const toggleAppearance = () => {
+    updateAppearance(appearance.value === 'dark' ? 'light' : 'dark');
+};
 </script>
 
 <template>
@@ -130,7 +139,7 @@ const toggleSandboxMode = () => {
                             >
                             <SheetHeader class="flex justify-start text-left">
                                 <AppLogoIcon
-                                    class="size-6 fill-current text-black dark:text-white"
+                                    class="size-6 shrink-0"
                                 />
                             </SheetHeader>
                             <div
@@ -257,6 +266,24 @@ const toggleSandboxMode = () => {
                         >
                             <Search
                                 class="size-5 opacity-80 group-hover:opacity-100"
+                            />
+                        </Button>
+
+                        <!-- Theme Toggle Button -->
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            class="group h-9 w-9 cursor-pointer"
+                            @click="toggleAppearance"
+                            title="Toggle Theme"
+                        >
+                            <Sun
+                                v-if="appearance === 'dark'"
+                                class="size-5 opacity-80 group-hover:opacity-100 text-yellow-500"
+                            />
+                            <Moon
+                                v-else
+                                class="size-5 opacity-80 group-hover:opacity-100 text-slate-700 dark:text-slate-300"
                             />
                         </Button>
 

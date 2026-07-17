@@ -77,7 +77,7 @@ const jsonLdScript = computed(() => {
         <meta property="og:description" :content="description" />
         <meta property="og:url" :content="canonicalUrl" />
         <meta property="og:image" :content="ogImageUrl" />
-        <meta property="og:site_name" content="businesscalls" />
+        <meta property="og:site_name" content="JustMascot" />
 
         <!-- Twitter -->
         <meta property="twitter:card" content="summary_large_image" />

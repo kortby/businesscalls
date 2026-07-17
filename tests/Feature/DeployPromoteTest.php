@@ -19,7 +19,7 @@ dev:
   telephony_provider: "vapi"
   telephony_phone_number: "+15550001111"
   telephony_phone_number_id: "dev-phone-sid"
-  webhook_url: "https://dev.businesscalls.com/webhook"
+  webhook_url: "https://dev.justmascot.com/webhook"
 
 invalid:
   slug: "invalid"

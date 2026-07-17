@@ -64,7 +64,7 @@ import PasskeyVerify from '@/components/PasskeyVerify.vue';
                     />
                 </Link>
                 <p class="text-[10px] text-slate-500">
-                    Laravel BusinessCalls &bull; Secured with WebAuthn Passkeys
+                    Laravel JustMascot &bull; Secured with WebAuthn Passkeys
                 </p>
             </div>
         </div>

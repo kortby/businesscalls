@@ -29,13 +29,13 @@ class GenerateRouteDocs extends Command
     protected array $userGuides = [
         'home' => [
             'title' => 'Welcome Page',
-            'overview' => 'The public-facing landing page of the businesscalls platform.',
+            'overview' => 'The public-facing landing page of the JustMascot platform.',
             'how_it_works' => 'Displays general product options, branding messages, and provides links to register or log into the application portal.',
             'how_to_use' => 'Navigate to the root URL (/) of the application in your browser to view the greeting layout.',
         ],
         'about' => [
             'title' => 'About Us Information',
-            'overview' => 'Public information page describing the mission and technology of businesscalls.',
+            'overview' => 'Public information page describing the mission and technology of JustMascot.',
             'how_it_works' => 'Explains our real-time AI scheduling algorithms, team backgrounds, and customer success principles.',
             'how_to_use' => 'Click the "About" link in the navbar or go directly to the `/about` URL path.',
         ],
@@ -47,7 +47,7 @@ class GenerateRouteDocs extends Command
         ],
         'contact' => [
             'title' => 'Contact & Support Request',
-            'overview' => 'Send messages or support queries directly to the businesscalls service administrators.',
+            'overview' => 'Send messages or support queries directly to the JustMascot service administrators.',
             'how_it_works' => 'Provides client details form fields to capture name, email, text notes, and logs queries.',
             'how_to_use' => 'Fill out the contact form fields and press "Send Inquiry".',
         ],
@@ -269,7 +269,7 @@ class GenerateRouteDocs extends Command
         ],
         'admin.onboarding' => [
             'title' => 'Interactive Onboarding Guide',
-            'overview' => 'Interactive step-by-step checklist to configure businesscalls.',
+            'overview' => 'Interactive step-by-step checklist to configure JustMascot.',
             'how_it_works' => 'Tracks progress through necessary setup steps (Add technician, define shifts, link Twilio).',
             'how_to_use' => 'Complete each item on the quest checklist to move the account from sandbox to live production mode.',
         ],

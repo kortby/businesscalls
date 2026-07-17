@@ -23,7 +23,7 @@ dev:
   telephony_provider: "vapi"
   telephony_phone_number: "+15550001111"
   telephony_phone_number_id: "dev-phone-sid"
-  webhook_url: "https://dev.businesscalls.com/webhook"
+  webhook_url: "https://dev.justmascot.com/webhook"
 
 uat:
   slug: "uat"
@@ -31,7 +31,7 @@ uat:
   telephony_provider: "vapi"
   telephony_phone_number: "+15550002222"
   telephony_phone_number_id: "uat-phone-sid"
-  webhook_url: "https://uat.businesscalls.com/webhook"
+  webhook_url: "https://uat.justmascot.com/webhook"
 
 prod:
   slug: "prod"
@@ -39,7 +39,7 @@ prod:
   telephony_provider: "vapi"
   telephony_phone_number: "+15550003333"
   telephony_phone_number_id: "prod-phone-sid"
-  webhook_url: "https://api.businesscalls.com/webhook"
+  webhook_url: "https://api.justmascot.com/webhook"
 YAML
     );
 });

@@ -7,11 +7,14 @@ import {
     UserCheck,
     Star,
     ChevronDown,
+    Sun,
+    Moon,
 } from '@lucide/vue';
 import { ref, onMounted } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import SeoHead from '@/components/SeoHead.vue';
+import { useAppearance } from '@/composables/useAppearance';
 import { Badge } from '@/components/ui/badge';
 import {
     dashboard,
@@ -24,6 +27,12 @@ import {
     privacy,
     terms,
 } from '@/routes';
+
+const { appearance, updateAppearance } = useAppearance();
+
+const toggleAppearance = () => {
+    updateAppearance(appearance.value === 'dark' ? 'light' : 'dark');
+};
 
 const mascotState = ref<number>(0);
 const simulatedMessage = ref<string>('Mascot is idle, monitoring channels...');
@@ -84,7 +93,7 @@ onMounted(() => {
         :jsonLd="{
             '@context': 'https://schema.org',
             '@type': 'SoftwareApplication',
-            name: 'businesscalls',
+            name: 'JustMascot',
             operatingSystem: 'All',
             applicationCategory: 'BusinessApplication',
             description:
@@ -109,16 +118,12 @@ onMounted(() => {
             >
                 <!-- Logo -->
                 <div class="group flex cursor-pointer items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform duration-300 group-hover:scale-105"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0 transition-transform duration-300 group-hover:scale-105"
+                    />
                     <span
-                        class="bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-xl font-bold tracking-tight text-transparent dark:from-white dark:to-slate-300"
-                        >businesscalls</span
+                        class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </div>
 
@@ -147,6 +152,22 @@ onMounted(() => {
                 </nav>
 
                 <div class="flex items-center gap-4">
+                    <!-- Theme Toggle Button -->
+                    <button
+                        @click="toggleAppearance"
+                        class="flex h-9 w-9 items-center justify-center rounded-md border border-input bg-background text-sm font-medium shadow-xs transition-colors hover:bg-accent hover:text-accent-foreground"
+                        title="Toggle theme"
+                    >
+                        <Sun
+                            v-if="appearance === 'dark'"
+                            class="h-4 w-4 text-yellow-500"
+                        />
+                        <Moon
+                            v-else
+                            class="h-4 w-4 text-slate-700 dark:text-slate-300"
+                        />
+                    </button>
+
                     <Link
                         v-if="$page.props.auth.user"
                         :href="dashboard()"
@@ -229,7 +250,7 @@ onMounted(() => {
                     >
                         Never miss another service call or lose a customer to
                         the competition.
-                        <strong>businesscalls</strong> is the ultimate AI voice
+                        <strong>JustMascot</strong> is the ultimate AI voice
                         receptionist and automated dispatch scheduling platform
                         built specifically for plumbing, HVAC, electrical, and
                         other home service businesses. Our system automatically
@@ -464,7 +485,7 @@ onMounted(() => {
                         Trusted by top-tier trade contractors
                     </h3>
                     <p class="leading-relaxed text-muted-foreground">
-                        Discover how businesscalls helps HVAC, plumbing, and
+                        Discover how JustMascot helps HVAC, plumbing, and
                         electrical teams capture more value from every call.
                     </p>
                 </div>
@@ -492,7 +513,7 @@ onMounted(() => {
                                 class="mb-6 text-sm leading-relaxed text-muted-foreground italic"
                             >
                                 "The 1.5h overlap buffer is a lifesaver. Before
-                                businesscalls, our plumbers were constantly
+                                JustMascot, our plumbers were constantly
                                 double-booked during rush hour traffic. Now, our
                                 travel windows are protected automatically."
                             </p>

@@ -275,7 +275,7 @@ onBeforeUnmount(() => {
                         <h1
                             class="text-lg font-black tracking-tight text-white uppercase"
                         >
-                            {{ booking.tenant?.name || 'BusinessCalls CRM' }}
+                            {{ booking.tenant?.name || 'JustMascot CRM' }}
                         </h1>
                         <p
                             class="text-xs font-bold tracking-widest text-amber-500 uppercase"
@@ -520,7 +520,7 @@ onBeforeUnmount(() => {
             <div
                 class="border-t-2 border-slate-900 bg-slate-950 p-4 text-center text-[10px] font-medium text-slate-600"
             >
-                Provided by BusinessCalls multi-tenant SaaS. Secure end-to-end
+                Provided by JustMascot multi-tenant SaaS. Secure end-to-end
                 encrypted dispatch tracking.
             </div>
         </div>

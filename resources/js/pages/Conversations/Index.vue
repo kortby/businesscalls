@@ -215,7 +215,7 @@ const formatDate = (isoString: string) => {
                         class="mt-1 text-xs font-semibold tracking-widest text-muted-foreground uppercase"
                     >
                         Live SMS & Web messaging for
-                        {{ tenant?.name ?? 'businesscalls' }}
+                        {{ tenant?.name ?? 'JustMascot' }}
                     </p>
                 </div>
             </div>

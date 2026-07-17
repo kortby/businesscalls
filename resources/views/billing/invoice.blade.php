@@ -148,7 +148,7 @@
             </div>
         @endif
         <div class="header">
-            <div class="logo">BusinessCalls</div>
+            <div class="logo">JustMascot</div>
             <div>
                 <div class="invoice-title">Invoice</div>
                 <div class="period-badge">{{ $invoice->billing_period }}</div>
@@ -205,7 +205,7 @@
         </div>
 
         <div class="footer">
-            Thank you for partnering with BusinessCalls!
+            Thank you for partnering with JustMascot!
         </div>
     </div>
 </body>

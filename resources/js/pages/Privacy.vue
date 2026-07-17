@@ -17,8 +17,8 @@ import {
 
 <template>
     <SeoHead
-        title="Privacy Policy | businesscalls"
-        description="Read the privacy policy for businesscalls (built by ShieldSuite Inc.). Learn how we isolate customer data, manage telephony webhooks, and secure technician schedules."
+        title="Privacy Policy | JustMascot"
+        description="Read the privacy policy for JustMascot (built by ShieldSuite Inc.). Learn how we isolate customer data, manage telephony webhooks, and secure technician schedules."
         keywords="privacy policy, data isolation, multi-tenant security, call recording privacy"
     />
 
@@ -33,15 +33,11 @@ import {
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <Link :href="home()" class="flex items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
-                    <span class="text-xl font-bold tracking-tight"
-                        >businesscalls</span
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0"
+                    />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </Link>
 
@@ -105,7 +101,7 @@ import {
                 class="prose prose-slate dark:prose-invert mt-8 max-w-none space-y-6 text-sm leading-relaxed text-muted-foreground"
             >
                 <p>
-                    At <strong>businesscalls</strong> (a software service
+                    At <strong>JustMascot</strong> (a software service
                     developed and operated by
                     <strong>ShieldSuite Inc.</strong>), we take the security and
                     privacy of your data seriously. This Privacy Policy outlines

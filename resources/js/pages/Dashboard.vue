@@ -1072,7 +1072,7 @@ const shiftValidation = computed(() => {
                     <h1
                         class="text-3xl font-bold tracking-tight text-foreground"
                     >
-                        {{ tenant?.name ?? 'businesscalls' }}
+                        {{ tenant?.name ?? 'JustMascot' }}
                     </h1>
                     <div class="mt-1 flex items-center gap-2">
                         <p

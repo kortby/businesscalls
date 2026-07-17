@@ -117,7 +117,7 @@ class SecurityAuditCommand extends Command
 # Laravel Moat - Security Posture Assessment Report
 
 Generated on: **2026-06-23**  
-Target Repository: `laravel/businesscalls`
+Target Repository: `laravel/justmascot`
 
 ---
 

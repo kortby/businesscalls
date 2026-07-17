@@ -37,16 +37,16 @@ const submit = () => {
 
 <template>
     <SeoHead
-        title="Contact Us | Support for businesscalls"
+        title="Contact Us | Support for JustMascot"
         description="Have questions about setting up your AI voice receptionist or routing calls to technicians? Contact our support team for integrations, pricing, and live setup assistance."
-        keywords="contact businesscalls, contractor dispatcher support, AI receptionist setup help, voice dispatch integrations"
+        keywords="contact JustMascot, contractor dispatcher support, AI receptionist setup help, voice dispatch integrations"
         :jsonLd="{
             '@context': 'https://schema.org',
             '@type': 'ContactPage',
-            name: 'Contact businesscalls',
+            name: 'Contact JustMascot',
             description:
-                'Contact page for businesscalls, providing support and integration assistance for trade contractors.',
-            url: 'https://businesscalls.io/contact',
+                'Contact page for JustMascot, providing support and integration assistance for trade contractors.',
+            url: 'https://justmascot.io/contact',
         }"
     />
 
@@ -61,15 +61,11 @@ const submit = () => {
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <Link :href="home()" class="flex items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
-                    <span class="text-xl font-bold tracking-tight"
-                        >businesscalls</span
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0"
+                    />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </Link>
 
@@ -149,7 +145,7 @@ const submit = () => {
                             >
                                 <Mail class="h-4 w-4" />
                             </div>
-                            <span>support@businesscalls.com</span>
+                            <span>support@justmascot.com</span>
                         </div>
                         <div
                             class="flex items-center gap-3 text-xs font-semibold"

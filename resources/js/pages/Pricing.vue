@@ -39,7 +39,7 @@ const toggleFaq = (index: number) => {
 const faqs = [
     {
         question: 'Are there any hidden setup fees or contracts?',
-        answer: 'No. There are no signup or setup fees on any of our standard plans. businesscalls operates on a flexible month-to-month subscription, and you can cancel anytime.',
+        answer: 'No. There are no signup or setup fees on any of our standard plans. JustMascot operates on a flexible month-to-month subscription, and you can cancel anytime.',
     },
     {
         question: 'Can I change my subscription tier later?',
@@ -74,15 +74,11 @@ const faqs = [
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <Link :href="home()" class="flex items-center gap-2">
-                    <div
-                        class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary text-primary-foreground shadow-sm transition-transform duration-300 hover:scale-105"
-                    >
-                        <AppLogoIcon
-                            class="h-5 w-5 fill-current text-primary-foreground"
-                        />
-                    </div>
-                    <span class="text-xl font-bold tracking-tight"
-                        >businesscalls</span
+                    <AppLogoIcon
+                        class="h-10 w-10 shrink-0 transition-transform duration-300 hover:scale-105"
+                    />
+                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
+                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
                     >
                 </Link>
 
@@ -378,7 +374,7 @@ const faqs = [
                         Home service leads are highly time-sensitive. If you
                         miss a call, customers dial the next contractor. Drag
                         the sliders to see what you could save with
-                        businesscalls.
+                        JustMascot.
                     </p>
                 </div>
 
