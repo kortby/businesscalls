@@ -19,14 +19,17 @@ class RestrictToTelephonyIps
 
         $allowlist = config('telephony.allowlist', [
             '100.20.5.228',
+            '167.150.224.0/23',
             '127.0.0.1',
             '::1',
         ]);
 
         $clientIp = $request->ip();
 
-        if (in_array($clientIp, $allowlist)) {
-            return $next($request);
+        foreach ($allowlist as $allowed) {
+            if ($this->ipInCidr($clientIp, $allowed)) {
+                return $next($request);
+            }
         }
 
         // Fallback bearer authorization header check using custom client credentials
@@ -38,5 +41,34 @@ class RestrictToTelephonyIps
         }
 
         return response()->json(['error' => 'Forbidden: Unauthorized IP address.'], 403);
+    }
+
+    /**
+     * Check if an IP address is within a CIDR range.
+     */
+    private function ipInCidr(string $ip, string $cidr): bool
+    {
+        if (! str_contains($cidr, '/')) {
+            return $ip === $cidr;
+        }
+
+        [$subnet, $mask] = explode('/', $cidr, 2);
+        $mask = (int) $mask;
+
+        if ($mask < 0 || $mask > 32) {
+            return false;
+        }
+
+        $ipLong = ip2long($ip);
+        $subnetLong = ip2long($subnet);
+
+        if ($ipLong === false || $subnetLong === false) {
+            return false;
+        }
+
+        $binIp = str_pad(decbin($ipLong), 32, '0', STR_PAD_LEFT);
+        $binSub = str_pad(decbin($subnetLong), 32, '0', STR_PAD_LEFT);
+
+        return substr($binIp, 0, $mask) === substr($binSub, 0, $mask);
     }
 }

@@ -35,6 +35,28 @@ test('middleware RestrictToTelephonyIps allowlists static provider IP and blocks
 
     // Bypasses IP restriction middleware (signature header missing, returns 401, not 403)
     expect($response2->status())->not->toBe(403);
+
+    // Send request from allowlisted Vapi CIDR IP (167.150.224.55) -> passes IP middleware
+    $responseCidrValid = $this->withServerVariables(['REMOTE_ADDR' => '167.150.224.55'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => [
+                'call_id' => 'call-ip-cidr-valid',
+                'customer_phone_number' => '+15551112222',
+            ],
+        ]);
+    expect($responseCidrValid->status())->not->toBe(403);
+
+    // Send request from outside Vapi CIDR IP (167.150.226.1) -> blocks with 403
+    $responseCidrInvalid = $this->withServerVariables(['REMOTE_ADDR' => '167.150.226.1'])
+        ->postJson(route('webhook.call-events', ['tenant_id' => $tenant->id]), [
+            'event' => 'call_started',
+            'call' => [
+                'call_id' => 'call-ip-cidr-invalid',
+                'customer_phone_number' => '+15551112222',
+            ],
+        ]);
+    $responseCidrInvalid->assertStatus(403);
 });
 
 test('webhook endpoint validates Custom Credentials / bearer tokens', function () {
