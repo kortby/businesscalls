@@ -43,7 +43,7 @@ class BookingController extends Controller
             'job_details' => ['required', 'string', 'max:255'],
             'scheduled_start' => ['required', 'date'],
             'recaptcha_token' => [
-                app()->environment('testing') ? 'nullable' : 'required',
+                (app()->environment('testing') || auth()->check()) ? 'nullable' : 'required',
                 new ReCaptcha,
             ],
         ]);
