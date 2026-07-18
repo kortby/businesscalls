@@ -24,7 +24,21 @@ class WebhookGatewayMiddleware
             ?? $request->input('message.toolCalls.0.function.arguments.tenant_id')
             ?? $request->input('message.toolCalls.0.function.arguments.tenant_slug')
             ?? $request->route('tenant_id')
-            ?? $request->route('tenant_slug');
+            ?? $request->route('tenant_slug')
+            ?? $request->input('message.tenantId');
+
+        if (! $tenantIdOrSlug) {
+            $dialedNumber = $request->input('message.phoneNumber.number')
+                ?? $request->input('message.phone.number')
+                ?? $request->input('phoneNumber');
+
+            if ($dialedNumber) {
+                $tenant = Tenant::where('settings->telephony_phone_number', $dialedNumber)->first();
+                if ($tenant) {
+                    $tenantIdOrSlug = $tenant->id;
+                }
+            }
+        }
 
         if (! $tenantIdOrSlug) {
             return $next($request);

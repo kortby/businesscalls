@@ -36,7 +36,24 @@ class DispatchWebhookController extends Controller
         $arguments = $request->input('message.toolCalls.0.function.arguments', []);
         $functionName = $request->input('message.toolCalls.0.function.name') ?? $request->input('function_name');
 
-        $tenantIdOrSlug = $arguments['tenant_id'] ?? $request->input('tenant_id') ?? $arguments['tenant_slug'] ?? $request->input('tenant_slug') ?? $request->input('tenant_id');
+        $tenantIdOrSlug = $arguments['tenant_id']
+            ?? $request->input('tenant_id')
+            ?? $arguments['tenant_slug']
+            ?? $request->input('tenant_slug')
+            ?? $request->input('message.tenantId');
+
+        if (! $tenantIdOrSlug) {
+            $dialedNumber = $request->input('message.phoneNumber.number')
+                ?? $request->input('message.phone.number')
+                ?? $request->input('phoneNumber');
+
+            if ($dialedNumber) {
+                $tenant = Tenant::where('settings->telephony_phone_number', $dialedNumber)->first();
+                if ($tenant) {
+                    $tenantIdOrSlug = $tenant->id;
+                }
+            }
+        }
 
         if (! $tenantIdOrSlug) {
             return response()->json([
@@ -53,6 +70,29 @@ class DispatchWebhookController extends Controller
             return response()->json([
                 'error' => 'Tenant not found.',
             ], 404);
+        }
+
+        // Handle Vapi assistant-request dynamic routing if sent to this endpoint
+        $event = $request->input('event')
+            ?? $request->input('type')
+            ?? $request->input('message.type');
+
+        if ($event === 'assistant-request' || $event === 'assistantRequest') {
+            $phoneMappings = $tenant->getSetting('phone_mappings') ?? [];
+            $dialedNumber = $request->input('message.phoneNumber.number')
+                ?? $request->input('message.phone.number')
+                ?? $request->input('phoneNumber')
+                ?? '';
+            $mappedAssistant = $phoneMappings[$dialedNumber] ?? null;
+
+            $assistantId = $mappedAssistant
+                ?? $tenant->getSetting('voice_assistant_id')
+                ?? env('VAPI_ASSISTANT_ID')
+                ?? 'default-assistant-id';
+
+            return response()->json([
+                'assistantId' => $assistantId,
+            ]);
         }
 
         // 3. Security Check: Validate Custom Credentials or HMAC SHA256 Signature
