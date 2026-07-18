@@ -82,7 +82,7 @@ class WebhookGatewayMiddleware
         // 2. Signature Validation and Replay Attack Prevention
         if ($tenant->secret_key && ! $hasCustomCredentials) {
             if (! $signature) {
-                Log::warning('WebhookGatewayMiddleware: Webhook rejected - authentication signature missing.');
+                Log::warning('WebhookGatewayMiddleware: Webhook rejected - authentication signature missing. Sent vapiSecret: '.($vapiSecret ?? 'null').', Expected secret_key: '.($tenant->secret_key ?? 'null').', Headers: '.json_encode($request->headers->all()));
 
                 return response()->json(['error' => 'Authentication missing (Token or Signature).'], 401);
             }
