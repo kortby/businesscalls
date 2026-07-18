@@ -131,8 +131,8 @@ class EnsureWebhookIdempotency
             $response = $next($request);
 
             $statusCode = $response->getStatusCode();
-            // Cache only successful/acceptable responses to allow retries on temporary server errors (5xx)
-            if ($statusCode < 500) {
+            // Cache only successful/acceptable responses (2xx) to allow retries on temporary/client errors (4xx, 5xx)
+            if ($statusCode >= 200 && $statusCode < 300) {
                 $content = json_decode($response->getContent(), true) ?: $response->getContent();
                 Cache::put($cacheKey, [
                     'content' => $content,
