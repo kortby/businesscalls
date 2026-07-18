@@ -119,11 +119,11 @@ class WebhookGatewayMiddleware
             Cache::put($sigKey, true, 120);
         }
 
-        // 3. Rate-limiting lookups
+        // 3. Rate-limiting lookups (allowing up to 60 requests per minute for voice call streams)
         $rateLimitKey = 'webhook-rate:'.$tenant->id;
         $attempts = (int) Cache::get($rateLimitKey, 0);
 
-        if ($attempts >= 10) {
+        if ($attempts >= 60) {
             // Touch key to extend rate limit duration for abusive streams
             Cache::touch($rateLimitKey, 60);
 
