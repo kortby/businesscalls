@@ -58,7 +58,17 @@ class CallWebhookController extends Controller
             ?? $request->header('x-signature');
 
         $vapiSecret = $request->header('X-Vapi-Secret') ?? $request->header('x-vapi-secret');
+        if ($vapiSecret) {
+            $parts = array_filter(array_map('trim', explode(',', $vapiSecret)));
+            $vapiSecret = end($parts) ?: null;
+        }
+
         $retellSecret = $request->header('X-Retell-Secret') ?? $request->header('x-retell-secret');
+        if ($retellSecret) {
+            $parts = array_filter(array_map('trim', explode(',', $retellSecret)));
+            $retellSecret = end($parts) ?: null;
+        }
+
         $authToken = $request->bearerToken();
 
         $hasCustomCredentials = false;
