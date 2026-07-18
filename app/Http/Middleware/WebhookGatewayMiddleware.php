@@ -7,6 +7,7 @@ use App\Models\TenantOAuthToken;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class WebhookGatewayMiddleware
@@ -81,6 +82,8 @@ class WebhookGatewayMiddleware
         // 2. Signature Validation and Replay Attack Prevention
         if ($tenant->secret_key && ! $hasCustomCredentials) {
             if (! $signature) {
+                Log::warning('WebhookGatewayMiddleware: Webhook rejected - authentication signature missing.');
+
                 return response()->json(['error' => 'Authentication missing (Token or Signature).'], 401);
             }
 
@@ -90,11 +93,15 @@ class WebhookGatewayMiddleware
                 // If this signature was recently processed, extend its rate-limiting replay window
                 Cache::touch($sigKey, 120);
 
+                Log::warning('WebhookGatewayMiddleware: Webhook rejected - duplicate signature detected.');
+
                 return response()->json(['error' => 'Duplicate request detected.'], 429);
             }
 
             $computed = hash_hmac('sha256', $request->getContent(), $tenant->secret_key);
             if (! hash_equals($computed, $signature)) {
+                Log::warning("WebhookGatewayMiddleware: Webhook rejected - HMAC signature verification failed. Computed: {$computed}, Received: {$signature}");
+
                 return response()->json(['error' => 'HMAC verification failed.'], 401);
             }
 

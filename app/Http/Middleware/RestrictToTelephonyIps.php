@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class RestrictToTelephonyIps
@@ -39,6 +40,8 @@ class RestrictToTelephonyIps
         if ($fallbackToken && $bearerToken && hash_equals((string) $fallbackToken, (string) $bearerToken)) {
             return $next($request);
         }
+
+        Log::warning("RestrictToTelephonyIps: Unauthorized IP '{$clientIp}' rejected.");
 
         return response()->json(['error' => 'Forbidden: Unauthorized IP address.'], 403);
     }
