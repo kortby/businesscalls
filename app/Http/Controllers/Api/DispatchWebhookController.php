@@ -282,6 +282,81 @@ class DispatchWebhookController extends Controller
             return response()->json($result);
         }
 
+        // Check if this is a check availability tool call trigger
+        if ($functionName && in_array($functionName, ['check_availability', 'checkAvailability'])) {
+            $serviceTypeInput = $arguments['service_type'] ?? $request->input('service_type') ?? '';
+            $requestedTimeInput = $arguments['requested_time'] ?? $request->input('requested_time') ?? '';
+
+            if (! $serviceTypeInput || ! $requestedTimeInput) {
+                return response()->json([
+                    'error' => 'Missing required fields: service_type and requested_time must be provided.',
+                ], 400);
+            }
+
+            try {
+                $requestedTimeCarbon = Carbon::parse($requestedTimeInput);
+            } catch (\Exception $e) {
+                return response()->json([
+                    'error' => 'Invalid requested_time format.',
+                ], 400);
+            }
+
+            $dayOfWeek = $requestedTimeCarbon->dayOfWeek;
+            $timeOnly = $requestedTimeCarbon->format('H:i:s');
+
+            $employees = Employee::get()->filter(function ($employee) use ($serviceTypeInput, $dayOfWeek, $timeOnly) {
+                $hasSkill = is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+                if (! $hasSkill) {
+                    return false;
+                }
+
+                return Availability::where('employee_id', $employee->id)
+                    ->where('day_of_week', $dayOfWeek)
+                    ->where('is_active', true)
+                    ->where('start_time', '<=', $timeOnly)
+                    ->where('end_time', '>=', $timeOnly)
+                    ->exists();
+            });
+
+            $available = false;
+            foreach ($employees as $employee) {
+                $bufferMinutes = 90;
+                $startBuffer = $requestedTimeCarbon->copy()->subMinutes($bufferMinutes);
+                $endBuffer = $requestedTimeCarbon->copy()->addMinutes($bufferMinutes);
+
+                $hasOverlap = Booking::where('employee_id', $employee->id)
+                    ->where('status', 'booked')
+                    ->whereBetween('scheduled_start', [$startBuffer, $endBuffer])
+                    ->exists();
+
+                if (! $hasOverlap) {
+                    $available = true;
+                    break;
+                }
+            }
+
+            $result = [
+                'status' => 'success',
+                'available' => $available,
+                'message' => $available
+                    ? "A technician is available at the requested time of {$requestedTimeCarbon->format('Y-m-d H:i')}."
+                    : "No available technician found at {$requestedTimeCarbon->format('Y-m-d H:i')}.",
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $result,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($result);
+        }
+
         $customerPhone = $arguments['customer_phone'] ?? $request->input('customer_phone');
         $serviceType = $arguments['service_type'] ?? $request->input('service_type');
         $requestedTime = $arguments['requested_time'] ?? $request->input('requested_time');
