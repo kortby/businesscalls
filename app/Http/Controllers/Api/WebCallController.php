@@ -79,12 +79,12 @@ class WebCallController extends Controller
      */
     public function token(Request $request): JsonResponse
     {
-        $request->validate([
-            'recaptcha_token' => [
-                app()->environment('testing') ? 'nullable' : 'required',
-                new ReCaptcha,
-            ],
-        ]);
+        // $request->validate([
+        //     'recaptcha_token' => [
+        //         app()->environment('testing') ? 'nullable' : 'required',
+        //         new ReCaptcha,
+        //     ],
+        // ]);
 
         $user = $request->user();
 

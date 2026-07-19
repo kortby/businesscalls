@@ -42,10 +42,10 @@ class BookingController extends Controller
             'customer_phone' => ['required', 'string', 'max:20'],
             'job_details' => ['required', 'string', 'max:255'],
             'scheduled_start' => ['required', 'date'],
-            'recaptcha_token' => [
-                (app()->environment('testing') || auth()->check()) ? 'nullable' : 'required',
-                new ReCaptcha,
-            ],
+            // 'recaptcha_token' => [
+            //     (app()->environment('testing') || auth()->check()) ? 'nullable' : 'required',
+            //     new ReCaptcha,
+            // ],
         ]);
 
         $employeeId = $validated['employee_id'];
