@@ -437,6 +437,7 @@ class DispatchWebhookController extends Controller
         $customerPhone = $arguments['customer_phone'] ?? $arguments['customerPhone'] ?? $request->input('customer_phone') ?? $request->input('customerPhone');
         $serviceType = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType');
         $requestedTime = $arguments['requested_time'] ?? $arguments['requestedTime'] ?? $request->input('requested_time') ?? $request->input('requestedTime');
+        $customerAddress = $arguments['customer_address'] ?? $arguments['customerAddress'] ?? $arguments['address'] ?? $request->input('customer_address') ?? $request->input('customerAddress') ?? $request->input('address') ?? '';
 
         if (! $customerPhone || ! $serviceType || ! $requestedTime) {
             return response()->json([
@@ -665,11 +666,16 @@ class DispatchWebhookController extends Controller
             return response()->json($voicemailResult, 422);
         }
 
+        $bookingJobDetails = $jobDetails ?: "Automated AI dispatch for {$serviceType}";
+        if ($customerAddress) {
+            $bookingJobDetails = "Address: {$customerAddress} | {$bookingJobDetails}";
+        }
+
         $booking = Booking::create([
             'tenant_id' => $tenant->id,
             'employee_id' => $assignedEmployee->id,
             'customer_phone' => $customerPhone,
-            'job_details' => $jobDetails ?: "Automated AI dispatch for {$serviceType}",
+            'job_details' => $bookingJobDetails,
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
             'priority_state' => $priorityState,
