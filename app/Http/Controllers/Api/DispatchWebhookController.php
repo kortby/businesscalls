@@ -282,6 +282,83 @@ class DispatchWebhookController extends Controller
             return response()->json($result);
         }
 
+        // Check if this is a get available slots tool call trigger
+        if ($functionName && in_array($functionName, ['get_available_slots', 'getAvailableSlots'])) {
+            $serviceTypeInput = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType') ?? '';
+
+            if (! $serviceTypeInput) {
+                return response()->json([
+                    'error' => 'Missing required field: service_type must be provided.',
+                ], 400);
+            }
+
+            // Look over the next 7 days starting today
+            $slots = [];
+            $startDate = Carbon::today();
+            $employees = Employee::get()->filter(function ($employee) use ($serviceTypeInput) {
+                return is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+            });
+
+            for ($i = 0; $i < 7; $i++) {
+                $currentDay = $startDate->copy()->addDays($i);
+                $dayOfWeek = $currentDay->dayOfWeek; // 0 to 6
+
+                foreach ($employees as $employee) {
+                    $shifts = Availability::where('employee_id', $employee->id)
+                        ->where('day_of_week', $dayOfWeek)
+                        ->where('is_active', true)
+                        ->get();
+
+                    foreach ($shifts as $shift) {
+                        $start = Carbon::parse($shift->start_time);
+                        $end = Carbon::parse($shift->end_time);
+
+                        $currentHour = $start->copy();
+                        while ($currentHour->lt($end) && count($slots) < 6) {
+                            $slotTime = $currentDay->copy()->setTime($currentHour->hour, $currentHour->minute, 0);
+
+                            // Check travel buffer conflict
+                            $bufferMinutes = 90;
+                            $startBuffer = $slotTime->copy()->subMinutes($bufferMinutes);
+                            $endBuffer = $slotTime->copy()->addMinutes($bufferMinutes);
+
+                            $hasOverlap = Booking::where('employee_id', $employee->id)
+                                ->where('status', 'booked')
+                                ->whereBetween('scheduled_start', [$startBuffer, $endBuffer])
+                                ->exists();
+
+                            if (! $hasOverlap) {
+                                $slots[] = $slotTime->format('Y-m-d H:i');
+                            }
+
+                            $currentHour->addHour();
+                        }
+                    }
+                }
+            }
+
+            $result = [
+                'status' => 'success',
+                'slots' => $slots,
+                'message' => count($slots) > 0
+                    ? 'Available slots: '.implode(', ', $slots)
+                    : 'No available slots found for the next 7 days.',
+            ];
+
+            if ($toolCallId) {
+                return response()->json([
+                    'results' => [
+                        [
+                            'toolCallId' => $toolCallId,
+                            'result' => $result,
+                        ],
+                    ],
+                ]);
+            }
+
+            return response()->json($result);
+        }
+
         // Check if this is a check availability tool call trigger
         if ($functionName && in_array($functionName, ['check_availability', 'checkAvailability'])) {
             $serviceTypeInput = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType') ?? '';

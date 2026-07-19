@@ -85,7 +85,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'phone' => '+14157025409',
-            'skills' => ['ac-diagnostics', 'heat-pump-install', 'ductwork', 'ventilation'],
+            'skills' => ['hvac', 'ac-diagnostics', 'heat-pump-install', 'ductwork', 'ventilation'],
         ]);
 
         $electrician = Employee::create([
@@ -93,7 +93,7 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Mike',
             'last_name' => 'Miller',
             'phone' => '+14157025409',
-            'skills' => ['high-voltage', 'breaker-boxes', 'generator-wiring', 'ev-charging'],
+            'skills' => ['electrical', 'high-voltage', 'breaker-boxes', 'generator-wiring', 'ev-charging'],
         ]);
 
         $appliance = Employee::create([
