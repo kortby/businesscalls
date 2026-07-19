@@ -284,8 +284,8 @@ class DispatchWebhookController extends Controller
 
         // Check if this is a check availability tool call trigger
         if ($functionName && in_array($functionName, ['check_availability', 'checkAvailability'])) {
-            $serviceTypeInput = $arguments['service_type'] ?? $request->input('service_type') ?? '';
-            $requestedTimeInput = $arguments['requested_time'] ?? $request->input('requested_time') ?? '';
+            $serviceTypeInput = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType') ?? '';
+            $requestedTimeInput = $arguments['requested_time'] ?? $arguments['requestedTime'] ?? $request->input('requested_time') ?? $request->input('requestedTime') ?? '';
 
             if (! $serviceTypeInput || ! $requestedTimeInput) {
                 return response()->json([
@@ -357,9 +357,9 @@ class DispatchWebhookController extends Controller
             return response()->json($result);
         }
 
-        $customerPhone = $arguments['customer_phone'] ?? $request->input('customer_phone');
-        $serviceType = $arguments['service_type'] ?? $request->input('service_type');
-        $requestedTime = $arguments['requested_time'] ?? $request->input('requested_time');
+        $customerPhone = $arguments['customer_phone'] ?? $arguments['customerPhone'] ?? $request->input('customer_phone') ?? $request->input('customerPhone');
+        $serviceType = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType');
+        $requestedTime = $arguments['requested_time'] ?? $arguments['requestedTime'] ?? $request->input('requested_time') ?? $request->input('requestedTime');
 
         if (! $customerPhone || ! $serviceType || ! $requestedTime) {
             return response()->json([
