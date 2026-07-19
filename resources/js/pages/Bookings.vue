@@ -12,6 +12,7 @@ import {
     XCircle,
     Activity,
     Search,
+    Eye,
 } from '@lucide/vue';
 import { ref, computed, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
@@ -109,7 +110,13 @@ const filteredBookings = computed(() => {
 // Modals State
 const isCreateOpen = ref(false);
 const isEditOpen = ref(false);
+const isDetailOpen = ref(false);
 const selectedBooking = ref<any>(null);
+
+const openDetailModal = (booking: any) => {
+    selectedBooking.value = booking;
+    isDetailOpen.value = true;
+};
 
 // Forms
 const createForm = useForm({
@@ -705,6 +712,14 @@ const editValidation = computed(() => {
                                         <Button
                                             variant="outline"
                                             size="sm"
+                                            class="h-8 px-2.5 font-bold text-emerald-600 hover:text-emerald-700 dark:hover:text-emerald-500"
+                                            @click="openDetailModal(booking)"
+                                        >
+                                            <Eye class="h-3.5 w-3.5" />
+                                        </Button>
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
                                             class="h-8 px-2.5 font-bold"
                                             @click="openEditModal(booking)"
                                         >
@@ -1154,6 +1169,42 @@ const editValidation = computed(() => {
                         >
                     </DialogFooter>
                 </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- --- VIEW DETAILS DIALOG --- -->
+        <Dialog v-model:open="isDetailOpen">
+            <DialogContent class="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Appointment Details</DialogTitle>
+                    <DialogDescription>
+                        Full description and settings for this booking.
+                    </DialogDescription>
+                </DialogHeader>
+                <div v-if="selectedBooking" class="space-y-4 py-4 text-sm">
+                    <div class="grid grid-cols-3 gap-2 border-b pb-2">
+                        <span class="font-bold text-muted-foreground">Customer:</span>
+                        <span class="col-span-2 font-mono">{{ selectedBooking.customer_phone }}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 border-b pb-2">
+                        <span class="font-bold text-muted-foreground">Technician:</span>
+                        <span class="col-span-2">{{ selectedBooking.employee.first_name }} {{ selectedBooking.employee.last_name }}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 border-b pb-2">
+                        <span class="font-bold text-muted-foreground">Scheduled:</span>
+                        <span class="col-span-2">{{ new Date(selectedBooking.scheduled_start).toLocaleString() }}</span>
+                    </div>
+                    <div class="grid grid-cols-3 gap-2 border-b pb-2">
+                        <span class="font-bold text-muted-foreground">Status:</span>
+                        <span class="col-span-2 uppercase font-semibold text-emerald-600">{{ selectedBooking.status }}</span>
+                    </div>
+                    <div class="space-y-1">
+                        <span class="font-bold text-muted-foreground">Job Details / Description:</span>
+                        <p class="rounded bg-muted p-3 text-xs italic leading-relaxed text-foreground whitespace-pre-wrap">
+                            {{ selectedBooking.job_details }}
+                        </p>
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     </div>

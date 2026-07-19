@@ -160,7 +160,7 @@ class DispatchWebhookController extends Controller
         // Call-Steering Matrix: Emergency & High-Severity Outage check
         $isEmergency = false;
         $serviceType = $arguments['service_type'] ?? $request->input('service_type') ?? '';
-        $jobDetails = $arguments['job_details'] ?? $request->input('job_details') ?? '';
+        $jobDetails = $arguments['job_details'] ?? $arguments['jobDetails'] ?? $request->input('job_details') ?? $request->input('jobDetails') ?? '';
         $transcript = $request->input('message.transcript') ?? $request->input('transcript') ?? '';
 
         $emergencyKeywords = ['emergency', 'gas leak', 'electrical short circuit', 'outage', 'short circuit', 'leak', 'short-circuit'];
@@ -592,7 +592,7 @@ class DispatchWebhookController extends Controller
             'tenant_id' => $tenant->id,
             'employee_id' => $assignedEmployee->id,
             'customer_phone' => $customerPhone,
-            'job_details' => "Automated AI dispatch for {$serviceType}",
+            'job_details' => $jobDetails ?: "Automated AI dispatch for {$serviceType}",
             'status' => 'booked',
             'scheduled_start' => $requestedTimeCarbon,
             'priority_state' => $priorityState,
