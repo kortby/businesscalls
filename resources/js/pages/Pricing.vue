@@ -10,6 +10,7 @@ import {
 } from '@lucide/vue';
 import { ref, computed } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import PublicHeader from '@/components/PublicHeader.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import {
     dashboard,
@@ -67,67 +68,7 @@ const faqs = [
         class="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-primary selection:text-primary-foreground dark:bg-slate-950 dark:text-slate-100"
     >
         <!-- Header -->
-        <header
-            class="sticky top-0 z-40 w-full border-b bg-background/95 shadow-xs backdrop-blur-md transition-all duration-300 supports-[backdrop-filter]:bg-background/60"
-        >
-            <div
-                class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
-            >
-                <Link :href="home()" class="flex items-center gap-2">
-                    <AppLogoIcon
-                        class="h-10 w-10 shrink-0 transition-transform duration-300 hover:scale-105"
-                    />
-                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
-                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
-                    >
-                </Link>
-
-                <nav class="hidden items-center gap-6 md:flex">
-                    <Link
-                        :href="home()"
-                        class="relative text-sm font-semibold text-muted-foreground transition-colors after:absolute after:bottom-[-20px] after:left-0 after:h-[2px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:text-foreground hover:after:origin-bottom-left hover:after:scale-x-100"
-                        >Home</Link
-                    >
-                    <Link
-                        :href="about()"
-                        class="relative text-sm font-semibold text-muted-foreground transition-colors after:absolute after:bottom-[-20px] after:left-0 after:h-[2px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:text-foreground hover:after:origin-bottom-left hover:after:scale-x-100"
-                        >About</Link
-                    >
-                    <Link
-                        :href="pricing()"
-                        class="relative text-sm font-semibold text-foreground transition-colors after:absolute after:bottom-[-20px] after:left-0 after:h-[2px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:text-foreground hover:after:origin-bottom-left hover:after:scale-x-100"
-                        >Pricing</Link
-                    >
-                    <Link
-                        :href="contact()"
-                        class="relative text-sm font-semibold text-muted-foreground transition-colors after:absolute after:bottom-[-20px] after:left-0 after:h-[2px] after:w-full after:origin-bottom-right after:scale-x-0 after:bg-primary after:transition-transform after:duration-300 hover:text-foreground hover:after:origin-bottom-left hover:after:scale-x-100"
-                        >Contact</Link
-                    >
-                </nav>
-
-                <div class="flex items-center gap-4">
-                    <Link
-                        v-if="$page.props.auth.user"
-                        :href="dashboard()"
-                        class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
-                    >
-                        Dashboard
-                    </Link>
-                    <template v-else>
-                        <Link
-                            :href="login()"
-                            class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                            >Log in</Link
-                        >
-                        <Link
-                            :href="register()"
-                            class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-sm hover:bg-primary/90"
-                            >Get Started</Link
-                        >
-                    </template>
-                </div>
-            </div>
-        </header>
+        <PublicHeader activePage="pricing" />
 
         <!-- Pricing Intro Hero -->
         <section

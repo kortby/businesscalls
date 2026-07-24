@@ -3,6 +3,7 @@ import { Link, useForm } from '@inertiajs/vue3';
 import { Mail, Phone, MapPin, Send } from '@lucide/vue';
 import { ref } from 'vue';
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import PublicHeader from '@/components/PublicHeader.vue';
 import SeoHead from '@/components/SeoHead.vue';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,67 +55,7 @@ const submit = () => {
         class="min-h-screen bg-slate-50 font-sans text-slate-900 dark:bg-slate-950 dark:text-slate-100"
     >
         <!-- Header -->
-        <header
-            class="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur-md supports-[backdrop-filter]:bg-background/60"
-        >
-            <div
-                class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
-            >
-                <Link :href="home()" class="flex items-center gap-2">
-                    <AppLogoIcon
-                        class="h-10 w-10 shrink-0"
-                    />
-                    <span class="text-xl font-bold tracking-tight text-slate-900 dark:text-white"
-                        >Just<span class="text-emerald-500 dark:text-emerald-400">Mascot</span></span
-                    >
-                </Link>
-
-                <nav class="hidden items-center gap-6 md:flex">
-                    <Link
-                        :href="home()"
-                        class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-                        >Home</Link
-                    >
-                    <Link
-                        :href="about()"
-                        class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-                        >About</Link
-                    >
-                    <Link
-                        :href="pricing()"
-                        class="text-sm font-semibold text-muted-foreground hover:text-foreground"
-                        >Pricing</Link
-                    >
-                    <Link
-                        :href="contact()"
-                        class="text-sm font-semibold text-foreground hover:text-foreground"
-                        >Contact</Link
-                    >
-                </nav>
-
-                <div class="flex items-center gap-4">
-                    <Link
-                        v-if="$page.props.auth.user"
-                        :href="dashboard()"
-                        class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
-                    >
-                        Dashboard
-                    </Link>
-                    <template v-else>
-                        <Link
-                            :href="login()"
-                            class="text-sm font-medium text-muted-foreground hover:text-foreground"
-                            >Log in</Link
-                        >
-                        <Link
-                            :href="register()"
-                            class="inline-flex h-9 items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow-xs hover:bg-primary/90"
-                            >Get Started</Link
-                        >
-                    </template>
-                </div>
-            </div>
-        </header>
+        <PublicHeader activePage="contact" />
 
         <!-- Contact Content (Duolingo Style Border & Box) -->
         <section class="py-16 md:py-24">
