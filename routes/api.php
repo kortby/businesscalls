@@ -38,7 +38,7 @@ Route::get('/user', function (Request $request) {
 })->middleware('auth:sanctum');
 
 Route::post('/webhooks/dispatch', DispatchWebhookController::class)->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class, LanguageDetectionMiddleware::class]);
-Route::post('/webhooks/availabilities', AvailabilityWebhookController::class)->name('webhook.availabilities')->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
+Route::match(['get', 'post'], '/webhooks/availabilities', AvailabilityWebhookController::class)->name('webhook.availabilities')->middleware([VerifyOAuthWebhookToken::class, WebhookGatewayMiddleware::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/call-events/{tenant_id?}', [CallWebhookController::class, 'handle'])->name('webhook.call-events')->middleware([BlockSuspendedTenantCalls::class, RestrictToTelephonyIps::class, EnsureWebhookIdempotency::class]);
 Route::post('/webhooks/call-analysis', [CallAnalysisWebhookController::class, 'handle'])->name('webhook.call-analysis');
 Route::post('/webhooks/process-payment', [PaymentWebhookController::class, 'handle'])->name('webhook.process-payment');
