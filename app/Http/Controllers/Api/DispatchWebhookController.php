@@ -283,7 +283,18 @@ class DispatchWebhookController extends Controller
         }
 
         // Check if this is a get available slots tool call trigger
-        if ($functionName && in_array($functionName, ['get_first_three_availabilities', 'get_first_3_availabilities', 'get_availabilities', 'get_top_availabilities', 'get_available_slots', 'getAvailableSlots'])) {
+        if ($functionName && in_array($functionName, [
+            'get_first_three_availabilities',
+            'get_first_3_availabilities',
+            'get_availabilities',
+            'get_top_availabilities',
+            'get_available_slots',
+            'getAvailableSlots',
+            'get_next_availabilities',
+            'getNextAvailabilities',
+            'fetch_availabilities',
+            'find_availabilities',
+        ])) {
             return app(AvailabilityWebhookController::class)($request);
         }
 

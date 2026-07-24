@@ -99,3 +99,73 @@ test('availability webhook supports Vapi toolCall format', function () {
     ]);
     $response->assertJsonPath('results.0.toolCallId', 'vapi-tool-call-123');
 });
+
+test('availability webhook handles general queries without service_type gracefully', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    $employee = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'skills' => ['general_service'],
+    ]);
+
+    $tomorrow = Carbon::today()->addDay();
+    Availability::factory()->create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $employee->id,
+        'day_of_week' => $tomorrow->dayOfWeek,
+        'start_time' => '09:00:00',
+        'end_time' => '17:00:00',
+        'is_active' => true,
+    ]);
+
+    $payload = [
+        'tenant_id' => $tenant->id,
+    ];
+
+    $response = $this->postJson('/api/webhooks/availabilities', $payload);
+
+    $response->assertOk();
+    $response->assertJsonPath('status', 'success');
+    expect($response->json('count'))->toBeGreaterThanOrEqual(1);
+});
+
+test('dispatch webhook handles alias tool names like get_next_availabilities and find_availabilities', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    $employee = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'skills' => ['electrical'],
+    ]);
+
+    $tomorrow = Carbon::today()->addDay();
+    Availability::factory()->create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $employee->id,
+        'day_of_week' => $tomorrow->dayOfWeek,
+        'start_time' => '09:00:00',
+        'end_time' => '17:00:00',
+        'is_active' => true,
+    ]);
+
+    $vapiPayload = [
+        'message' => [
+            'type' => 'tool-calls',
+            'toolCalls' => [
+                [
+                    'id' => 'vapi-alias-call-456',
+                    'type' => 'function',
+                    'function' => [
+                        'name' => 'find_availabilities',
+                        'arguments' => [
+                            'tenant_id' => $tenant->id,
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/webhooks/dispatch', $vapiPayload);
+
+    $response->assertOk();
+    $response->assertJsonPath('results.0.toolCallId', 'vapi-alias-call-456');
+    $response->assertJsonPath('results.0.result.status', 'success');
+});

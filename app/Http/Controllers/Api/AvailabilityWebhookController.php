@@ -62,26 +62,23 @@ class AvailabilityWebhookController extends Controller
 
         TenantScope::setTenantId($tenant->id);
 
-        $serviceTypeInput = $arguments['service_type']
+        $serviceTypeInput = trim($arguments['service_type']
             ?? $arguments['serviceType']
             ?? $request->input('service_type')
             ?? $request->input('serviceType')
-            ?? '';
+            ?? '');
 
-        if (! $serviceTypeInput) {
-            return response()->json([
-                'error' => 'Missing required field: service_type must be provided.',
-            ], 400);
-        }
+        // 3. Find active technicians matching skill (or all tenant technicians if service_type is not specified)
+        $employees = Employee::where('tenant_id', $tenant->id)->get();
 
-        // 3. Find active technicians matching skill
-        $employees = Employee::where('tenant_id', $tenant->id)->get()->filter(function ($employee) use ($serviceTypeInput) {
-            return is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
-        });
+        if ($serviceTypeInput !== '') {
+            $skilledEmployees = $employees->filter(function ($employee) use ($serviceTypeInput) {
+                return is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+            });
 
-        if ($employees->isEmpty()) {
-            // Fallback to all employees for tenant if no specific skill match
-            $employees = Employee::where('tenant_id', $tenant->id)->get();
+            if ($skilledEmployees->isNotEmpty()) {
+                $employees = $skilledEmployees;
+            }
         }
 
         $now = Carbon::now();
