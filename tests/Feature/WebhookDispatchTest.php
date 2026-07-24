@@ -6,6 +6,7 @@ use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\RateLimiter;
 
 beforeEach(function () {
     TenantScope::setTenantId(null);
@@ -221,4 +222,59 @@ test('webhook wraps Vapi response standard when payload nested structure is prov
         ],
     ]);
     $response->assertJsonPath('results.0.toolCallId', 'call-id-abc');
+});
+
+test('webhook gateway allows high frequency requests up to 600 per minute for voice streams without rate limit error', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    $rateLimitKey = 'webhook-rate:'.$tenant->id;
+    RateLimiter::clear($rateLimitKey);
+
+    $employee = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'skills' => ['plumbing'],
+    ]);
+
+    $dayOfWeek = Carbon::parse('2026-06-23 10:00:00')->dayOfWeek;
+    Availability::factory()->create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $employee->id,
+        'day_of_week' => $dayOfWeek,
+        'start_time' => '08:00:00',
+        'end_time' => '17:00:00',
+        'is_active' => true,
+    ]);
+
+    // Simulate 65 rapid stream requests (exceeding old 60 limit)
+    for ($i = 0; $i < 65; $i++) {
+        $payload = [
+            'tenant_id' => $tenant->id,
+            'customer_phone' => '+15551112222',
+            'service_type' => 'plumbing',
+            'requested_time' => '2026-06-23 10:00:00',
+        ];
+        $response = $this->postJson('/api/webhooks/dispatch', $payload);
+        $response->assertOk();
+    }
+});
+
+test('webhook gateway rate limits requests when 600 per minute limit is exceeded', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    $rateLimitKey = 'webhook-rate:'.$tenant->id;
+    RateLimiter::clear($rateLimitKey);
+
+    // Artificially hit the rate limiter 600 times
+    for ($i = 0; $i < 600; $i++) {
+        RateLimiter::hit($rateLimitKey, 60);
+    }
+
+    $payload = [
+        'tenant_id' => $tenant->id,
+        'customer_phone' => '+15551112222',
+        'service_type' => 'plumbing',
+        'requested_time' => '2026-06-23 10:00:00',
+    ];
+
+    $response = $this->postJson('/api/webhooks/dispatch', $payload);
+    $response->assertStatus(429);
+    $response->assertJson(['error' => 'Rate limit exceeded.']);
 });

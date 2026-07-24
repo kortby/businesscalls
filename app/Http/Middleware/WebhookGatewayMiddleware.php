@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\RateLimiter;
 use Symfony\Component\HttpFoundation\Response;
 
 class WebhookGatewayMiddleware
@@ -119,18 +120,14 @@ class WebhookGatewayMiddleware
             Cache::put($sigKey, true, 120);
         }
 
-        // 3. Rate-limiting lookups (allowing up to 60 requests per minute for voice call streams)
+        // 3. Rate-limiting lookups (allowing up to 600 requests per minute for voice call streams)
         $rateLimitKey = 'webhook-rate:'.$tenant->id;
-        $attempts = (int) Cache::get($rateLimitKey, 0);
 
-        if ($attempts >= 60) {
-            // Touch key to extend rate limit duration for abusive streams
-            Cache::touch($rateLimitKey, 60);
-
+        if (RateLimiter::tooManyAttempts($rateLimitKey, 600)) {
             return response()->json(['error' => 'Rate limit exceeded.'], 429);
         }
 
-        Cache::put($rateLimitKey, $attempts + 1, 60);
+        RateLimiter::hit($rateLimitKey, 60);
 
         return $next($request);
     }
