@@ -9,8 +9,100 @@ import {
     ChevronDown,
     Sun,
     Moon,
+    Phone,
+    PhoneCall,
+    Droplets,
+    Wind,
+    Zap,
+    WashingMachine,
+    Home,
+    Bug,
+    Lock,
 } from '@lucide/vue';
 import { ref, onMounted } from 'vue';
+
+const serviceTypes = [
+    {
+        title: 'Plumbing & Drain Services',
+        icon: Droplets,
+        gradient: 'from-blue-500 to-cyan-500',
+        bgGlow: 'bg-blue-500/10 dark:bg-blue-500/20',
+        textColor: 'text-blue-600 dark:text-blue-400',
+        borderColor: 'hover:border-blue-500/40',
+        description: 'Qualifies pipe leaks, main line clogs, water heater outages, and emergency shutoff triage 24/7.',
+        keywords: ['Drain Cleaning', 'Water Heaters', 'Pipe Leaks', 'Sewer Camera'],
+    },
+    {
+        title: 'HVAC & Climate Control',
+        icon: Wind,
+        gradient: 'from-sky-500 to-indigo-600',
+        bgGlow: 'bg-sky-500/10 dark:bg-sky-500/20',
+        textColor: 'text-sky-600 dark:text-sky-400',
+        borderColor: 'hover:border-sky-500/40',
+        description: 'Dispatches AC diagnostics, filters EPA 608 technician certs, and triages heat pump and furnace outages.',
+        keywords: ['AC Diagnostics', 'Freon Refills', 'Furnace Repair', 'Heat Pumps'],
+    },
+    {
+        title: 'Electrical & Power Systems',
+        icon: Zap,
+        gradient: 'from-amber-400 to-yellow-500',
+        bgGlow: 'bg-amber-500/10 dark:bg-amber-500/20',
+        textColor: 'text-amber-600 dark:text-amber-400',
+        borderColor: 'hover:border-amber-500/40',
+        description: 'Triages partial power outages, circuit breaker trips, panel upgrades, and urgent short-circuit safety risks.',
+        keywords: ['Panel Upgrades', 'Short Circuits', 'EV Chargers', 'Sparking Outlets'],
+    },
+    {
+        title: 'Appliance Repair',
+        icon: WashingMachine,
+        gradient: 'from-purple-500 to-violet-600',
+        bgGlow: 'bg-purple-500/10 dark:bg-purple-500/20',
+        textColor: 'text-purple-600 dark:text-purple-400',
+        borderColor: 'hover:border-purple-500/40',
+        description: 'Schedules technicians for refrigerators, washers, dryers, dishwashers, and ovens with deposit authorization.',
+        keywords: ['Refrigerators', 'Washers & Dryers', 'Ovens & Ranges', 'Dishwashers'],
+    },
+    {
+        title: 'Roofing & Storm Protection',
+        icon: Home,
+        gradient: 'from-emerald-400 to-teal-600',
+        bgGlow: 'bg-emerald-500/10 dark:bg-emerald-500/20',
+        textColor: 'text-emerald-600 dark:text-emerald-400',
+        borderColor: 'hover:border-emerald-500/40',
+        description: 'Dispatches emergency roof tarping teams, schedules storm damage inspections, and handles shingle repairs.',
+        keywords: ['Roof Inspections', 'Emergency Tarping', 'Gutter Cleaning', 'Storm Repair'],
+    },
+    {
+        title: 'Pest Control & Extermination',
+        icon: Bug,
+        gradient: 'from-rose-500 to-pink-600',
+        bgGlow: 'bg-rose-500/10 dark:bg-rose-500/20',
+        textColor: 'text-rose-600 dark:text-rose-400',
+        borderColor: 'hover:border-rose-500/40',
+        description: 'Schedules termite inspections, rodent exclusion triage, and recurring perimeter barrier sprays.',
+        keywords: ['Termites', 'Rodent Control', 'Bed Bugs', 'Barrier Sprays'],
+    },
+    {
+        title: 'Garage Doors & Gates',
+        icon: ShieldCheck,
+        gradient: 'from-orange-500 to-amber-600',
+        bgGlow: 'bg-orange-500/10 dark:bg-orange-500/20',
+        textColor: 'text-orange-600 dark:text-orange-400',
+        borderColor: 'hover:border-orange-500/40',
+        description: 'Triages broken torsion springs, stuck openers, and off-track door emergencies for fast dispatch.',
+        keywords: ['Torsion Springs', 'Opener Repair', 'Track Alignment', 'Sensor Fixes'],
+    },
+    {
+        title: 'Locksmith & Access Security',
+        icon: Lock,
+        gradient: 'from-teal-500 to-emerald-600',
+        bgGlow: 'bg-teal-500/10 dark:bg-teal-500/20',
+        textColor: 'text-teal-600 dark:text-teal-400',
+        borderColor: 'hover:border-teal-500/40',
+        description: 'Dispatches 24/7 lockout response teams, schedules commercial rekeying, and installs smart access hardware.',
+        keywords: ['24/7 Lockout', 'Commercial Rekey', 'Smart Locks', 'Master Keying'],
+    },
+];
 import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import DispatcherMascot from '@/components/DispatcherMascot.vue';
 import SeoHead from '@/components/SeoHead.vue';
@@ -117,7 +209,7 @@ onMounted(() => {
                 class="container mx-auto flex h-16 items-center justify-between px-4 sm:px-6"
             >
                 <!-- Logo -->
-                <div class="group flex cursor-pointer items-center gap-2">
+                <div class="group flex cursor-pointer items-center">
                     <AppLogoIcon
                         class="h-10 w-10 shrink-0 transition-transform duration-300 group-hover:scale-105"
                     />
@@ -226,12 +318,10 @@ onMounted(() => {
                     ]"
                 >
                     <div
-                        class="animate-pulse-slow inline-flex w-fit items-center gap-1.5 rounded-full border bg-background/80 px-3 py-1 text-xs font-semibold text-muted-foreground shadow-xs backdrop-blur-xs"
+                        class="animate-pulse-slow inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 shadow-xs backdrop-blur-xs dark:bg-emerald-500/20 dark:text-emerald-400"
                     >
-                        <Sparkles
-                            class="animate-spin-slow h-3.5 w-3.5 text-indigo-500"
-                        />
-                        <span>Interactive Rive Mascot Live Preview</span>
+                        <PhoneCall class="h-3.5 w-3.5 animate-pulse text-emerald-500" />
+                        <span>Test Live AI Receptionist: <a href="tel:+16196390411" class="font-bold underline hover:text-emerald-700 dark:hover:text-emerald-300">+1 (619) 639-0411</a></span>
                     </div>
 
                     <h1
@@ -259,19 +349,26 @@ onMounted(() => {
                         books jobs directly into your dashboard.
                     </p>
 
-                    <div class="flex flex-wrap gap-4 pt-2">
+                    <div class="flex flex-wrap items-center gap-4 pt-2">
+                        <a
+                            href="tel:+16196390411"
+                            class="inline-flex h-11 items-center justify-center gap-2.5 rounded-md bg-emerald-600 px-6 py-2.5 text-base font-bold text-white shadow-md transition-all hover:scale-103 hover:bg-emerald-700 active:scale-97 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                        >
+                            <PhoneCall class="h-5 w-5 animate-bounce text-white" />
+                            <span>Call AI Assistant: +1 (619) 639-0411</span>
+                        </a>
+
                         <Link
                             :href="register()"
                             class="inline-flex h-11 items-center justify-center rounded-md bg-primary px-6 py-2.5 text-base font-medium text-primary-foreground shadow-sm transition-all hover:scale-103 hover:bg-primary/90 active:scale-97"
                         >
                             Start 14-Day Free Trial
                         </Link>
-                        <a
-                            href="#features"
-                            class="inline-flex h-11 items-center justify-center rounded-md border bg-background/80 px-6 py-2.5 text-base font-medium text-muted-foreground shadow-xs backdrop-blur-xs transition-all hover:scale-103 hover:bg-accent hover:text-accent-foreground active:scale-97"
-                        >
-                            Explore Platform Features
-                        </a>
+                    </div>
+
+                    <div class="flex items-center gap-2 pt-1 text-xs font-medium text-muted-foreground">
+                        <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                        <span>Live AI Receptionist line open 24/7 — Tap or dial to test real-time booking</span>
                     </div>
                 </div>
 
@@ -349,6 +446,106 @@ onMounted(() => {
                             </button>
                         </div>
                     </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Service Types Trade Showcase Section -->
+        <section class="relative border-b bg-background py-16 md:py-24">
+            <div class="container mx-auto px-4 sm:px-6">
+                <!-- Section Header -->
+                <div class="mx-auto mb-16 max-w-[800px] space-y-4 text-center">
+                    <div
+                        class="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3.5 py-1 text-xs font-bold text-primary uppercase tracking-wider"
+                    >
+                        <Sparkles class="h-3.5 w-3.5 text-primary" />
+                        <span>Built For Every Trade Contractor</span>
+                    </div>
+
+                    <h2 class="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl md:text-5xl">
+                        AI Receptionist Trained for <span class="bg-gradient-to-r from-primary to-emerald-500 bg-clip-text text-transparent">All Home Services</span>
+                    </h2>
+
+                    <p class="text-lg leading-relaxed text-muted-foreground">
+                        Our voice assistant automatically understands trade-specific terminology, diagnostic questions, emergency safety criteria, and skill requirements for your specialized workforce.
+                    </p>
+                </div>
+
+                <!-- Services Grid -->
+                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                    <div
+                        v-for="service in serviceTypes"
+                        :key="service.title"
+                        class="group relative flex flex-col justify-between rounded-2xl border bg-card/70 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:border-slate-800/80 dark:bg-slate-900/40"
+                        :class="service.borderColor"
+                    >
+                        <div>
+                            <!-- Header & Gradient Icon -->
+                            <div class="mb-4 flex items-center justify-between">
+                                <div
+                                    class="flex h-12 w-12 items-center justify-center rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110"
+                                    :class="service.bgGlow"
+                                >
+                                    <component
+                                        :is="service.icon"
+                                        class="h-6 w-6"
+                                        :class="service.textColor"
+                                    />
+                                </div>
+                                <span class="flex h-2 w-2 rounded-full bg-emerald-500 opacity-75 group-hover:animate-ping"></span>
+                            </div>
+
+                            <h3 class="mb-2 text-xl font-bold tracking-tight text-foreground">
+                                {{ service.title }}
+                            </h3>
+
+                            <p class="mb-4 text-xs leading-relaxed text-muted-foreground">
+                                {{ service.description }}
+                            </p>
+                        </div>
+
+                        <!-- Keywords / Skill Tags -->
+                        <div>
+                            <div class="mb-3 flex flex-wrap gap-1.5">
+                                <span
+                                    v-for="kw in service.keywords"
+                                    :key="kw"
+                                    class="rounded-md border bg-accent/40 px-2 py-0.5 text-[11px] font-medium text-muted-foreground transition-colors group-hover:border-primary/20 group-hover:text-foreground"
+                                >
+                                    {{ kw }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Demo Banner Bar -->
+                <div
+                    class="mt-12 flex flex-col items-center justify-between gap-6 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-indigo-500/10 p-6 backdrop-blur-md sm:flex-row sm:p-8"
+                >
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md"
+                        >
+                            <PhoneCall class="h-6 w-6 animate-pulse" />
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-bold text-foreground">
+                                Want to see how our AI answers calls for your specific trade?
+                            </h4>
+                            <p class="text-sm text-muted-foreground">
+                                Call <strong class="text-emerald-600 dark:text-emerald-400">+1 (619) 639-0411</strong> right now to test scheduling, diagnostic questions, and emergency triage live.
+                            </p>
+                        </div>
+                    </div>
+
+                    <a
+                        href="tel:+16196390411"
+                        class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95 dark:bg-emerald-500 dark:hover:bg-emerald-600"
+                    >
+                        <PhoneCall class="h-4 w-4" />
+                        <span>Dial +1 (619) 639-0411</span>
+                    </a>
                 </div>
             </div>
         </section>

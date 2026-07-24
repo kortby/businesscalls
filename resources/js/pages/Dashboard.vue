@@ -1062,10 +1062,10 @@ const shiftValidation = computed(() => {
         >
             <div class="flex items-center gap-4">
                 <div
-                    class="flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-sm"
+                    class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-500/10 p-2 text-primary shadow-xs ring-1 ring-emerald-500/20 dark:bg-emerald-500/20"
                 >
                     <AppLogoIcon
-                        class="h-6 w-6 fill-current text-primary-foreground"
+                        class="h-10 w-10 shrink-0 transition-transform duration-300 hover:scale-105"
                     />
                 </div>
                 <div>
