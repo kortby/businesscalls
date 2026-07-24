@@ -373,16 +373,57 @@ class DispatchWebhookController extends Controller
             return response()->json($result);
         }
 
-        $customerPhone = $arguments['customer_phone'] ?? $arguments['customerPhone'] ?? $request->input('customer_phone') ?? $request->input('customerPhone');
-        $serviceType = $arguments['service_type'] ?? $arguments['serviceType'] ?? $request->input('service_type') ?? $request->input('serviceType');
-        $requestedTime = $arguments['requested_time'] ?? $arguments['requestedTime'] ?? $request->input('requested_time') ?? $request->input('requestedTime');
-        $customerAddress = $arguments['customer_address'] ?? $arguments['customerAddress'] ?? $arguments['address'] ?? $request->input('customer_address') ?? $request->input('customerAddress') ?? $request->input('address') ?? '';
+        $customerPhone = $arguments['customer_phone']
+            ?? $arguments['customerPhone']
+            ?? $arguments['phone']
+            ?? $arguments['number']
+            ?? $arguments['caller_phone']
+            ?? $request->input('customer_phone')
+            ?? $request->input('customerPhone')
+            ?? $request->input('message.customer.number')
+            ?? $request->input('message.call.customer.number')
+            ?? $request->input('message.phone.number')
+            ?? $request->input('message.phoneNumber.number')
+            ?? $request->input('customer.number')
+            ?? $request->input('phone')
+            ?? '+15550000000';
 
-        if (! $customerPhone || ! $serviceType || ! $requestedTime) {
-            return response()->json([
-                'error' => 'Missing required fields: customer_phone, service_type, and requested_time must be provided.',
-            ], 400);
+        $serviceType = $arguments['service_type']
+            ?? $arguments['serviceType']
+            ?? $arguments['service']
+            ?? $request->input('service_type')
+            ?? $request->input('serviceType')
+            ?? $request->input('service')
+            ?? '';
+
+        if (! $serviceType) {
+            $desc = strtolower(($arguments['job_details'] ?? '').' '.($request->input('message.transcript') ?? ''));
+            if (str_contains($desc, 'plumb') || str_contains($desc, 'leak') || str_contains($desc, 'pipe') || str_contains($desc, 'drain')) {
+                $serviceType = 'plumbing';
+            } elseif (str_contains($desc, 'hvac') || str_contains($desc, 'ac') || str_contains($desc, 'cool') || str_contains($desc, 'heat') || str_contains($desc, 'air')) {
+                $serviceType = 'HVAC';
+            } elseif (str_contains($desc, 'electric') || str_contains($desc, 'wire') || str_contains($desc, 'outlet') || str_contains($desc, 'power') || str_contains($desc, 'breaker')) {
+                $serviceType = 'electrical';
+            } else {
+                $serviceType = 'general';
+            }
         }
+
+        $requestedTime = $arguments['requested_time']
+            ?? $arguments['requestedTime']
+            ?? $arguments['time']
+            ?? $arguments['date']
+            ?? $arguments['datetime']
+            ?? $request->input('requested_time')
+            ?? $request->input('requestedTime')
+            ?? '';
+
+        if (! $requestedTime || in_array(strtolower(trim($requestedTime)), ['asap', 'now', 'today', 'first available', 'next available', 'anytime'])) {
+            $nextSlot = $this->resolveNextAvailableSlot($tenant, $serviceType);
+            $requestedTime = $nextSlot ?: Carbon::now()->addHours(2)->format('Y-m-d H:i:s');
+        }
+
+        $customerAddress = $arguments['customer_address'] ?? $arguments['customerAddress'] ?? $arguments['address'] ?? $request->input('customer_address') ?? $request->input('customerAddress') ?? $request->input('address') ?? '';
 
         // Triage priority classification
         $waterLeak = $arguments['water_leak'] ?? $request->input('water_leak') ?? $arguments['waterActiveLeak'] ?? $request->input('waterActiveLeak') ?? null;
@@ -428,28 +469,8 @@ class DispatchWebhookController extends Controller
         try {
             $requestedTimeCarbon = Carbon::parse($requestedTime);
         } catch (\Exception $e) {
-            $invalidTimeResult = [
-                'status' => 'error',
-                'message' => 'Invalid requested_time format.',
-            ];
-
-            event(new DispatchUpdated($tenant->id, [
-                'type' => 'error',
-                'message' => 'Invalid requested_time format.',
-            ]));
-
-            if ($toolCallId) {
-                return response()->json([
-                    'results' => [
-                        [
-                            'toolCallId' => $toolCallId,
-                            'result' => $invalidTimeResult,
-                        ],
-                    ],
-                ], 400);
-            }
-
-            return response()->json($invalidTimeResult, 400);
+            $nextSlot = $this->resolveNextAvailableSlot($tenant, $serviceType);
+            $requestedTimeCarbon = $nextSlot ? Carbon::parse($nextSlot) : Carbon::now()->addHours(2);
         }
 
         $dayOfWeek = $requestedTimeCarbon->dayOfWeek; // 0 (Sunday) to 6 (Saturday)
@@ -662,5 +683,63 @@ class DispatchWebhookController extends Controller
         }
 
         return response()->json($successResult);
+    }
+
+    /**
+     * Resolve the next available technician appointment slot for fallbacks.
+     */
+    private function resolveNextAvailableSlot(Tenant $tenant, string $serviceType): ?string
+    {
+        $employees = Employee::where('tenant_id', $tenant->id)->get();
+        if ($serviceType !== '') {
+            $skilled = $employees->filter(fn ($e) => is_array($e->skills) && in_array($serviceType, $e->skills));
+            if ($skilled->isNotEmpty()) {
+                $employees = $skilled;
+            }
+        }
+
+        $now = Carbon::now();
+        $today = Carbon::today();
+
+        for ($i = 0; $i < 14; $i++) {
+            $currentDay = $today->copy()->addDays($i);
+            $dayOfWeek = $currentDay->dayOfWeek;
+
+            foreach ($employees as $employee) {
+                $shifts = Availability::where('employee_id', $employee->id)
+                    ->where('day_of_week', $dayOfWeek)
+                    ->where('is_active', true)
+                    ->get();
+
+                foreach ($shifts as $shift) {
+                    $start = Carbon::parse($shift->start_time);
+                    $end = Carbon::parse($shift->end_time);
+                    $currentHour = $start->copy();
+
+                    while ($currentHour->lt($end)) {
+                        $slotTime = $currentDay->copy()->setTime($currentHour->hour, $currentHour->minute, 0);
+
+                        if ($slotTime->gt($now->copy()->addMinutes(30))) {
+                            $bufferMinutes = 90;
+                            $startBuffer = $slotTime->copy()->subMinutes($bufferMinutes);
+                            $endBuffer = $slotTime->copy()->addMinutes($bufferMinutes);
+
+                            $hasOverlap = Booking::where('employee_id', $employee->id)
+                                ->where('status', 'booked')
+                                ->whereBetween('scheduled_start', [$startBuffer, $endBuffer])
+                                ->exists();
+
+                            if (! $hasOverlap) {
+                                return $slotTime->format('Y-m-d H:i:s');
+                            }
+                        }
+
+                        $currentHour->addHour();
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }

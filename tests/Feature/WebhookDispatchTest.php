@@ -278,3 +278,52 @@ test('webhook gateway rate limits requests when 600 per minute limit is exceeded
     $response->assertStatus(429);
     $response->assertJson(['error' => 'Rate limit exceeded.']);
 });
+
+test('webhook booking automatically resolves customer phone and next available slot when fields are omitted by AI', function () {
+    $tenant = Tenant::factory()->create(['secret_key' => null]);
+    $employee = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'skills' => ['plumbing'],
+    ]);
+
+    $tomorrow = Carbon::today()->addDay();
+    Availability::factory()->create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $employee->id,
+        'day_of_week' => $tomorrow->dayOfWeek,
+        'start_time' => '09:00:00',
+        'end_time' => '17:00:00',
+        'is_active' => true,
+    ]);
+
+    // Send payload without customer_phone or requested_time, relying on call header & auto-slot lookup
+    $vapiPayload = [
+        'message' => [
+            'type' => 'tool-calls',
+            'customer' => [
+                'number' => '+15559876543',
+            ],
+            'toolCalls' => [
+                [
+                    'id' => 'vapi-fallback-call-789',
+                    'type' => 'function',
+                    'function' => [
+                        'name' => 'book_appointment',
+                        'arguments' => [
+                            'tenant_id' => $tenant->id,
+                            'service_type' => 'plumbing',
+                            'requested_time' => 'asap',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ];
+
+    $response = $this->postJson('/api/webhooks/dispatch', $vapiPayload);
+
+    $response->assertOk();
+    $response->assertJsonPath('results.0.toolCallId', 'vapi-fallback-call-789');
+    $response->assertJsonPath('results.0.result.status', 'success');
+    expect(Booking::where('tenant_id', $tenant->id)->exists())->toBeTrue();
+});
