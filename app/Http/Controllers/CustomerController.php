@@ -7,6 +7,7 @@ use App\Models\Booking;
 use App\Models\CallLog;
 use App\Models\Customer;
 use App\Models\Scopes\TenantScope;
+use App\Models\ServiceJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -26,8 +27,56 @@ class CustomerController extends Controller
         // Fetch all registered customers from the database
         $customers = Customer::orderBy('name')->get()->map(function ($cust) {
             $phone = $cust->phone;
-            $totalBookings = Booking::where('customer_phone', $phone)->count();
+            $jobs = ServiceJob::where('customer_id', $cust->id)
+                ->with('employee')
+                ->latest()
+                ->get()
+                ->map(function ($job) {
+                    return [
+                        'id' => $job->id,
+                        'title' => $job->title,
+                        'description' => $job->description ?: '',
+                        'status' => $job->status,
+                        'steps' => $job->steps ?: [],
+                        'employee_name' => $job->employee ? ($job->employee->first_name.' '.$job->employee->last_name) : 'Unassigned',
+                        'created_at' => $job->created_at->format('M d, Y g:i A'),
+                    ];
+                });
+
+            $bookings = Booking::where('customer_phone', $phone)
+                ->with('employee')
+                ->latest()
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'id' => $b->id,
+                        'service_type' => $b->service_type,
+                        'requested_time' => $b->requested_time ? $b->requested_time->format('M d, Y g:i A') : 'N/A',
+                        'status' => $b->status,
+                        'technician_name' => $b->employee ? ($b->employee->first_name.' '.$b->employee->last_name) : 'Auto-Assigned',
+                        'created_at' => $b->created_at->format('M d, Y'),
+                    ];
+                });
+
+            $callLogs = CallLog::where('customer_phone', $phone)
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(function ($c) {
+                    $summaryObj = json_decode($c->summary, true) ?: [];
+
+                    return [
+                        'id' => $c->id,
+                        'summary' => $summaryObj['summary'] ?? $c->summary ?? 'No call summary',
+                        'status' => $c->status,
+                        'duration' => $c->duration ? round($c->duration / 60, 1).' mins' : 'N/A',
+                        'created_at' => $c->created_at->diffForHumans(),
+                    ];
+                });
+
+            $totalBookings = count($bookings);
             $totalCalls = CallLog::where('customer_phone', $phone)->count();
+            $totalJobs = count($jobs);
 
             $latestCall = CallLog::where('customer_phone', $phone)->latest()->first();
             $summary = null;
@@ -42,12 +91,16 @@ class CustomerController extends Controller
                 'name' => $cust->name,
                 'email' => $cust->email ?: '',
                 'notes' => $cust->notes ?: '',
+                'total_jobs' => $totalJobs,
                 'total_bookings' => $totalBookings,
                 'total_calls' => $totalCalls,
                 'latest_call_date' => $latestCall ? $latestCall->created_at->diffForHumans() : 'N/A',
                 'latest_call_summary' => $summary ?: 'No call history.',
                 'latest_call_status' => $latestCall ? $latestCall->status : 'N/A',
                 'is_profile' => true,
+                'jobs' => $jobs,
+                'bookings' => $bookings,
+                'call_logs' => $callLogs,
             ];
         })->toArray();
 
@@ -63,7 +116,38 @@ class CustomerController extends Controller
                 continue;
             }
 
-            $totalBookings = Booking::where('customer_phone', $phone)->count();
+            $bookings = Booking::where('customer_phone', $phone)
+                ->with('employee')
+                ->latest()
+                ->get()
+                ->map(function ($b) {
+                    return [
+                        'id' => $b->id,
+                        'service_type' => $b->service_type,
+                        'requested_time' => $b->requested_time ? $b->requested_time->format('M d, Y g:i A') : 'N/A',
+                        'status' => $b->status,
+                        'technician_name' => $b->employee ? ($b->employee->first_name.' '.$b->employee->last_name) : 'Auto-Assigned',
+                        'created_at' => $b->created_at->format('M d, Y'),
+                    ];
+                });
+
+            $callLogs = CallLog::where('customer_phone', $phone)
+                ->latest()
+                ->take(10)
+                ->get()
+                ->map(function ($c) {
+                    $summaryObj = json_decode($c->summary, true) ?: [];
+
+                    return [
+                        'id' => $c->id,
+                        'summary' => $summaryObj['summary'] ?? $c->summary ?? 'No call summary',
+                        'status' => $c->status,
+                        'duration' => $c->duration ? round($c->duration / 60, 1).' mins' : 'N/A',
+                        'created_at' => $c->created_at->diffForHumans(),
+                    ];
+                });
+
+            $totalBookings = count($bookings);
             $totalCalls = CallLog::where('customer_phone', $phone)->count();
 
             $latestCall = CallLog::where('customer_phone', $phone)->latest()->first();
@@ -81,12 +165,16 @@ class CustomerController extends Controller
                 'name' => $callerName,
                 'email' => '',
                 'notes' => '',
+                'total_jobs' => 0,
                 'total_bookings' => $totalBookings,
                 'total_calls' => $totalCalls,
                 'latest_call_date' => $latestCall ? $latestCall->created_at->diffForHumans() : 'N/A',
                 'latest_call_summary' => $summary ?: 'No call history.',
                 'latest_call_status' => $latestCall ? $latestCall->status : 'N/A',
                 'is_profile' => false,
+                'jobs' => [],
+                'bookings' => $bookings,
+                'call_logs' => $callLogs,
             ];
         }
 
@@ -111,18 +199,25 @@ class CustomerController extends Controller
         Gate::authorize('view', $customer);
 
         $phone = $customer->phone;
-        $bookings = Booking::where('customer_phone', $phone)->latest()->get();
+        $jobs = ServiceJob::where('customer_id', $customer->id)->with('employee')->latest()->get();
+        $bookings = Booking::where('customer_phone', $phone)->with('employee')->latest()->get();
         $callLogs = CallLog::where('customer_phone', $phone)->latest()->get();
 
         if ($request->wantsJson()) {
             return response()->json([
                 'customer' => $customer,
+                'jobs' => $jobs,
                 'bookings' => $bookings,
                 'call_logs' => $callLogs,
             ]);
         }
 
-        return redirect()->route('customers.index');
+        return Inertia::render('customers/Show', [
+            'customer' => $customer,
+            'jobs' => $jobs,
+            'bookings' => $bookings,
+            'call_logs' => $callLogs,
+        ]);
     }
 
     /**
