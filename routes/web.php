@@ -139,8 +139,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('conversations/{conversation}/messages', [ConversationsController::class, 'storeMessage'])->name('conversations.messages.store');
 
     Route::resource('employees', EmployeeController::class);
-    Route::get('customers', [CustomerController::class, 'index'])->name('customers.index');
-    Route::post('customers', [CustomerController::class, 'store'])->name('customers.store');
+    Route::resource('customers', CustomerController::class);
     Route::post('customers/import', [CustomerController::class, 'import'])->name('customers.import');
     Route::resource('jobs', ServiceJobController::class);
     Route::get('docs', function () {

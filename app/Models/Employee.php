@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Table('employees')]
-#[Fillable('tenant_id', 'first_name', 'last_name', 'phone', 'skills', 'notification_preference', 'user_id', 'certifications', 'latitude', 'longitude')]
+#[Fillable('tenant_id', 'first_name', 'last_name', 'phone', 'role', 'skills', 'notification_preference', 'user_id', 'certifications', 'latitude', 'longitude')]
 #[Casts(['skills' => 'array', 'certifications' => 'array', 'latitude' => 'double', 'longitude' => 'double'])]
 class Employee extends Model
 {

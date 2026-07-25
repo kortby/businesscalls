@@ -34,7 +34,7 @@ use Laravel\Fortify\PasskeyAuthenticatable;
  */
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'tenant_id', 'is_supervisor'])]
+#[Fillable(['name', 'email', 'password', 'tenant_id', 'is_supervisor', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 #[Casts([
     'email_verified_at' => 'datetime',
@@ -53,11 +53,40 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Determine if the user is an admin.
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin' || (! $this->role && ! $this->is_supervisor);
+    }
+
+    /**
      * Determine if the user has supervisor permissions.
      */
     public function isSupervisor(): bool
     {
-        return (bool) ($this->is_supervisor ?? false);
+        return (bool) ($this->is_supervisor ?? false) || in_array($this->role, ['supervisor', 'admin']);
+    }
+
+    /**
+     * Determine if the user is a field technician.
+     */
+    public function isTechnician(): bool
+    {
+        return $this->role === 'technician' && ! $this->is_supervisor;
+    }
+
+    /**
+     * Check if user has specific role or roles.
+     */
+    public function hasRole(string|array $roles): bool
+    {
+        $roles = (array) $roles;
+        if (in_array('admin', $roles) && $this->isAdmin()) {
+            return true;
+        }
+
+        return in_array($this->role, $roles);
     }
 
     /**

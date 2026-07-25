@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, router } from '@inertiajs/vue3';
 import {
     Phone,
     Calendar,
@@ -14,6 +14,8 @@ import {
     UserPlus,
     Mail,
     FileText,
+    Edit,
+    Trash2,
 } from '@lucide/vue';
 import { ref } from 'vue';
 import Heading from '@/components/Heading.vue';
@@ -40,6 +42,8 @@ import { Textarea } from '@/components/ui/textarea';
 import AppLayout from '@/layouts/AppLayout.vue';
 import {
     store as storeCustomer,
+    update as updateCustomer,
+    destroy as destroyCustomer,
     importMethod as importCustomer,
 } from '@/routes/customers';
 
@@ -59,15 +63,30 @@ defineProps<{
         latest_call_status: string;
         is_profile: boolean;
     }>;
+    permissions?: {
+        canCreate: boolean;
+        canUpdate: boolean;
+        canDelete: boolean;
+        canImport: boolean;
+    };
 }>();
 
 const showAddModal = ref(false);
+const showEditModal = ref(false);
 const showImportModal = ref(false);
+const editingCustomer = ref<any>(null);
 const fileInput = ref<HTMLInputElement | null>(null);
 const fileError = ref<string | null>(null);
 const selectedFileName = ref<string | null>(null);
 
 const form = useForm({
+    name: '',
+    phone: '',
+    email: '',
+    notes: '',
+});
+
+const editForm = useForm({
     name: '',
     phone: '',
     email: '',
@@ -97,6 +116,35 @@ const submitAdd = () => {
             form.reset();
         },
     });
+};
+
+const openEditModal = (customer: any) => {
+    editingCustomer.value = customer;
+    editForm.name = customer.name;
+    editForm.phone = customer.phone;
+    editForm.email = customer.email || '';
+    editForm.notes = customer.notes || '';
+    showEditModal.value = true;
+};
+
+const submitUpdate = () => {
+    if (!editingCustomer.value?.id) return;
+    editForm.put(updateCustomer.url(editingCustomer.value.id), {
+        onSuccess: () => {
+            showEditModal.value = false;
+            editingCustomer.value = null;
+        },
+    });
+};
+
+const deleteCustomer = (id: number) => {
+    if (
+        confirm(
+            'Are you sure you want to delete this customer profile? This action will be logged in compliance audit trails.',
+        )
+    ) {
+        router.delete(destroyCustomer.url(id));
+    }
 };
 
 const triggerFileSelect = () => {
@@ -203,7 +251,8 @@ const submitImport = () => {
                                     Bookings Aligned
                                 </th>
                                 <th class="px-4 pb-3">Latest Interaction</th>
-                                <th class="pb-3 pl-4">Telemetry Status</th>
+                                <th class="px-4 pb-3">Telemetry Status</th>
+                                <th class="pb-3 pl-4 text-right">Actions</th>
                             </tr>
                         </thead>
                         <tbody
@@ -303,7 +352,7 @@ const submitImport = () => {
                                 </td>
 
                                 <!-- Status & Time -->
-                                <td class="space-y-1 py-4 pl-4">
+                                <td class="px-4 py-4 space-y-1">
                                     <div class="flex items-center gap-1.5">
                                         <Badge
                                             :class="[
@@ -328,6 +377,30 @@ const submitImport = () => {
                                     >
                                         <Clock class="h-3 w-3" />
                                         {{ customer.latest_call_date }}
+                                    </div>
+                                </td>
+
+                                <!-- Actions -->
+                                <td class="py-4 pl-4 text-right">
+                                    <div class="flex items-center justify-end gap-2">
+                                        <button
+                                            v-if="customer.is_profile"
+                                            @click="openEditModal(customer)"
+                                            class="flex cursor-pointer items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs font-bold text-slate-600 transition-colors hover:border-indigo-500/30 hover:bg-indigo-50 hover:text-indigo-600 dark:border-slate-800 dark:text-slate-300 dark:hover:bg-slate-800"
+                                            title="Edit Customer Profile"
+                                        >
+                                            <Edit class="h-3.5 w-3.5" />
+                                            <span>Edit</span>
+                                        </button>
+                                        <button
+                                            v-if="customer.is_profile && permissions?.canDelete !== false"
+                                            @click="deleteCustomer(customer.id!)"
+                                            class="flex cursor-pointer items-center gap-1 rounded-lg border border-rose-200 px-2 py-1 text-xs font-bold text-rose-600 transition-colors hover:bg-rose-50 dark:border-rose-950 dark:text-rose-400 dark:hover:bg-rose-950/50"
+                                            title="Delete Customer Profile"
+                                        >
+                                            <Trash2 class="h-3.5 w-3.5" />
+                                            <span>Delete</span>
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -591,6 +664,123 @@ const submitImport = () => {
                                 class="h-4 w-4 animate-spin"
                             />
                             <span>Import Customers</span>
+                        </Button>
+                    </DialogFooter>
+                </form>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Edit Customer Modal -->
+        <Dialog :open="showEditModal" @update:open="showEditModal = $event">
+            <DialogContent
+                class="rounded-2xl border-3 border-slate-300 bg-white p-6 shadow-2xl sm:max-w-md dark:border-slate-800 dark:bg-slate-900"
+            >
+                <DialogHeader>
+                    <DialogTitle
+                        class="flex items-center gap-2 text-lg font-black text-slate-900 uppercase dark:text-white"
+                    >
+                        <Edit class="h-5 w-5 text-indigo-500" />
+                        <span>Edit Customer Profile</span>
+                    </DialogTitle>
+                    <DialogDescription class="text-xs font-medium"
+                        >Update customer contact details and notes.</DialogDescription
+                    >
+                </DialogHeader>
+                <form @submit.prevent="submitUpdate" class="space-y-4 pt-4">
+                    <div class="space-y-1.5">
+                        <Label
+                            for="edit_name"
+                            class="text-[10px] font-black text-slate-500 uppercase dark:text-slate-400"
+                            >Full Name</Label
+                        >
+                        <Input
+                            id="edit_name"
+                            v-model="editForm.name"
+                            required
+                            class="border-2 border-slate-200 dark:border-slate-800"
+                        />
+                        <span
+                            v-if="editForm.errors.name"
+                            class="text-[10px] font-bold text-rose-500"
+                            >{{ editForm.errors.name }}</span
+                        >
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <Label
+                            for="edit_phone"
+                            class="text-[10px] font-black text-slate-500 uppercase dark:text-slate-400"
+                            >Phone Number</Label
+                        >
+                        <Input
+                            id="edit_phone"
+                            v-model="editForm.phone"
+                            required
+                            class="border-2 border-slate-200 dark:border-slate-800"
+                        />
+                        <span
+                            v-if="editForm.errors.phone"
+                            class="text-[10px] font-bold text-rose-500"
+                            >{{ editForm.errors.phone }}</span
+                        >
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <Label
+                            for="edit_email"
+                            class="text-[10px] font-black text-slate-500 uppercase dark:text-slate-400"
+                            >Email Address (Optional)</Label
+                        >
+                        <Input
+                            id="edit_email"
+                            type="email"
+                            v-model="editForm.email"
+                            class="border-2 border-slate-200 dark:border-slate-800"
+                        />
+                        <span
+                            v-if="editForm.errors.email"
+                            class="text-[10px] font-bold text-rose-500"
+                            >{{ editForm.errors.email }}</span
+                        >
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <Label
+                            for="edit_notes"
+                            class="text-[10px] font-black text-slate-500 uppercase dark:text-slate-400"
+                            >Internal Notes (Optional)</Label
+                        >
+                        <Textarea
+                            id="edit_notes"
+                            v-model="editForm.notes"
+                            rows="3"
+                            class="border-2 border-slate-200 dark:border-slate-800"
+                        />
+                        <span
+                            v-if="editForm.errors.notes"
+                            class="text-[10px] font-bold text-rose-500"
+                            >{{ editForm.errors.notes }}</span
+                        >
+                    </div>
+
+                    <DialogFooter class="flex justify-end gap-2 border-t pt-4">
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            @click="showEditModal = false"
+                            class="cursor-pointer text-xs font-bold uppercase"
+                            >Cancel</Button
+                        >
+                        <Button
+                            type="submit"
+                            :disabled="editForm.processing"
+                            class="flex cursor-pointer items-center gap-1.5 rounded-xl border-2 border-b-4 border-indigo-600 border-indigo-800 bg-indigo-600 px-6 py-2.5 text-xs font-black tracking-wide text-white uppercase shadow-md transition-all hover:border-indigo-700 hover:bg-indigo-500 active:border-b-0"
+                        >
+                            <Loader2
+                                v-if="editForm.processing"
+                                class="h-4 w-4 animate-spin"
+                            />
+                            <span>Update Profile</span>
                         </Button>
                     </DialogFooter>
                 </form>

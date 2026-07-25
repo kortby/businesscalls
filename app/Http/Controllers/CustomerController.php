@@ -9,6 +9,7 @@ use App\Models\Customer;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response as InertiaResponse;
@@ -16,11 +17,13 @@ use Inertia\Response as InertiaResponse;
 class CustomerController extends Controller
 {
     /**
-     * Display a listing of distinct customers (phone numbers) and their activity.
+     * Display a listing of distinct customers and their activity.
      */
     public function index(Request $request): InertiaResponse
     {
-        // Fetch all customers from the customers table
+        Gate::authorize('viewAny', Customer::class);
+
+        // Fetch all registered customers from the database
         $customers = Customer::orderBy('name')->get()->map(function ($cust) {
             $phone = $cust->phone;
             $totalBookings = Booking::where('customer_phone', $phone)->count();
@@ -48,7 +51,7 @@ class CustomerController extends Controller
             ];
         })->toArray();
 
-        // Now find any phone numbers in bookings/call_logs that don't have a Customer profile
+        // Find any caller phone numbers without a saved Customer record
         $profilePhones = array_column($customers, 'phone');
 
         $bookingPhones = Booking::select('customer_phone')->distinct()->pluck('customer_phone')->toArray();
@@ -87,9 +90,39 @@ class CustomerController extends Controller
             ];
         }
 
+        $user = $request->user();
+
         return Inertia::render('customers/Index', [
             'customers' => $customers,
+            'permissions' => [
+                'canCreate' => $user ? Gate::allows('create', Customer::class) : false,
+                'canUpdate' => true,
+                'canDelete' => $user ? Gate::allows('delete', new Customer(['tenant_id' => $user->tenant_id])) : false,
+                'canImport' => $user ? Gate::allows('import', Customer::class) : false,
+            ],
         ]);
+    }
+
+    /**
+     * Display the specified customer record.
+     */
+    public function show(Request $request, Customer $customer)
+    {
+        Gate::authorize('view', $customer);
+
+        $phone = $customer->phone;
+        $bookings = Booking::where('customer_phone', $phone)->latest()->get();
+        $callLogs = CallLog::where('customer_phone', $phone)->latest()->get();
+
+        if ($request->wantsJson()) {
+            return response()->json([
+                'customer' => $customer,
+                'bookings' => $bookings,
+                'call_logs' => $callLogs,
+            ]);
+        }
+
+        return redirect()->route('customers.index');
     }
 
     /**
@@ -97,6 +130,8 @@ class CustomerController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        Gate::authorize('create', Customer::class);
+
         $tenantId = TenantScope::getTenantId();
 
         $validated = $request->validate([
@@ -106,7 +141,7 @@ class CustomerController extends Controller
             'notes' => ['nullable', 'string', 'max:1000'],
         ]);
 
-        Customer::create([
+        $customer = Customer::create([
             'tenant_id' => $tenantId,
             'name' => $validated['name'],
             'phone' => $validated['phone'],
@@ -114,7 +149,6 @@ class CustomerController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
-        // Create compliance AuditLog
         AuditLog::create([
             'tenant_id' => $tenantId,
             'user_id' => $request->user()->id,
@@ -122,6 +156,7 @@ class CustomerController extends Controller
             'ip_address' => $request->ip(),
             'browser_agent' => $request->userAgent(),
             'payload' => [
+                'id' => $customer->id,
                 'name' => $validated['name'],
                 'phone' => $validated['phone'],
             ],
@@ -133,10 +168,90 @@ class CustomerController extends Controller
     }
 
     /**
+     * Update the specified customer.
+     */
+    public function update(Request $request, Customer $customer): RedirectResponse
+    {
+        Gate::authorize('update', $customer);
+
+        $tenantId = TenantScope::getTenantId();
+
+        $validated = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'phone' => ['required', 'string', 'max:50', Rule::unique('customers')->where('tenant_id', $tenantId)->ignore($customer->id)],
+            'email' => ['nullable', 'email', 'max:255'],
+            'notes' => ['nullable', 'string', 'max:1000'],
+        ]);
+
+        $oldPhone = $customer->phone;
+
+        $customer->update([
+            'name' => $validated['name'],
+            'phone' => $validated['phone'],
+            'email' => $validated['email'] ?? null,
+            'notes' => $validated['notes'] ?? null,
+        ]);
+
+        if ($oldPhone !== $validated['phone']) {
+            Booking::where('customer_phone', $oldPhone)->update(['customer_phone' => $validated['phone']]);
+            CallLog::where('customer_phone', $oldPhone)->update(['customer_phone' => $validated['phone']]);
+        }
+
+        AuditLog::create([
+            'tenant_id' => $tenantId,
+            'user_id' => $request->user()->id,
+            'action' => 'customer_updated',
+            'ip_address' => $request->ip(),
+            'browser_agent' => $request->userAgent(),
+            'payload' => [
+                'id' => $customer->id,
+                'name' => $validated['name'],
+                'phone' => $validated['phone'],
+            ],
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Customer profile updated successfully.')]);
+
+        return redirect()->back();
+    }
+
+    /**
+     * Remove the specified customer from storage.
+     */
+    public function destroy(Request $request, Customer $customer): RedirectResponse
+    {
+        Gate::authorize('delete', $customer);
+
+        $tenantId = TenantScope::getTenantId();
+        $name = $customer->name;
+        $phone = $customer->phone;
+
+        $customer->delete();
+
+        AuditLog::create([
+            'tenant_id' => $tenantId,
+            'user_id' => $request->user()->id,
+            'action' => 'customer_deleted',
+            'ip_address' => $request->ip(),
+            'browser_agent' => $request->userAgent(),
+            'payload' => [
+                'name' => $name,
+                'phone' => $phone,
+            ],
+        ]);
+
+        Inertia::flash('toast', ['type' => 'success', 'message' => __('Customer profile removed successfully.')]);
+
+        return redirect()->back();
+    }
+
+    /**
      * Import customers from a CSV file.
      */
     public function import(Request $request): RedirectResponse
     {
+        Gate::authorize('import', Customer::class);
+
         $request->validate([
             'csv_file' => ['required', 'file', 'mimes:csv,txt', 'max:2048'],
         ]);
@@ -153,7 +268,6 @@ class CustomerController extends Controller
 
         $headers = array_map('trim', array_map('strtolower', $data[0]));
 
-        // Find header positions
         $nameIdx = array_search('name', $headers);
         $phoneIdx = array_search('phone', $headers);
         $emailIdx = array_search('email', $headers);
@@ -168,7 +282,6 @@ class CustomerController extends Controller
         $tenantId = TenantScope::getTenantId();
         $importedCount = 0;
 
-        // Skip header row
         for ($i = 1; $i < count($data); $i++) {
             $row = $data[$i];
             if (count($row) < 2) {
@@ -184,7 +297,6 @@ class CustomerController extends Controller
                 continue;
             }
 
-            // Check unique phone number per tenant
             Customer::updateOrCreate(
                 [
                     'tenant_id' => $tenantId,
@@ -199,7 +311,6 @@ class CustomerController extends Controller
             $importedCount++;
         }
 
-        // Create compliance AuditLog
         AuditLog::create([
             'tenant_id' => $tenantId,
             'user_id' => $request->user()->id,

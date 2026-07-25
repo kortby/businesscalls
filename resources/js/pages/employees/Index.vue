@@ -44,13 +44,19 @@ const props = defineProps<{
         first_name: string;
         last_name: string;
         phone: string;
+        role?: string;
         skills: string[];
         notification_preference: string;
         user_id: number | null;
         user?: {
             email: string;
+            role?: string;
         } | null;
     }>;
+    permissions?: {
+        canCreate: boolean;
+        canDelete: boolean;
+    };
 }>();
 
 const showAddModal = ref(false);
@@ -61,6 +67,7 @@ const form = useForm({
     first_name: '',
     last_name: '',
     phone: '',
+    role: 'technician',
     skills: [] as string[],
     notification_preference: 'sms',
     email: '',
@@ -70,6 +77,7 @@ const editForm = useForm({
     first_name: '',
     last_name: '',
     phone: '',
+    role: 'technician',
     skills: [] as string[],
     notification_preference: 'sms',
 });
@@ -118,6 +126,7 @@ const openEditModal = (employee: any) => {
     editForm.first_name = employee.first_name;
     editForm.last_name = employee.last_name;
     editForm.phone = employee.phone;
+    editForm.role = employee.role || 'technician';
     editForm.skills = [...(employee.skills || [])];
     editForm.notification_preference = employee.notification_preference;
     showEditModal.value = true;
@@ -135,7 +144,7 @@ const submitUpdate = () => {
 const deleteEmployee = (id: number) => {
     if (
         confirm(
-            'Are you sure you want to remove this technician? This action is tracked in compliance logs.',
+            'Are you sure you want to remove this employee? This action is tracked in compliance logs.',
         )
     ) {
         router.delete(destroyEmployee.url(id));
@@ -151,14 +160,15 @@ const deleteEmployee = (id: number) => {
             class="flex flex-col justify-between gap-4 sm:flex-row sm:items-center"
         >
             <Heading
-                title="Technicians Directory"
-                description="Create and manage your active mobile service technician profiles"
+                title="Employee Directory & Access Roles"
+                description="Manage staff members, dispatchers, field technicians, and system permissions"
             />
             <Button
+                v-if="permissions?.canCreate !== false"
                 @click="showAddModal = true"
                 class="flex cursor-pointer items-center gap-1.5 rounded-xl border-2 border-b-4 border-emerald-500 border-emerald-700 bg-emerald-500 px-5 py-2.5 text-xs font-black tracking-wide text-white uppercase shadow-md transition-all hover:border-emerald-600 hover:bg-emerald-400 active:translate-y-1 active:border-b-0"
             >
-                <Plus class="h-4 w-4" /> Add Technician
+                <Plus class="h-4 w-4" /> Add Employee
             </Button>
         </div>
 
@@ -171,12 +181,26 @@ const deleteEmployee = (id: number) => {
                 <div class="space-y-4">
                     <div class="flex items-start justify-between gap-4">
                         <div class="space-y-1">
-                            <h3
-                                class="text-base leading-tight font-black text-slate-900 dark:text-white"
-                            >
-                                {{ employee.first_name }}
-                                {{ employee.last_name }}
-                            </h3>
+                            <div class="flex items-center gap-2">
+                                <h3
+                                    class="text-base leading-tight font-black text-slate-900 dark:text-white"
+                                >
+                                    {{ employee.first_name }}
+                                    {{ employee.last_name }}
+                                </h3>
+                                <Badge
+                                    :class="
+                                        employee.role === 'admin'
+                                            ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                                            : employee.role === 'supervisor'
+                                            ? 'border-indigo-500/30 bg-indigo-500/10 text-indigo-600 dark:text-indigo-400'
+                                            : 'border-slate-300 bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300'
+                                    "
+                                    class="text-[9px] font-black uppercase"
+                                >
+                                    {{ employee.role || 'technician' }}
+                                </Badge>
+                            </div>
                             <p class="text-xs font-bold text-muted-foreground">
                                 {{ employee.phone }}
                             </p>
@@ -243,6 +267,7 @@ const deleteEmployee = (id: number) => {
                         <Edit class="h-3.5 w-3.5" /> Edit Profile
                     </button>
                     <button
+                        v-if="permissions?.canDelete !== false"
                         @click="deleteEmployee(employee.id)"
                         class="flex cursor-pointer items-center gap-1 text-xs font-bold text-rose-500 transition-colors hover:text-rose-700"
                     >
@@ -337,26 +362,45 @@ const deleteEmployee = (id: number) => {
                         </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <Label
-                            for="pref"
-                            class="text-[10px] font-black uppercase"
-                            >Alert Preference</Label
-                        >
-                        <Select v-model="form.notification_preference">
-                            <SelectTrigger id="pref" class="w-full">
-                                <SelectValue placeholder="Select channel" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value="sms">SMS Only</SelectItem>
-                                <SelectItem value="email"
-                                    >Email Only</SelectItem
-                                >
-                                <SelectItem value="both"
-                                    >Both Channels</SelectItem
-                                >
-                            </SelectContent>
-                        </Select>
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-1.5">
+                            <Label
+                                for="role"
+                                class="text-[10px] font-black uppercase"
+                                >Access Role</Label
+                            >
+                            <Select v-model="form.role">
+                                <SelectTrigger id="role" class="w-full">
+                                    <SelectValue placeholder="Select role" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="technician">Technician (Field)</SelectItem>
+                                    <SelectItem value="supervisor">Supervisor (Dispatcher)</SelectItem>
+                                    <SelectItem value="admin">Admin (Manager)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+                        <div class="space-y-1.5">
+                            <Label
+                                for="pref"
+                                class="text-[10px] font-black uppercase"
+                                >Alert Preference</Label
+                            >
+                            <Select v-model="form.notification_preference">
+                                <SelectTrigger id="pref" class="w-full">
+                                    <SelectValue placeholder="Select channel" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="sms">SMS Only</SelectItem>
+                                    <SelectItem value="email"
+                                        >Email Only</SelectItem
+                                    >
+                                    <SelectItem value="both"
+                                        >Both Channels</SelectItem
+                                    >
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div class="space-y-2">
@@ -456,17 +500,36 @@ const deleteEmployee = (id: number) => {
                         </div>
                     </div>
 
-                    <div class="space-y-1.5">
-                        <Label
-                            for="edit_phone"
-                            class="text-[10px] font-black uppercase"
-                            >Phone Number</Label
-                        >
-                        <Input
-                            id="edit_phone"
-                            v-model="editForm.phone"
-                            required
-                        />
+                    <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                        <div class="space-y-1.5">
+                            <Label
+                                for="edit_phone"
+                                class="text-[10px] font-black uppercase"
+                                >Phone Number</Label
+                            >
+                            <Input
+                                id="edit_phone"
+                                v-model="editForm.phone"
+                                required
+                            />
+                        </div>
+                        <div class="space-y-1.5">
+                            <Label
+                                for="edit_role"
+                                class="text-[10px] font-black uppercase"
+                                >Access Role</Label
+                            >
+                            <Select v-model="editForm.role">
+                                <SelectTrigger id="edit_role" class="w-full">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="technician">Technician (Field)</SelectItem>
+                                    <SelectItem value="supervisor">Supervisor (Dispatcher)</SelectItem>
+                                    <SelectItem value="admin">Admin (Manager)</SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
                     </div>
 
                     <div class="space-y-1.5">
