@@ -3,10 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Events\DispatchUpdated;
-use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
 use App\Models\Booking;
+use App\Models\Customer;
 use App\Models\Employee;
+use App\Models\ServiceJob;
 use App\Rules\ReCaptcha;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -85,7 +86,7 @@ class BookingController extends Controller
 
         $employee = Employee::find($employeeId);
 
-        // 3. Create the booking
+        // 3. Create the booking & execute automated task assignment pipeline
         $booking = Booking::create([
             'employee_id' => $employeeId,
             'customer_phone' => $validated['customer_phone'],
@@ -94,7 +95,7 @@ class BookingController extends Controller
             'scheduled_start' => $requestedTimeCarbon,
         ]);
 
-        SendTechnicianAlertJob::dispatch($booking);
+        $booking->assignTaskToTechnician();
 
         // 4. Trigger mascot search -> victory animation live sequence on the dashboard
         $tenantId = auth()->user()->tenant_id;
@@ -211,5 +212,42 @@ class BookingController extends Controller
         }
 
         return redirect()->back();
+    }
+
+    /**
+     * Convert a booking into a Customer and a ServiceJob.
+     */
+    public function convertToJob(Booking $booking): RedirectResponse
+    {
+        $tenantId = auth()->user()->tenant_id;
+
+        // 1. Resolve or create Customer by phone number
+        $customer = Customer::firstOrCreate(
+            [
+                'tenant_id' => $tenantId,
+                'phone' => $booking->customer_phone,
+            ],
+            [
+                'name' => 'Customer ('.$booking->customer_phone.')',
+                'notes' => 'Created automatically from Booking #'.$booking->id,
+            ]
+        );
+
+        // 2. Create ServiceJob linked to Customer and assigned Employee
+        $job = ServiceJob::create([
+            'tenant_id' => $tenantId,
+            'customer_id' => $customer->id,
+            'employee_id' => $booking->employee_id,
+            'title' => $booking->job_details ?: 'Service Job',
+            'description' => trim(($booking->triage_notes ?? '')."\n".($booking->booking_notes ?? '')),
+            'status' => 'pending',
+            'steps' => [
+                ['name' => 'Initial Inspection & Diagnosis', 'completed' => false],
+                ['name' => 'Execute Repairs / Maintenance', 'completed' => false],
+                ['name' => 'Customer Sign-off & Invoicing', 'completed' => false],
+            ],
+        ]);
+
+        return redirect()->route('jobs.index')->with('success', "Converted Booking #{$booking->id} into Service Job #{$job->id} for {$customer->name}!");
     }
 }

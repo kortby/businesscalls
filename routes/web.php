@@ -132,6 +132,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::get('bookings', [BookingController::class, 'index'])->name('bookings.index');
     Route::post('bookings', [BookingController::class, 'store'])->name('bookings.store');
+    Route::post('bookings/{booking}/convert-to-job', [BookingController::class, 'convertToJob'])->name('bookings.convert-to-job');
     Route::put('bookings/{booking}', [BookingController::class, 'update'])->name('bookings.update');
     Route::delete('bookings/{booking}', [BookingController::class, 'destroy'])->name('bookings.destroy');
 

@@ -37,8 +37,9 @@ class AdminController extends Controller
      */
     public function diagnostics(): Response
     {
-        // 1. Gather active WebSockets connection info
-        $reverbConnections = mt_rand(12, 18);
+        // 1. Gather active WebSockets / ongoing call connections info
+        $ongoingCalls = CallLog::where('status', 'ongoing')->count();
+        $reverbConnections = max($ongoingCalls, 1);
 
         // 2. Queue load metrics
         $queueLoad = DB::table('jobs')->count();
@@ -46,8 +47,10 @@ class AdminController extends Controller
         // 3. Calculated conversational latency index (average latency drift over recent calls)
         $avgLatencyDrift = (float) (CallLog::whereNotNull('latency_drift')->avg('latency_drift') ?? 0.0);
 
-        // 4. Database query latency (average response time in milliseconds)
-        $averageDatabaseLatency = (float) mt_rand(5, 25);
+        // 4. Measure actual database query latency in milliseconds
+        $startTime = microtime(true);
+        DB::select('SELECT 1');
+        $averageDatabaseLatency = round((microtime(true) - $startTime) * 1000, 2);
 
         // 5. Recent warnings & incident reports under tenant context (scoped automatically by TenantScope)
         $recentAlerts = AuditLog::where('action', 'high_priority_incident')
