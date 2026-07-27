@@ -7,44 +7,44 @@ use Illuminate\Http\Response;
 class SitemapController extends Controller
 {
     /**
-     * Generate the sitemap XML response.
+     * Generate the sitemap XML response for JustMascot.
      */
     public function __invoke(): Response
     {
         $urls = [
             [
                 'loc' => route('home'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'daily',
                 'priority' => '1.0',
             ],
             [
                 'loc' => route('about'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
             ],
             [
                 'loc' => route('pricing'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
             ],
             [
                 'loc' => route('contact'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'monthly',
-                'priority' => '0.5',
+                'priority' => '0.6',
             ],
             [
                 'loc' => route('privacy'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'monthly',
                 'priority' => '0.3',
             ],
             [
                 'loc' => route('terms'),
-                'lastmod' => '2026-07-13',
+                'lastmod' => '2026-07-26',
                 'changefreq' => 'monthly',
                 'priority' => '0.3',
             ],

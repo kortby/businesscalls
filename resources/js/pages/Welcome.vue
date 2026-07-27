@@ -18,8 +18,32 @@ import {
     Home,
     Bug,
     Lock,
+    Radio,
+    Layers,
+    ArrowRight,
 } from '@lucide/vue';
 import { ref, onMounted } from 'vue';
+
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
+import PublicHeader from '@/components/PublicHeader.vue';
+import DispatcherMascot from '@/components/DispatcherMascot.vue';
+import SeoHead from '@/components/SeoHead.vue';
+import PublicSandboxLeadMagnet from '@/components/PublicSandboxLeadMagnet.vue';
+import VisualDispatchBoardShowcase from '@/components/VisualDispatchBoardShowcase.vue';
+import TechnicalReliabilityShowcase from '@/components/TechnicalReliabilityShowcase.vue';
+import { useAppearance } from '@/composables/useAppearance';
+import { Badge } from '@/components/ui/badge';
+import {
+    dashboard,
+    login,
+    register,
+    home,
+    about,
+    pricing,
+    contact,
+    privacy,
+    terms,
+} from '@/routes';
 
 const serviceTypes = [
     {
@@ -103,29 +127,8 @@ const serviceTypes = [
         keywords: ['24/7 Lockout', 'Commercial Rekey', 'Smart Locks', 'Master Keying'],
     },
 ];
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-import PublicHeader from '@/components/PublicHeader.vue';
-import DispatcherMascot from '@/components/DispatcherMascot.vue';
-import SeoHead from '@/components/SeoHead.vue';
-import { useAppearance } from '@/composables/useAppearance';
-import { Badge } from '@/components/ui/badge';
-import {
-    dashboard,
-    login,
-    register,
-    home,
-    about,
-    pricing,
-    contact,
-    privacy,
-    terms,
-} from '@/routes';
 
 const { appearance, updateAppearance } = useAppearance();
-
-const toggleAppearance = () => {
-    updateAppearance(appearance.value === 'dark' ? 'light' : 'dark');
-};
 
 const mascotState = ref<number>(0);
 const simulatedMessage = ref<string>('Mascot is idle, monitoring channels...');
@@ -169,6 +172,10 @@ const faqs = [
         question: 'Can we define custom skills for our technicians?',
         answer: 'Absolutely. You can assign specific skill tags (e.g., HVAC, electrical, plumbing, gas) to your technicians. The AI dispatcher uses these tags alongside active shifts to match incoming booking requests with the right qualified specialist.',
     },
+    {
+        question: 'How does the Sandbox Mode lead magnet work?',
+        answer: 'You can test interactive IVR options, speech-to-text triage, and simulated AI call booking directly on our site risk-free before signing up. You can also dial +1 (619) 639-0411 to experience the voice AI live!',
+    },
 ];
 
 // Entrance animation trigger
@@ -180,22 +187,54 @@ onMounted(() => {
 
 <template>
     <SeoHead
-        title="AI Voice Receptionist & Smart Dispatch for Trade Contractors"
-        description="Streamline your plumbing, HVAC, or electrical business with an AI voice receptionist that automatically answers calls, checks shifts, and schedules bookings."
-        keywords="AI receptionist, contractor answering service, HVAC dispatch software, plumber booking system, electrical scheduling app, 24/7 call management"
+        title="JustMascot • AI Voice Receptionist & Smart Dispatch for Trade Contractors"
+        description="Streamline your plumbing, HVAC, or electrical business with an AI voice receptionist that automatically answers calls, checks technician shifts, respects 1.5h travel buffers, and schedules bookings."
+        keywords="AI receptionist, contractor answering service, HVAC dispatch software, plumber booking system, electrical scheduling app, 24/7 call management, sandbox mode IVR, visual dispatch board"
         :jsonLd="{
             '@context': 'https://schema.org',
-            '@type': 'SoftwareApplication',
-            name: 'JustMascot',
-            operatingSystem: 'All',
-            applicationCategory: 'BusinessApplication',
-            description:
-                'AI voice receptionist and dynamic dispatch scheduler for trade contractors.',
-            offers: {
-                '@type': 'Offer',
-                price: '49.00',
-                priceCurrency: 'USD',
-            },
+            '@graph': [
+                {
+                    '@type': 'SoftwareApplication',
+                    name: 'JustMascot',
+                    operatingSystem: 'All',
+                    applicationCategory: 'BusinessApplication',
+                    description: 'AI voice receptionist and dynamic dispatch scheduler for trade contractors (Plumbing, HVAC, Electrical, Roofing).',
+                    url: 'https://justmascot.io',
+                    offers: {
+                        '@type': 'Offer',
+                        price: '49.00',
+                        priceCurrency: 'USD',
+                        availability: 'https://schema.org/InStock'
+                    },
+                    aggregateRating: {
+                        '@type': 'AggregateRating',
+                        ratingValue: '4.9',
+                        reviewCount: '128'
+                    }
+                },
+                {
+                    '@type': 'Organization',
+                    name: 'JustMascot',
+                    url: 'https://justmascot.io',
+                    logo: 'https://justmascot.io/apple-touch-icon.png',
+                    contactPoint: {
+                        '@type': 'ContactPoint',
+                        telephone: '+1-619-639-0411',
+                        contactType: 'customer service'
+                    }
+                },
+                {
+                    '@type': 'FAQPage',
+                    mainEntity: faqs.map(f => ({
+                        '@type': 'Question',
+                        name: f.question,
+                        acceptedAnswer: {
+                            '@type': 'Answer',
+                            text: f.answer
+                        }
+                    }))
+                }
+            ]
         }"
     />
 
@@ -258,24 +297,17 @@ onMounted(() => {
                     <p
                         class="max-w-[600px] text-lg leading-relaxed text-muted-foreground"
                     >
-                        Never miss another service call or lose a customer to
-                        the competition.
-                        <strong>JustMascot</strong> is the ultimate AI voice
-                        receptionist and automated dispatch scheduling platform
-                        built specifically for plumbing, HVAC, electrical, and
-                        other home service businesses. Our system automatically
-                        answers calls 24/7, qualifies customer needs, verifies
-                        technician availability, respects travel buffers, and
-                        books jobs directly into your dashboard.
+                        Never miss another service call or lose a customer to the competition.
+                        <strong>JustMascot</strong> is the ultimate AI voice receptionist and automated dispatch scheduling platform built specifically for plumbing, HVAC, electrical, and home service businesses. Automatically answer calls 24/7, verify technician skills, enforce 1.5-hour travel buffers, and book jobs into your dispatch board.
                     </p>
 
                     <div class="flex flex-wrap items-center gap-4 pt-2">
                         <a
-                            href="tel:+16196390411"
+                            href="#sandbox-demo"
                             class="inline-flex h-11 items-center justify-center gap-2.5 rounded-md bg-emerald-600 px-6 py-2.5 text-base font-bold text-white shadow-md transition-all hover:scale-103 hover:bg-emerald-700 active:scale-97 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                         >
-                            <PhoneCall class="h-5 w-5 animate-bounce text-white" />
-                            <span>Call AI Assistant: +1 (619) 639-0411</span>
+                            <Radio class="h-5 w-5 animate-pulse text-white" />
+                            <span>Try Interactive Sandbox Lead Magnet</span>
                         </a>
 
                         <Link
@@ -288,7 +320,7 @@ onMounted(() => {
 
                     <div class="flex items-center gap-2 pt-1 text-xs font-medium text-muted-foreground">
                         <span class="flex h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
-                        <span>Live AI Receptionist line open 24/7 — Tap or dial to test real-time booking</span>
+                        <span>Live AI Receptionist line open 24/7 — Call +1 (619) 639-0411 or test below risk-free</span>
                     </div>
                 </div>
 
@@ -304,23 +336,18 @@ onMounted(() => {
                     <div
                         class="relative w-full max-w-[420px] rounded-2xl border bg-card/85 p-6 shadow-xl backdrop-blur-md transition-all duration-500 hover:border-indigo-500/20 hover:shadow-2xl dark:border-slate-800/80 dark:bg-slate-900/50"
                     >
-                        <!-- Top right ambient light glow -->
-                        <div
-                            class="absolute -top-10 -right-10 -z-10 h-32 w-32 rounded-full bg-indigo-500/10 blur-2xl"
-                        ></div>
-
                         <div
                             class="mb-4 flex items-center justify-between border-b pb-3"
                         >
                             <span
                                 class="text-xs font-bold tracking-wider text-muted-foreground uppercase"
-                                >Interactive AI Simulator</span
+                                >Interactive Mascot Dispatcher</span
                             >
                             <Badge
                                 variant="outline"
                                 class="rounded border-primary/20 bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary uppercase"
                             >
-                                Live Interactive Demo
+                                Live Demo
                             </Badge>
                         </div>
 
@@ -370,6 +397,15 @@ onMounted(() => {
             </div>
         </section>
 
+        <!-- Risk-Free Sandbox Mode Lead Magnet Section -->
+        <PublicSandboxLeadMagnet />
+
+        <!-- Visual Dispatch Board Showcase Section -->
+        <VisualDispatchBoardShowcase />
+
+        <!-- Technical Reliability Showcase Section -->
+        <TechnicalReliabilityShowcase />
+
         <!-- Service Types Trade Showcase Section -->
         <section class="relative border-b bg-background py-16 md:py-24">
             <div class="container mx-auto px-4 sm:px-6">
@@ -400,7 +436,6 @@ onMounted(() => {
                         :class="service.borderColor"
                     >
                         <div>
-                            <!-- Header & Gradient Icon -->
                             <div class="mb-4 flex items-center justify-between">
                                 <div
                                     class="flex h-12 w-12 items-center justify-center rounded-xl p-2.5 transition-transform duration-300 group-hover:scale-110"
@@ -424,7 +459,6 @@ onMounted(() => {
                             </p>
                         </div>
 
-                        <!-- Keywords / Skill Tags -->
                         <div>
                             <div class="mb-3 flex flex-wrap gap-1.5">
                                 <span
@@ -438,157 +472,13 @@ onMounted(() => {
                         </div>
                     </div>
                 </div>
-
-                <!-- Call Demo Banner Bar -->
-                <div
-                    class="mt-12 flex flex-col items-center justify-between gap-6 rounded-2xl border border-emerald-500/20 bg-gradient-to-r from-emerald-500/10 via-teal-500/5 to-indigo-500/10 p-6 backdrop-blur-md sm:flex-row sm:p-8"
-                >
-                    <div class="flex items-center gap-4">
-                        <div
-                            class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-emerald-500 text-white shadow-md"
-                        >
-                            <PhoneCall class="h-6 w-6 animate-pulse" />
-                        </div>
-                        <div>
-                            <h4 class="text-lg font-bold text-foreground">
-                                Want to see how our AI answers calls for your specific trade?
-                            </h4>
-                            <p class="text-sm text-muted-foreground">
-                                Call <strong class="text-emerald-600 dark:text-emerald-400">+1 (619) 639-0411</strong> right now to test scheduling, diagnostic questions, and emergency triage live.
-                            </p>
-                        </div>
-                    </div>
-
-                    <a
-                        href="tel:+16196390411"
-                        class="inline-flex shrink-0 items-center gap-2 rounded-xl bg-emerald-600 px-5 py-3 text-sm font-bold text-white shadow-md transition-all hover:scale-105 hover:bg-emerald-700 active:scale-95 dark:bg-emerald-500 dark:hover:bg-emerald-600"
-                    >
-                        <PhoneCall class="h-4 w-4" />
-                        <span>Dial +1 (619) 639-0411</span>
-                    </a>
-                </div>
             </div>
         </section>
 
-        <!-- Features Grid Section -->
-        <section
-            id="features"
-            class="border-b bg-card py-16 md:py-24 dark:bg-slate-900/20"
-        >
-            <div class="container mx-auto px-4 sm:px-6">
-                <div class="mx-auto mb-16 max-w-[800px] space-y-3 text-center">
-                    <h2
-                        class="text-xs font-black tracking-widest text-primary uppercase"
-                    >
-                        Core Architecture
-                    </h2>
-                    <h3
-                        class="text-3xl font-bold tracking-tight text-foreground sm:text-4xl"
-                    >
-                        Production-grade scheduling engine
-                    </h3>
-                    <p class="leading-relaxed text-muted-foreground">
-                        Our platform is engineered for trade contractors (HVAC,
-                        Plumbing, Electrical) to ensure absolute data isolation
-                        and schedule verification.
-                    </p>
-                </div>
-
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    <!-- Feature 1: Tenancy Scope -->
-                    <div
-                        class="group relative flex flex-col rounded-xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-500/20 hover:shadow-md"
-                    >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-indigo-500/0 via-indigo-500/0 to-indigo-500/0 opacity-0 transition-opacity duration-300 group-hover:from-indigo-500/[0.01] group-hover:to-indigo-500/[0.03] group-hover:opacity-100"
-                        ></div>
-                        <div
-                            class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-105"
-                        >
-                            <UserCheck class="h-5 w-5" />
-                        </div>
-                        <h4
-                            class="mb-2 text-lg font-bold text-foreground transition-colors group-hover:text-indigo-600 dark:group-hover:text-indigo-400"
-                        >
-                            Tenant Database Isolation
-                        </h4>
-                        <p
-                            class="text-sm leading-relaxed text-muted-foreground"
-                        >
-                            Global scopes isolate queries to active session
-                            sub-tenants. Multi-tenant database rules are
-                            validated at every layer of the Eloquent model
-                            lifecycle.
-                        </p>
-                    </div>
-
-                    <!-- Feature 2: Overlap Buffer -->
-                    <div
-                        class="group relative flex flex-col rounded-xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-500/20 hover:shadow-md"
-                    >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 opacity-0 transition-opacity duration-300 group-hover:from-emerald-500/[0.01] group-hover:to-emerald-500/[0.03] group-hover:opacity-100"
-                        ></div>
-                        <div
-                            class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-105"
-                        >
-                            <Clock class="h-5 w-5" />
-                        </div>
-                        <h4
-                            class="mb-2 text-lg font-bold text-foreground transition-colors group-hover:text-emerald-600 dark:group-hover:text-emerald-400"
-                        >
-                            1.5h Overlap Buffer
-                        </h4>
-                        <p
-                            class="text-sm leading-relaxed text-muted-foreground"
-                        >
-                            Automatically validates scheduled appointments and
-                            blocks technician dispatches that fall within 1.5
-                            hours of another booking to account for travel.
-                        </p>
-                    </div>
-
-                    <!-- Feature 3: HMAC Signatures -->
-                    <div
-                        class="group relative flex flex-col rounded-xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500/20 hover:shadow-md"
-                    >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-xl bg-gradient-to-br from-amber-500/0 via-amber-500/0 to-amber-500/0 opacity-0 transition-opacity duration-300 group-hover:from-amber-500/[0.01] group-hover:to-amber-500/[0.03] group-hover:opacity-100"
-                        ></div>
-                        <div
-                            class="mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-transform duration-300 group-hover:scale-105"
-                        >
-                            <ShieldCheck class="h-5 w-5" />
-                        </div>
-                        <h4
-                            class="mb-2 text-lg font-bold text-foreground transition-colors group-hover:text-amber-600 dark:group-hover:text-amber-400"
-                        >
-                            HMAC Webhook Security
-                        </h4>
-                        <p
-                            class="text-sm leading-relaxed text-muted-foreground"
-                        >
-                            Secure your API routes from fake telephony requests.
-                            All incoming payload headers are checked against
-                            SHA256 hashes generated from the tenant secret key.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Reviews Section -->
+        <!-- Customer Testimonials Section -->
         <section
             class="relative overflow-hidden border-b bg-slate-50/50 py-16 md:py-24 dark:bg-slate-950/20"
         >
-            <!-- Background Decorative Glow Blobs -->
-            <div
-                class="absolute top-20 -right-40 -z-10 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl"
-            ></div>
-            <div
-                class="absolute bottom-20 -left-40 -z-10 h-80 w-80 rounded-full bg-emerald-500/10 blur-3xl"
-            ></div>
-
             <div class="container mx-auto px-4 sm:px-6">
                 <div class="mx-auto mb-16 max-w-[800px] space-y-3 text-center">
                     <h2
@@ -602,147 +492,73 @@ onMounted(() => {
                         Trusted by top-tier trade contractors
                     </h3>
                     <p class="leading-relaxed text-muted-foreground">
-                        Discover how JustMascot helps HVAC, plumbing, and
-                        electrical teams capture more value from every call.
+                        Discover how JustMascot helps HVAC, plumbing, and electrical teams capture more value from every call.
                     </p>
                 </div>
 
                 <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
-                    <!-- Review 1: Plumbing -->
                     <div
                         class="group relative flex flex-col justify-between rounded-2xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-indigo-500/30 hover:shadow-lg dark:hover:shadow-indigo-500/5"
                     >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-indigo-500/0 via-indigo-500/0 to-indigo-500/0 opacity-0 transition-opacity duration-300 group-hover:from-indigo-500/[0.02] group-hover:to-indigo-500/[0.05] group-hover:opacity-100"
-                        ></div>
                         <div>
-                            <!-- Star rating -->
-                            <div
-                                class="mb-4 flex items-center gap-0.5 text-amber-500"
-                            >
-                                <Star
-                                    class="h-4.5 w-4.5 fill-current"
-                                    v-for="i in 5"
-                                    :key="i"
-                                />
+                            <div class="mb-4 flex items-center gap-0.5 text-amber-500">
+                                <Star class="h-4.5 w-4.5 fill-current" v-for="i in 5" :key="i" />
                             </div>
-                            <p
-                                class="mb-6 text-sm leading-relaxed text-muted-foreground italic"
-                            >
-                                "The 1.5h overlap buffer is a lifesaver. Before
-                                JustMascot, our plumbers were constantly
-                                double-booked during rush hour traffic. Now, our
-                                travel windows are protected automatically."
+                            <p class="mb-6 text-sm leading-relaxed text-muted-foreground italic">
+                                "The 1.5h overlap buffer is a lifesaver. Before JustMascot, our plumbers were constantly double-booked during rush hour traffic. Now, our travel windows are protected automatically."
                             </p>
                         </div>
-                        <div
-                            class="flex items-center gap-3.5 border-t border-border/60 pt-4"
-                        >
-                            <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-sm"
-                            >
+                        <div class="flex items-center gap-3.5 border-t border-border/60 pt-4">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-sm font-bold text-white shadow-sm">
                                 MV
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-foreground">
-                                    Marcus Vance
-                                </h4>
-                                <p class="text-xs text-muted-foreground">
-                                    Owner, Vance Plumbing &amp; Gas
-                                </p>
+                                <h4 class="text-sm font-bold text-foreground">Marcus Vance</h4>
+                                <p class="text-xs text-muted-foreground">Owner, Vance Plumbing &amp; Gas</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Review 2: HVAC -->
                     <div
                         class="group relative flex flex-col justify-between rounded-2xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-emerald-500/30 hover:shadow-lg dark:hover:shadow-emerald-500/5"
                     >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-emerald-500/0 via-emerald-500/0 to-emerald-500/0 opacity-0 transition-opacity duration-300 group-hover:from-emerald-500/[0.02] group-hover:to-emerald-500/[0.05] group-hover:opacity-100"
-                        ></div>
                         <div>
-                            <!-- Star rating -->
-                            <div
-                                class="mb-4 flex items-center gap-0.5 text-amber-500"
-                            >
-                                <Star
-                                    class="h-4.5 w-4.5 fill-current"
-                                    v-for="i in 5"
-                                    :key="i"
-                                />
+                            <div class="mb-4 flex items-center gap-0.5 text-amber-500">
+                                <Star class="h-4.5 w-4.5 fill-current" v-for="i in 5" :key="i" />
                             </div>
-                            <p
-                                class="mb-6 text-sm leading-relaxed text-muted-foreground italic"
-                            >
-                                "HMAC webhook security gives us peace of mind.
-                                We integrate directly with our telephony
-                                provider, and we know our technician schedules
-                                cannot be manipulated by unauthorized requests."
+                            <p class="mb-6 text-sm leading-relaxed text-muted-foreground italic">
+                                "HMAC webhook security gives us peace of mind. We integrate directly with our telephony provider, and we know our technician schedules cannot be manipulated."
                             </p>
                         </div>
-                        <div
-                            class="flex items-center gap-3.5 border-t border-border/60 pt-4"
-                        >
-                            <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-sm"
-                            >
+                        <div class="flex items-center gap-3.5 border-t border-border/60 pt-4">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 text-sm font-bold text-white shadow-sm">
                                 AR
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-foreground">
-                                    Amanda Ross
-                                </h4>
-                                <p class="text-xs text-muted-foreground">
-                                    Operations Director, Apex Air Systems
-                                </p>
+                                <h4 class="text-sm font-bold text-foreground">Amanda Ross</h4>
+                                <p class="text-xs text-muted-foreground">Operations Director, Apex Air Systems</p>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Review 3: Electrical -->
                     <div
                         class="group relative flex flex-col justify-between rounded-2xl border bg-background p-6 shadow-xs transition-all duration-300 hover:-translate-y-1.5 hover:border-amber-500/30 hover:shadow-lg dark:hover:shadow-amber-500/5"
                     >
-                        <div
-                            class="absolute inset-0 -z-10 rounded-2xl bg-gradient-to-br from-amber-500/0 via-amber-500/0 to-amber-500/0 opacity-0 transition-opacity duration-300 group-hover:from-amber-500/[0.02] group-hover:to-amber-500/[0.05] group-hover:opacity-100"
-                        ></div>
                         <div>
-                            <!-- Star rating -->
-                            <div
-                                class="mb-4 flex items-center gap-0.5 text-amber-500"
-                            >
-                                <Star
-                                    class="h-4.5 w-4.5 fill-current"
-                                    v-for="i in 5"
-                                    :key="i"
-                                />
+                            <div class="mb-4 flex items-center gap-0.5 text-amber-500">
+                                <Star class="h-4.5 w-4.5 fill-current" v-for="i in 5" :key="i" />
                             </div>
-                            <p
-                                class="mb-6 text-sm leading-relaxed text-muted-foreground italic"
-                            >
-                                "The multi-tenant isolation is top notch. We run
-                                a franchise model and need complete data
-                                separation between different regions. The
-                                Eloquent global scope implementation is
-                                flawless."
+                            <p class="mb-6 text-sm leading-relaxed text-muted-foreground italic">
+                                "The multi-tenant isolation is top notch. We run a franchise model and need complete data separation. The Eloquent global scope implementation is flawless."
                             </p>
                         </div>
-                        <div
-                            class="flex items-center gap-3.5 border-t border-border/60 pt-4"
-                        >
-                            <div
-                                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-sm font-bold text-white shadow-sm"
-                            >
+                        <div class="flex items-center gap-3.5 border-t border-border/60 pt-4">
+                            <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-500 to-orange-600 text-sm font-bold text-white shadow-sm">
                                 DL
                             </div>
                             <div>
-                                <h4 class="text-sm font-bold text-foreground">
-                                    Devon Lane
-                                </h4>
-                                <p class="text-xs text-muted-foreground">
-                                    Founder, Lane Electrical Group
-                                </p>
+                                <h4 class="text-sm font-bold text-foreground">Devon Lane</h4>
+                                <p class="text-xs text-muted-foreground">Founder, Lane Electrical Group</p>
                             </div>
                         </div>
                     </div>
@@ -765,8 +581,7 @@ onMounted(() => {
                         Frequently Asked Questions
                     </h3>
                     <p class="leading-relaxed text-muted-foreground">
-                        Got questions about scheduling, security, or setup?
-                        We've got answers.
+                        Got questions about scheduling, security, or sandbox testing? We've got answers.
                     </p>
                 </div>
 
@@ -785,9 +600,7 @@ onMounted(() => {
                             @click="toggleFaq(index)"
                             class="flex w-full cursor-pointer items-center justify-between px-6 py-5 text-left font-bold text-foreground focus:outline-hidden"
                         >
-                            <span class="text-base sm:text-lg">{{
-                                faq.question
-                            }}</span>
+                            <span class="text-base sm:text-lg">{{ faq.question }}</span>
                             <span
                                 class="ml-4 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground transition-all duration-300"
                                 :class="{
@@ -807,13 +620,8 @@ onMounted(() => {
                             leave-from-class="max-h-96 opacity-100 transform translate-y-0"
                             leave-to-class="max-h-0 opacity-0 transform -translate-y-2"
                         >
-                            <div
-                                v-show="activeFaq === index"
-                                class="overflow-hidden"
-                            >
-                                <div
-                                    class="border-t border-border/60 px-6 pt-4 pb-5 text-sm leading-relaxed text-muted-foreground"
-                                >
+                            <div v-show="activeFaq === index" class="overflow-hidden">
+                                <div class="border-t border-border/60 px-6 pt-4 pb-5 text-sm leading-relaxed text-muted-foreground">
                                     {{ faq.answer }}
                                 </div>
                             </div>
@@ -828,26 +636,14 @@ onMounted(() => {
             <div
                 class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 text-xs font-semibold text-muted-foreground sm:flex-row sm:px-6"
             >
-                <p>© 2026 ShieldSuite Inc. All rights reserved.</p>
+                <p>© 2026 JustMascot Inc. All rights reserved.</p>
                 <div class="flex items-center gap-6">
-                    <Link :href="home()" class="hover:text-foreground"
-                        >Home</Link
-                    >
-                    <Link :href="about()" class="hover:text-foreground"
-                        >About</Link
-                    >
-                    <Link :href="pricing()" class="hover:text-foreground"
-                        >Pricing</Link
-                    >
-                    <Link :href="contact()" class="hover:text-foreground"
-                        >Contact</Link
-                    >
-                    <Link :href="privacy()" class="hover:text-foreground"
-                        >Privacy</Link
-                    >
-                    <Link :href="terms()" class="hover:text-foreground"
-                        >Terms</Link
-                    >
+                    <Link :href="home()" class="hover:text-foreground">Home</Link>
+                    <Link :href="about()" class="hover:text-foreground">About</Link>
+                    <Link :href="pricing()" class="hover:text-foreground">Pricing</Link>
+                    <Link :href="contact()" class="hover:text-foreground">Contact</Link>
+                    <Link :href="privacy()" class="hover:text-foreground">Privacy</Link>
+                    <Link :href="terms()" class="hover:text-foreground">Terms</Link>
                 </div>
             </div>
         </footer>
@@ -856,31 +652,18 @@ onMounted(() => {
 
 <style scoped>
 @keyframes float-slow {
-    0%,
-    100% {
-        transform: translateY(0px) scale(1);
-    }
-    50% {
-        transform: translateY(-15px) scale(1.05);
-    }
+    0%, 100% { transform: translateY(0px) scale(1); }
+    50% { transform: translateY(-15px) scale(1.05); }
 }
 @keyframes float-delayed {
-    0%,
-    100% {
-        transform: translateY(0px) scale(1.05);
-    }
-    50% {
-        transform: translateY(15px) scale(1);
-    }
+    0%, 100% { transform: translateY(0px) scale(1.05); }
+    50% { transform: translateY(15px) scale(1); }
 }
 .animate-float-slow {
     animation: float-slow 8s ease-in-out infinite;
 }
 .animate-float-delayed {
     animation: float-delayed 10s ease-in-out infinite;
-}
-.animate-spin-slow {
-    animation: spin 8s linear infinite;
 }
 .animate-pulse-slow {
     animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;

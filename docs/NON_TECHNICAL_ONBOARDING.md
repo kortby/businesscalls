@@ -4,6 +4,9 @@ Welcome to the team! This guide is created specifically for non-technical team m
 
 This manual will teach you how the platform works by having you roleplay as a **Business Owner** (managing the dashboard and technicians) and a **Client / Customer** (booking services and receiving updates).
 
+> [!TIP]
+> Before beginning your roleplay scenarios, review the **[Target Niche & Buyer Persona Playbook](file:///Users/benk/Documents/work/laravel/businesscalls/docs/BUYER_PERSONAS_AND_NICHE.md)** to understand our core target market and buyer pain points.
+
 ---
 
 ## 1. Getting Started & Logging In

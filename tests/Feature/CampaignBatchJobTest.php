@@ -152,7 +152,7 @@ test('campaign batch job dispatches live vapi calls with authentication headers 
 
     $recorded = Http::recorded();
     expect($recorded)->toHaveCount(1);
-    
+
     $request = $recorded[0][0];
     expect($request->url())->toBe('https://api.vapi.ai/call')
         ->and($request->header('Authorization')[0] ?? '')->toBe('Bearer dummy-telephony-api-key')

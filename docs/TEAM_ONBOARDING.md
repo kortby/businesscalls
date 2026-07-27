@@ -3,7 +3,7 @@
 Welcome to the team! This document is designed to serve as a comprehensive, step-by-step technical guide to the architecture, database scoping, AI telephony routing, compliance middleware, billing events, and technician mobile portal of the `businesscalls` platform.
 
 > [!NOTE]
-> For non-technical team members (Product Managers, QAs, Customer Support, Ops), please refer to the dedicated **[Non-Technical Onboarding & Interactive Roleplay Manual](file:///Users/benk/Documents/work/laravel/businesscalls/docs/NON_TECHNICAL_ONBOARDING.md)** for a step-by-step testing guide.
+> For business, strategy, and buyer persona alignment, read the **[Target Niche & Buyer Persona Playbook](file:///Users/benk/Documents/work/laravel/businesscalls/docs/BUYER_PERSONAS_AND_NICHE.md)**. For non-technical team members (Product Managers, QAs, Customer Support, Ops), please refer to the **[Non-Technical Onboarding & Interactive Roleplay Manual](file:///Users/benk/Documents/work/laravel/businesscalls/docs/NON_TECHNICAL_ONBOARDING.md)**.
 
 ---
 

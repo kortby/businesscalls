@@ -59,9 +59,38 @@ const faqs = [
 
 <template>
     <SeoHead
-        title="Contractor Pricing Plans | AI Answering & Dispatch"
-        description="Explore affordable pricing tiers for plumbing, HVAC, and electrical contractors. Boost your bookings, eliminate dispatch overhead, and pay only for what you need."
+        title="JustMascot Pricing • AI Answering & Dispatch Software Plans"
+        description="Explore affordable pricing tiers for plumbing, HVAC, and electrical contractors. Boost your bookings, eliminate dispatch overhead, and try our 14-day free trial."
         keywords="contractor answering service cost, AI receptionist pricing, HVAC dispatch software price, plumber booking app subscription"
+        :jsonLd="{
+            '@context': 'https://schema.org',
+            '@type': 'Product',
+            name: 'JustMascot AI Dispatch Platform',
+            description: 'AI voice receptionist and smart scheduling dispatch software for trade contractors.',
+            offers: [
+                {
+                    '@type': 'Offer',
+                    name: 'Starter Plan',
+                    price: '49.00',
+                    priceCurrency: 'USD',
+                    availability: 'https://schema.org/InStock'
+                },
+                {
+                    '@type': 'Offer',
+                    name: 'Professional Plan',
+                    price: '99.00',
+                    priceCurrency: 'USD',
+                    availability: 'https://schema.org/InStock'
+                },
+                {
+                    '@type': 'Offer',
+                    name: 'Enterprise Plan',
+                    price: '199.00',
+                    priceCurrency: 'USD',
+                    availability: 'https://schema.org/InStock'
+                }
+            ]
+        }"
     />
 
     <div
@@ -294,7 +323,7 @@ const faqs = [
             </div>
         </section>
 
-        <!-- ROI Interactive Calculator (Premium Feature) -->
+        <!-- ROI Interactive Calculator -->
         <section class="border-b bg-slate-100/50 py-20 dark:bg-slate-900/5">
             <div class="container mx-auto max-w-[800px] px-4 sm:px-6">
                 <div class="mb-12 text-center">
@@ -319,12 +348,10 @@ const faqs = [
                     </p>
                 </div>
 
-                <!-- Calculator Container -->
                 <div
                     class="rounded-3xl border-4 border-b-8 border-slate-200 bg-background p-8 dark:border-slate-800"
                 >
                     <div class="space-y-6">
-                        <!-- Slider 1 -->
                         <div class="space-y-2">
                             <div
                                 class="flex items-center justify-between font-bold"
@@ -346,7 +373,6 @@ const faqs = [
                             />
                         </div>
 
-                        <!-- Slider 2 -->
                         <div class="space-y-2">
                             <div
                                 class="flex items-center justify-between font-bold"
@@ -370,7 +396,6 @@ const faqs = [
 
                         <hr class="my-6 border-t" />
 
-                        <!-- Outputs -->
                         <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
                             <div
                                 class="rounded-2xl border-2 bg-slate-50/50 p-4 text-center dark:bg-slate-900/10"
@@ -427,7 +452,6 @@ const faqs = [
                     </h3>
                 </div>
 
-                <!-- Table Container -->
                 <div
                     class="overflow-x-auto rounded-2xl border border-slate-200 bg-background shadow-xs dark:border-slate-800"
                 >
@@ -445,7 +469,6 @@ const faqs = [
                             </tr>
                         </thead>
                         <tbody>
-                            <!-- Row 1 -->
                             <tr class="border-b">
                                 <td class="p-4 font-bold text-foreground">
                                     AI Voice Answering
@@ -460,7 +483,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 2 -->
                             <tr
                                 class="border-b bg-slate-50/20 dark:bg-slate-900/5"
                             >
@@ -477,7 +499,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 3 -->
                             <tr class="border-b">
                                 <td class="p-4 font-bold text-foreground">
                                     Active Technicians
@@ -492,7 +513,6 @@ const faqs = [
                                     Unlimited
                                 </td>
                             </tr>
-                            <!-- Row 4 -->
                             <tr
                                 class="border-b bg-slate-50/20 dark:bg-slate-900/5"
                             >
@@ -509,7 +529,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 5 -->
                             <tr class="border-b">
                                 <td class="p-4 font-bold text-foreground">
                                     Logical Db Isolation
@@ -524,7 +543,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 6 -->
                             <tr
                                 class="border-b bg-slate-50/20 dark:bg-slate-900/5"
                             >
@@ -541,7 +559,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 7 -->
                             <tr class="border-b">
                                 <td class="p-4 font-bold text-foreground">
                                     CRM Sync Integrations
@@ -556,7 +573,6 @@ const faqs = [
                                     <Check class="mx-auto h-4 w-4" />
                                 </td>
                             </tr>
-                            <!-- Row 8 -->
                             <tr class="bg-slate-50/20 dark:bg-slate-900/5">
                                 <td class="p-4 font-bold text-foreground">
                                     Support Level
@@ -640,7 +656,7 @@ const faqs = [
             <div
                 class="container mx-auto flex flex-col items-center justify-between gap-4 px-4 text-xs font-semibold text-muted-foreground sm:flex-row sm:px-6"
             >
-                <p>© 2026 ShieldSuite Inc. All rights reserved.</p>
+                <p>© 2026 JustMascot Inc. All rights reserved.</p>
                 <div class="flex items-center gap-6">
                     <Link :href="home()" class="hover:text-foreground"
                         >Home</Link
