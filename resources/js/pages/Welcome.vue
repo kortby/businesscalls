@@ -280,7 +280,7 @@ onMounted(() => {
                         class="animate-pulse-slow inline-flex w-fit items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1 text-xs font-semibold text-emerald-600 shadow-xs backdrop-blur-xs dark:bg-emerald-500/20 dark:text-emerald-400"
                     >
                         <PhoneCall class="h-3.5 w-3.5 animate-pulse text-emerald-500" />
-                        <span>Test Live AI Receptionist: <a href="tel:+16196390411" class="font-bold underline hover:text-emerald-700 dark:hover:text-emerald-300">+1 (619) 639-0411</a></span>
+                        <span>Test Live AI Receptionist: <a href="tel:+16196390411" class="font-bold underline hover:text-emerald-700 dark:hover:text-emerald-300">Test AI +1 (619) 639-0411</a></span>
                     </div>
 
                     <h1

@@ -86,7 +86,7 @@ const submit = () => {
                             >
                                 <Mail class="h-4 w-4" />
                             </div>
-                            <span>support@justmascot.com</span>
+                            <span>info@shieldsuite.co</span>
                         </div>
                         <div
                             class="flex items-center gap-3 text-xs font-semibold"
@@ -96,7 +96,7 @@ const submit = () => {
                             >
                                 <Phone class="h-4 w-4" />
                             </div>
-                            <span>+1 (800) 555-0199</span>
+                            <span>+1 (619) 742-7188</span>
                         </div>
                         <div
                             class="flex items-center gap-3 text-xs font-semibold"
@@ -106,7 +106,7 @@ const submit = () => {
                             >
                                 <MapPin class="h-4 w-4" />
                             </div>
-                            <span>Silicon Valley, CA</span>
+                            <span>Houston, Texas</span>
                         </div>
                     </div>
                 </div>
