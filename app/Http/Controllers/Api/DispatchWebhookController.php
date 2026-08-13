@@ -34,7 +34,12 @@ class DispatchWebhookController extends Controller
         // 1. Parse incoming parameters (supporting flat and nested Vapi payload structures)
         $toolCallId = $request->input('message.toolCalls.0.id');
         $arguments = $request->input('message.toolCalls.0.function.arguments', []);
-        $functionName = $request->input('message.toolCalls.0.function.name') ?? $request->input('function_name');
+        if (is_string($arguments)) {
+            $arguments = json_decode($arguments, true) ?? [];
+        }
+        $functionName = $request->input('message.toolCalls.0.function.name')
+            ?? $request->input('message.toolCalls.0.name')
+            ?? $request->input('function_name');
 
         $tenantIdOrSlug = $arguments['tenant_id']
             ?? $request->input('tenant_id')

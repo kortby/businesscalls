@@ -19,6 +19,9 @@ class AvailabilityWebhookController extends Controller
         // 1. Parse parameters (supporting flat and nested payload structures)
         $toolCallId = $request->input('message.toolCalls.0.id');
         $arguments = $request->input('message.toolCalls.0.function.arguments', []);
+        if (is_string($arguments)) {
+            $arguments = json_decode($arguments, true) ?? [];
+        }
 
         $tenantIdOrSlug = $arguments['tenant_id']
             ?? $request->input('tenant_id')
