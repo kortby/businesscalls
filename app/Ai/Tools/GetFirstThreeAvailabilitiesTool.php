@@ -5,6 +5,7 @@ namespace App\AI\Tools;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Employee;
+use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use Illuminate\Support\Carbon;
 
@@ -29,7 +30,7 @@ class GetFirstThreeAvailabilitiesTool
         ];
     }
 
-    public function handle(string $tenant_id, ?string $service_type = null): array
+    public function handle(int|string $tenant_id, ?string $service_type = null): array
     {
         $tenant = Tenant::where('id', $tenant_id)
             ->orWhere('slug', $tenant_id)
@@ -42,12 +43,19 @@ class GetFirstThreeAvailabilitiesTool
             ];
         }
 
+        TenantScope::setTenantId($tenant->id);
+
         $serviceTypeInput = trim($service_type ?? '');
         $employees = Employee::where('tenant_id', $tenant->id)->get();
 
         if ($serviceTypeInput !== '') {
             $skilledEmployees = $employees->filter(function ($employee) use ($serviceTypeInput) {
-                return is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+                if (! is_array($employee->skills)) {
+                    return false;
+                }
+                $normalized = array_map('strtolower', array_map('trim', $employee->skills));
+
+                return in_array(strtolower($serviceTypeInput), $normalized);
             });
 
             if ($skilledEmployees->isNotEmpty()) {
