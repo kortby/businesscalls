@@ -45,6 +45,7 @@
         "@rive-app/webgl": "^2.37.0",
         "@vapi-ai/web": "^2.5.2",
         "@vueuse/core": "^12.8.2",
+        "@zxing/library": "^0.23.0",
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "laravel-echo": "^2.3.7",
