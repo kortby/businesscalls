@@ -45,6 +45,18 @@ class DispatchWebhookController extends Controller
             ? $vapiToolName
             : ($request->input('message.toolCalls.0.function.name') ?? $request->input('function_name'));
 
+        // Fallback inference if Vapi passes generic 'api_request_tool' name
+        if (! $functionName || $functionName === 'api_request_tool') {
+            $desc = strtolower($request->input('message.toolCalls.0.function.description') ?? '');
+            if (str_contains($desc, 'availab') || str_contains($desc, 'slots') || (isset($arguments['serviceType']) && ! isset($arguments['customerAddress']) && ! isset($arguments['requestedTime'])) || (isset($arguments['service_type']) && ! isset($arguments['customer_address']) && ! isset($arguments['requested_time']))) {
+                $functionName = 'get_available_slots';
+            } elseif ((isset($arguments['serviceType']) || isset($arguments['service_type'])) && (isset($arguments['requestedTime']) || isset($arguments['requested_time'])) && ! isset($arguments['customerAddress']) && ! isset($arguments['customer_address'])) {
+                $functionName = 'check_availability';
+            } elseif (isset($arguments['customerAddress']) || isset($arguments['customer_address']) || isset($arguments['jobDetails']) || isset($arguments['job_details'])) {
+                $functionName = 'book_appointment';
+            }
+        }
+
         $tenantIdOrSlug = $arguments['tenant_id']
             ?? $request->input('tenant_id')
             ?? $arguments['tenant_slug']
