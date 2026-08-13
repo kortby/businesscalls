@@ -37,9 +37,13 @@ class DispatchWebhookController extends Controller
         if (is_string($arguments)) {
             $arguments = json_decode($arguments, true) ?? [];
         }
-        $functionName = $request->input('message.toolCalls.0.function.name')
-            ?? $request->input('message.toolCalls.0.name')
-            ?? $request->input('function_name');
+        $vapiToolName = $request->input('message.toolCalls.0.name')
+            ?? $request->input('name')
+            ?? $request->input('tool.name');
+
+        $functionName = ($vapiToolName && $vapiToolName !== 'api_request_tool')
+            ? $vapiToolName
+            : ($request->input('message.toolCalls.0.function.name') ?? $request->input('function_name'));
 
         $tenantIdOrSlug = $arguments['tenant_id']
             ?? $request->input('tenant_id')
