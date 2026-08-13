@@ -8,6 +8,7 @@ use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 
 class AvailabilityWebhookController extends Controller
 {
@@ -69,8 +70,16 @@ class AvailabilityWebhookController extends Controller
             ?? '');
 
         // 3. Delegate to native GetFirstThreeAvailabilitiesTool
-        $tool = new GetFirstThreeAvailabilitiesTool;
-        $resultData = $tool->handle($tenant->id, $serviceTypeInput ?: null);
+        try {
+            $tool = new GetFirstThreeAvailabilitiesTool;
+            $resultData = $tool->handle($tenant->id, $serviceTypeInput ?: null);
+        } catch (\Throwable $e) {
+            Log::error('AvailabilityWebhookController error: '.$e->getMessage(), ['exception' => $e]);
+            $resultData = [
+                'status' => 'error',
+                'message' => 'Unable to query availability slots at this moment.',
+            ];
+        }
 
         if ($toolCallId) {
             return response()->json([
