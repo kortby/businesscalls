@@ -20,6 +20,14 @@ class Booking extends Model
     use BelongsToTenant, HasAttributeCasts, HasFactory;
 
     /**
+     * Prepare a date for array / JSON serialization without forced UTC 'Z' suffix.
+     */
+    protected function serializeDate(\DateTimeInterface $date): string
+    {
+        return $date->format('Y-m-d H:i:s');
+    }
+
+    /**
      * Get the tenant that owns the booking.
      */
     public function tenant(): BelongsTo

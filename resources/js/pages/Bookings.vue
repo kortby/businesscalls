@@ -149,6 +149,20 @@ const openCreateModal = () => {
     isCreateOpen.value = true;
 };
 
+const formatDisplayDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    const cleanStr = dateStr.replace(' ', 'T').replace(/Z$/, '');
+    const date = new Date(cleanStr);
+    if (isNaN(date.getTime())) return dateStr;
+    return date.toLocaleString([], {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    });
+};
+
 const openEditModal = (booking: any) => {
     selectedBooking.value = booking;
 
@@ -685,17 +699,7 @@ const editValidation = computed(() => {
                                     <Clock
                                         class="h-3.5 w-3.5 text-muted-foreground"
                                     />
-                                    {{
-                                        new Date(
-                                            booking.scheduled_start,
-                                        ).toLocaleString([], {
-                                            month: 'short',
-                                            day: 'numeric',
-                                            year: 'numeric',
-                                            hour: '2-digit',
-                                            minute: '2-digit',
-                                        })
-                                    }}
+                                    {{ formatDisplayDate(booking.scheduled_start) }}
                                 </td>
                                 <td class="px-6 py-4">
                                     <Badge
@@ -1192,7 +1196,7 @@ const editValidation = computed(() => {
                     </div>
                     <div class="grid grid-cols-3 gap-2 border-b pb-2">
                         <span class="font-bold text-muted-foreground">Scheduled:</span>
-                        <span class="col-span-2">{{ new Date(selectedBooking.scheduled_start).toLocaleString() }}</span>
+                        <span class="col-span-2">{{ formatDisplayDate(selectedBooking.scheduled_start) }}</span>
                     </div>
                     <div class="grid grid-cols-3 gap-2 border-b pb-2">
                         <span class="font-bold text-muted-foreground">Status:</span>
