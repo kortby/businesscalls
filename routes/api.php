@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\CallWebhookController;
 use App\Http\Controllers\Api\DispatchWebhookController;
 use App\Http\Controllers\Api\IvrController;
 use App\Http\Controllers\Api\McpController;
+use App\Http\Controllers\Api\NativeVoiceCallController;
 use App\Http\Controllers\Api\OAuthController;
 use App\Http\Controllers\Api\PaymentWebhookController;
 use App\Http\Controllers\Api\PronunciationDictionaryController;
@@ -48,6 +49,9 @@ Route::post('/webhooks/ivr-keypress/{tenant_id?}', [IvrController::class, 'handl
 Route::match(['get', 'post'], '/mcp', [McpController::class, 'handle'])->name('mcp.server');
 Route::post('/web-calls/token', [WebCallController::class, 'token'])->middleware(['auth:sanctum', ThrottleTenantTelephony::class, TrafficRouterMiddleware::class]);
 Route::post('/web-calls/refresh-token', [WebCallController::class, 'refreshToken'])->middleware('auth:sanctum');
+Route::post('/native-voice/start', [NativeVoiceCallController::class, 'startSession'])->name('native-voice.start');
+Route::post('/native-voice/turn', [NativeVoiceCallController::class, 'processTurn'])->name('native-voice.turn');
+Route::post('/native-voice/end', [NativeVoiceCallController::class, 'endSession'])->name('native-voice.end');
 Route::put('/bookings/{booking}/status', [BookingStatusController::class, 'update'])->middleware('auth:sanctum');
 Route::post('/bookings/{booking}/location', [BookingStatusController::class, 'updateLocation'])->middleware('auth:sanctum');
 Route::post('/settings/dictionary', [PronunciationDictionaryController::class, 'store'])->middleware('auth:sanctum');

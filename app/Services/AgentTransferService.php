@@ -191,6 +191,19 @@ class AgentTransferService
     }
 
     /**
+     * Format the native Laravel AI agent handover payload.
+     */
+    public function formatNativeHandoverPayload(string $childAgentId, string $parentTranscript, array $parentVariables): array
+    {
+        return [
+            'action' => 'agent_transfer',
+            'agent_id' => $childAgentId,
+            'transcript_history' => $parentTranscript,
+            'variables' => $parentVariables,
+        ];
+    }
+
+    /**
      * Compute the Contextual Handover Match Index (Phi_handoff).
      */
     public function calculateHandoverScore(int $sharedCount, int $totalCount, float $delayMs): float

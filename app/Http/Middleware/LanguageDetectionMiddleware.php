@@ -40,6 +40,9 @@ class LanguageDetectionMiddleware
 
                         Log::info("Language change detected: Swapped active transcriber for Call {$callId} to: {$detectedLanguage}");
 
+                        // Update native session language configuration in Cache
+                        cache()->put("call_language_{$callId}", $detectedLanguage, now()->addHours(2));
+
                         if ($provider === 'vapi') {
                             Http::withToken($apiKey)->timeout(5)->patch("https://api.vapi.ai/call/{$callId}", [
                                 'transcriber' => [

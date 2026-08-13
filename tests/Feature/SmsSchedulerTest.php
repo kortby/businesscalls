@@ -1,6 +1,6 @@
 <?php
 
-use App\Ai\Text;
+use App\AI\Text;
 use App\Models\Availability;
 use App\Models\Booking;
 use App\Models\Employee;

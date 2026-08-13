@@ -2,6 +2,16 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\AI\Tools\BookAppointmentTool;
+use App\AI\Tools\CancelBookingTool;
+use App\AI\Tools\CheckAvailabilityTool;
+use App\AI\Tools\CheckInventoryTool;
+use App\AI\Tools\CheckTechnicianEtaTool;
+use App\AI\Tools\DispatchTechnicianTool;
+use App\AI\Tools\GetAvailabilitySlotsTool;
+use App\AI\Tools\GetFirstThreeAvailabilitiesTool;
+use App\AI\Tools\KnowledgeSearchTool;
+use App\AI\Tools\LookupBookingTool;
 use App\Http\Controllers\Controller;
 use App\Models\Availability;
 use App\Models\Booking;
@@ -128,10 +138,7 @@ class McpController extends Controller
                         'inputSchema' => [
                             'type' => 'object',
                             'properties' => [
-                                'part_name' => [
-                                    'type' => 'string',
-                                    'description' => 'The name of the part to search (e.g. faucet, pipe, wire).',
-                                ],
+                                'part_name' => ['type' => 'string', 'description' => 'The name of the part to search (e.g. faucet, pipe, wire).'],
                             ],
                             'required' => ['part_name'],
                         ],
@@ -142,14 +149,8 @@ class McpController extends Controller
                         'inputSchema' => [
                             'type' => 'object',
                             'properties' => [
-                                'booking_id' => [
-                                    'type' => 'integer',
-                                    'description' => 'The ID of the booking to reschedule.',
-                                ],
-                                'new_start_time' => [
-                                    'type' => 'string',
-                                    'description' => 'The new scheduled start time as an ISO-8601 date string.',
-                                ],
+                                'booking_id' => ['type' => 'integer', 'description' => 'The ID of the booking to reschedule.'],
+                                'new_start_time' => ['type' => 'string', 'description' => 'The new scheduled start time as an ISO-8601 date string.'],
                             ],
                             'required' => ['booking_id', 'new_start_time'],
                         ],
@@ -160,14 +161,8 @@ class McpController extends Controller
                         'inputSchema' => [
                             'type' => 'object',
                             'properties' => [
-                                'call_id' => [
-                                    'type' => 'string',
-                                    'description' => 'The call ID of the active call.',
-                                ],
-                                'reason' => [
-                                    'type' => 'string',
-                                    'description' => 'The reason for fallback.',
-                                ],
+                                'call_id' => ['type' => 'string', 'description' => 'The call ID of the active call.'],
+                                'reason' => ['type' => 'string', 'description' => 'The reason for fallback.'],
                             ],
                             'required' => ['call_id'],
                         ],
@@ -178,12 +173,112 @@ class McpController extends Controller
                         'inputSchema' => [
                             'type' => 'object',
                             'properties' => [
-                                'employee_id' => [
-                                    'type' => 'integer',
-                                    'description' => 'The ID of the technician/employee to locate.',
-                                ],
+                                'employee_id' => ['type' => 'integer', 'description' => 'The ID of the technician/employee to locate.'],
                             ],
                             'required' => ['employee_id'],
+                        ],
+                    ],
+                    [
+                        'name' => 'get_first_three_availabilities',
+                        'description' => 'Get the first 3 available technician appointment slots formatted for presentation.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'service_type' => ['type' => 'string', 'description' => 'Optional service type or skill.'],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'get_availability_slots',
+                        'description' => 'Retrieve open technician availability slots for a specific date.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'date' => ['type' => 'string', 'description' => 'Target date (YYYY-MM-DD).'],
+                                'service_type' => ['type' => 'string', 'description' => 'Optional service type or skill.'],
+                            ],
+                            'required' => ['date'],
+                        ],
+                    ],
+                    [
+                        'name' => 'check_availability',
+                        'description' => 'Check if a specific time or skill has available technician slots.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'service_type' => ['type' => 'string', 'description' => 'Optional service type or skill.'],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'book_appointment',
+                        'description' => 'Book an appointment for a customer with an available technician.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'customer_phone' => ['type' => 'string', 'description' => 'Customer phone number.'],
+                                'job_details' => ['type' => 'string', 'description' => 'Job description.'],
+                                'scheduled_start' => ['type' => 'string', 'description' => 'Scheduled start ISO-8601 date string.'],
+                                'employee_id' => ['type' => 'integer', 'description' => 'Optional assigned technician ID.'],
+                            ],
+                            'required' => ['customer_phone', 'job_details', 'scheduled_start'],
+                        ],
+                    ],
+                    [
+                        'name' => 'lookup_booking',
+                        'description' => 'Look up existing customer appointments by phone number or booking ID.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'customer_phone' => ['type' => 'string', 'description' => 'Customer phone number.'],
+                                'booking_id' => ['type' => 'integer', 'description' => 'Booking ID.'],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'cancel_booking',
+                        'description' => 'Cancel an existing customer appointment booking.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'booking_id' => ['type' => 'integer', 'description' => 'The ID of the booking to cancel.'],
+                                'reason' => ['type' => 'string', 'description' => 'Optional cancellation reason.'],
+                            ],
+                            'required' => ['booking_id'],
+                        ],
+                    ],
+                    [
+                        'name' => 'check_technician_eta',
+                        'description' => 'Check real-time status, GPS location, and ETA of assigned technician.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'booking_id' => ['type' => 'integer', 'description' => 'The ID of the booking.'],
+                            ],
+                            'required' => ['booking_id'],
+                        ],
+                    ],
+                    [
+                        'name' => 'dispatch_technician',
+                        'description' => 'Dispatch optimal technician to a booking based on workload metrics.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'booking_id' => ['type' => 'integer', 'description' => 'The ID of the booking.'],
+                                'required_skill' => ['type' => 'string', 'description' => 'Required skill.'],
+                            ],
+                            'required' => ['booking_id'],
+                        ],
+                    ],
+                    [
+                        'name' => 'knowledge_search',
+                        'description' => 'Search tenant knowledge base for manuals and policies.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'query' => ['type' => 'string', 'description' => 'Search phrase.'],
+                            ],
+                            'required' => ['query'],
                         ],
                     ],
                 ],
@@ -203,23 +298,12 @@ class McpController extends Controller
                 return $this->toolErrorResponse('part_name argument is required.', $id);
             }
 
-            // Pull inventory map from tenant settings or default to a standard mock
-            $inventory = $tenant->getSetting('inventory', [
-                'faucet' => 15,
-                'pipe' => 24,
-                'wire' => 50,
-                'thermostat' => 8,
-            ]);
+            $tool = new CheckInventoryTool;
+            $resultData = $tool->handle($tenant->id, $partName);
 
-            // Ensure case insensitive keys
-            $inventory = array_change_key_case($inventory, CASE_LOWER);
-            $qty = $inventory[$partName] ?? 0;
-
-            if ($qty > 0) {
-                $text = "The part '{$partName}' is in stock. Current quantity: {$qty}.";
-            } else {
-                $text = "The part '{$partName}' is out of stock.";
-            }
+            $text = $resultData['in_stock']
+                ? "The part '{$partName}' is in stock. Current quantity: {$resultData['quantity']}."
+                : "The part '{$partName}' is out of stock.";
 
             return response()->json([
                 'jsonrpc' => '2.0',
@@ -243,7 +327,6 @@ class McpController extends Controller
                 return $this->toolErrorResponse('booking_id and new_start_time arguments are required.', $id);
             }
 
-            // Find booking (scoped by TenantScope automatically!)
             $booking = Booking::find($bookingId);
             if (! $booking) {
                 return $this->toolErrorResponse("Booking with ID {$bookingId} not found.", $id);
@@ -263,7 +346,6 @@ class McpController extends Controller
             $dayOfWeek = $requestedTimeCarbon->dayOfWeek;
             $timeOnly = $requestedTimeCarbon->format('H:i:s');
 
-            // 1. Verify shift availability
             $isAvailable = Availability::where('employee_id', $employee->id)
                 ->where('day_of_week', $dayOfWeek)
                 ->where('is_active', true)
@@ -275,7 +357,6 @@ class McpController extends Controller
                 return $this->toolErrorResponse('Rescheduling failed: The technician is not scheduled to work during this shift.', $id);
             }
 
-            // 2. Verify travel buffer collision (90 minutes)
             $startBuffer = $requestedTimeCarbon->copy()->subMinutes(90);
             $endBuffer = $requestedTimeCarbon->copy()->addMinutes(90);
 
@@ -289,7 +370,6 @@ class McpController extends Controller
                 return $this->toolErrorResponse('Rescheduling failed: Conflict with an existing technician appointment (1.5-hour travel buffer enforced).', $id);
             }
 
-            // 3. Update the booking
             $booking->update([
                 'scheduled_start' => $requestedTimeCarbon,
             ]);
@@ -300,9 +380,40 @@ class McpController extends Controller
                     'content' => [
                         [
                             'type' => 'text',
-                            'text' => "Booking #{$bookingId} has been successfully rescheduled to ".$requestedTimeCarbon->toIso8601String().'.',
+                            'text' => "Booking #{$bookingId} has been successfully rescheduled to {$requestedTimeCarbon->toIso8601String()}.",
                         ],
                     ],
+                ],
+                'id' => $id,
+            ]);
+        }
+
+        if ($name === 'check_technician_gps') {
+            $employeeId = $arguments['employee_id'] ?? null;
+            if (! $employeeId) {
+                return $this->toolErrorResponse('employee_id argument is required.', $id);
+            }
+
+            $employee = Employee::find($employeeId);
+            if (! $employee) {
+                return $this->toolErrorResponse("Employee with ID {$employeeId} not found.", $id);
+            }
+
+            $lat = 37.7749 + (float) (($employee->id % 100) / 1000.0);
+            $lng = -122.4194 + (float) (($employee->id % 50) / 1000.0);
+
+            return response()->json([
+                'jsonrpc' => '2.0',
+                'result' => [
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => "Technician {$employee->first_name} {$employee->last_name} is located at: Latitude {$lat}, Longitude {$lng}.",
+                        ],
+                    ],
+                    'latitude' => $lat,
+                    'longitude' => $lng,
+                    'status' => 'active',
                 ],
                 'id' => $id,
             ]);
@@ -340,46 +451,90 @@ class McpController extends Controller
             ]);
         }
 
-        if ($name === 'check_technician_gps') {
-            $employeeId = $arguments['employee_id'] ?? null;
-            if (! $employeeId) {
-                return $this->toolErrorResponse('employee_id argument is required.', $id);
-            }
+        $resultData = null;
 
-            $employee = Employee::find($employeeId);
-            if (! $employee) {
-                return $this->toolErrorResponse("Employee with ID {$employeeId} not found.", $id);
-            }
+        switch ($name) {
+            case 'get_first_three_availabilities':
+                $tool = new GetFirstThreeAvailabilitiesTool;
+                $resultData = $tool->handle($tenant->id, $arguments['service_type'] ?? null);
+                break;
 
-            // Simulate stable GPS coordinates based on employee ID
-            $lat = 37.7749 + (float) (($employee->id % 100) / 1000.0);
-            $lng = -122.4194 + (float) (($employee->id % 50) / 1000.0);
+            case 'get_availability_slots':
+                $tool = new GetAvailabilitySlotsTool;
+                $resultData = $tool->handle($tenant->id, $arguments['date'] ?? now()->toDateString(), $arguments['service_type'] ?? null);
+                break;
 
-            return response()->json([
-                'jsonrpc' => '2.0',
-                'result' => [
-                    'content' => [
-                        [
-                            'type' => 'text',
-                            'text' => "Technician {$employee->first_name} {$employee->last_name} is located at: Latitude {$lat}, Longitude {$lng}.",
-                        ],
+            case 'check_availability':
+                $tool = new CheckAvailabilityTool;
+                $resultData = $tool->handle($tenant->id, $arguments['service_type'] ?? null);
+                break;
+
+            case 'book_appointment':
+            case 'create_booking':
+                $tool = new BookAppointmentTool;
+                $resultData = $tool->handle(
+                    $tenant->id,
+                    $arguments['customer_phone'] ?? '',
+                    $arguments['job_details'] ?? '',
+                    $arguments['scheduled_start'] ?? '',
+                    $arguments['employee_id'] ?? null
+                );
+                break;
+
+            case 'lookup_booking':
+                $tool = new LookupBookingTool;
+                $resultData = $tool->handle($tenant->id, $arguments['customer_phone'] ?? null, isset($arguments['booking_id']) ? (int) $arguments['booking_id'] : null);
+                break;
+
+            case 'cancel_booking':
+                $tool = new CancelBookingTool;
+                $resultData = $tool->handle($tenant->id, (int) ($arguments['booking_id'] ?? 0), $arguments['reason'] ?? null);
+                break;
+
+            case 'check_technician_eta':
+                $tool = new CheckTechnicianEtaTool;
+                $resultData = $tool->handle($tenant->id, (int) ($arguments['booking_id'] ?? 0));
+                break;
+
+            case 'dispatch_technician':
+                $tool = new DispatchTechnicianTool;
+                $resultData = $tool->handle($tenant->id, (int) ($arguments['booking_id'] ?? 0), $arguments['required_skill'] ?? null);
+                break;
+
+            case 'knowledge_search':
+                $tool = new KnowledgeSearchTool;
+                $resultData = $tool->handle($tenant->id, $arguments['query'] ?? '');
+                break;
+
+            default:
+                return response()->json([
+                    'jsonrpc' => '2.0',
+                    'error' => [
+                        'code' => -32601,
+                        'message' => 'Tool not found: '.$name,
                     ],
-                    'latitude' => $lat,
-                    'longitude' => $lng,
-                    'status' => 'active',
-                ],
-                'id' => $id,
-            ]);
+                    'id' => $id,
+                ], 404);
         }
+
+        if (($resultData['status'] ?? '') === 'error') {
+            return $this->toolErrorResponse($resultData['message'] ?? 'Tool execution failed.', $id);
+        }
+
+        $textResponse = $resultData['message'] ?? json_encode($resultData);
 
         return response()->json([
             'jsonrpc' => '2.0',
-            'error' => [
-                'code' => -32601,
-                'message' => 'Tool not found: '.$name,
-            ],
+            'result' => array_merge([
+                'content' => [
+                    [
+                        'type' => 'text',
+                        'text' => $textResponse,
+                    ],
+                ],
+            ], $resultData),
             'id' => $id,
-        ], 404);
+        ]);
     }
 
     /**

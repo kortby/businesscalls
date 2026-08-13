@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Ai\Text;
+use App\AI\Text;
 use App\Events\CallAnalyzed;
 use App\Events\CallEnded;
 use App\Jobs\EvaluateCallJob;

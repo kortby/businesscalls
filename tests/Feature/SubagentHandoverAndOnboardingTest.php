@@ -1,6 +1,6 @@
 <?php
 
-use App\Ai\Text;
+use App\AI\Text;
 use App\Models\CallLog;
 use App\Models\Scopes\TenantScope;
 use App\Models\Tenant;

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Ai;
+namespace App\AI;
 
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Http;

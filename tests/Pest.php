@@ -1,6 +1,6 @@
 <?php
 
-use App\Ai\Text;
+use App\AI\Text;
 use App\Models\Scopes\TenantScope;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
