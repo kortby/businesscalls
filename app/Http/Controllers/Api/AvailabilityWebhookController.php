@@ -26,22 +26,45 @@ class AvailabilityWebhookController extends Controller
 
         $tenantIdOrSlug = $arguments['tenant_id']
             ?? $request->input('tenant_id')
+            ?? $request->query('tenant_id')
+            ?? $request->header('X-Tenant-ID')
+            ?? $request->header('x-tenant-id')
             ?? $arguments['tenant_slug']
             ?? $request->input('tenant_slug')
+            ?? $request->query('tenant_slug')
             ?? $request->input('message.tenantId')
             ?? $request->route('tenant_id');
 
         if (! $tenantIdOrSlug) {
             $dialedNumber = $request->input('message.phoneNumber.number')
                 ?? $request->input('message.phone.number')
+                ?? $request->input('message.call.phoneNumber.number')
+                ?? $request->input('message.call.phone.number')
                 ?? $request->input('phoneNumber');
 
             if ($dialedNumber) {
-                $tenant = Tenant::where('settings->telephony_phone_number', $dialedNumber)->first();
-                if ($tenant) {
-                    $tenantIdOrSlug = $tenant->id;
+                $cleanDialed = preg_replace('/[^\d+]/', '', (string) $dialedNumber);
+                $matchedTenant = Tenant::get()->first(function ($t) use ($cleanDialed) {
+                    $settings = $t->settings ?? [];
+                    $phone1 = preg_replace('/[^\d+]/', '', (string) ($settings['telephony_phone_number'] ?? ''));
+                    $phone2 = preg_replace('/[^\d+]/', '', (string) ($settings['phone_number'] ?? ''));
+                    $phone3 = preg_replace('/[^\d+]/', '', (string) ($settings['sms_number'] ?? ''));
+                    $mappings = array_map(fn ($k) => preg_replace('/[^\d+]/', '', (string) $k), array_keys($settings['phone_mappings'] ?? []));
+
+                    return ($phone1 && ($phone1 === $cleanDialed || str_ends_with($cleanDialed, substr($phone1, -10))))
+                        || ($phone2 && ($phone2 === $cleanDialed || str_ends_with($cleanDialed, substr($phone2, -10))))
+                        || ($phone3 && ($phone3 === $cleanDialed || str_ends_with($cleanDialed, substr($phone3, -10))))
+                        || in_array($cleanDialed, $mappings);
+                });
+
+                if ($matchedTenant) {
+                    $tenantIdOrSlug = $matchedTenant->id;
                 }
             }
+        }
+
+        if (! $tenantIdOrSlug && Tenant::count() === 1) {
+            $tenantIdOrSlug = Tenant::first()->id;
         }
 
         if (! $tenantIdOrSlug) {
