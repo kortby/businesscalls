@@ -61,9 +61,25 @@ class StripeBillingController extends Controller
 
             return response()->json(['url' => $url]);
         } catch (\Exception $e) {
+            // Handle mismatched/stale customer ID between test and live mode
+            if (str_contains($e->getMessage(), 'No such customer') || str_contains($e->getMessage(), 'resource_missing')) {
+                try {
+                    $tenant->stripe_id = null;
+                    $tenant->save();
+                    $tenant->createAsStripeCustomer();
+                    $url = $tenant->billingPortalUrl($request->getSchemeAndHttpHost().route('dashboard', [], false));
+
+                    return response()->json(['url' => $url]);
+                } catch (\Exception $retryEx) {
+                    Log::error('Stripe billing portal retry error: '.$retryEx->getMessage());
+
+                    return response()->json(['error' => 'Stripe Billing Portal error: '.$retryEx->getMessage()], 500);
+                }
+            }
+
             Log::error('Stripe billing portal error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Failed to connect to Stripe Billing Portal. Please check your STRIPE_SECRET key.'], 500);
+            return response()->json(['error' => 'Stripe Billing Portal error: '.$e->getMessage()], 500);
         }
     }
 
@@ -87,8 +103,8 @@ class StripeBillingController extends Controller
 
         // Define price IDs - fallbacks allowed for local testing/mocking
         $priceId = $plan === 'enterprise'
-            ? env('STRIPE_ENTERPRISE_PRICE_ID', 'price_enterprise')
-            : env('STRIPE_PRO_PRICE_ID', 'price_pro');
+            ? (config('cashier.enterprise_price_id') ?: env('STRIPE_ENTERPRISE_PRICE_ID', 'price_enterprise'))
+            : (config('cashier.pro_price_id') ?: env('STRIPE_PRO_PRICE_ID', 'price_pro'));
 
         TenantScope::setTenantId($tenant->id);
 
@@ -150,9 +166,42 @@ class StripeBillingController extends Controller
 
             return response()->json(['url' => $checkout->url]);
         } catch (\Exception $e) {
+            // Handle mismatched/stale customer ID between test and live mode
+            if (str_contains($e->getMessage(), 'No such customer') || str_contains($e->getMessage(), 'resource_missing')) {
+                try {
+                    $tenant->stripe_id = null;
+                    $tenant->save();
+                    $tenant->createAsStripeCustomer();
+
+                    $checkout = $tenant->newSubscription('default', $priceId)
+                        ->checkout([
+                            'success_url' => $request->getSchemeAndHttpHost().route('dashboard', [], false).'?checkout=success',
+                            'cancel_url' => $request->getSchemeAndHttpHost().route('settings.billing.index', [], false).'?checkout=cancel',
+                        ]);
+
+                    AuditLog::create([
+                        'tenant_id' => $tenant->id,
+                        'user_id' => $user->id,
+                        'action' => 'checkout_initiated',
+                        'ip_address' => $request->ip(),
+                        'browser_agent' => $request->userAgent(),
+                        'payload' => [
+                            'plan' => $plan,
+                            'price_id' => $priceId,
+                        ],
+                    ]);
+
+                    return response()->json(['url' => $checkout->url]);
+                } catch (\Exception $retryEx) {
+                    Log::error('Stripe checkout session retry error: '.$retryEx->getMessage());
+
+                    return response()->json(['error' => 'Failed to connect to Stripe Gateway: '.$retryEx->getMessage()], 500);
+                }
+            }
+
             Log::error('Stripe checkout session error: '.$e->getMessage());
 
-            return response()->json(['error' => 'Failed to connect to Stripe Gateway. Please check your STRIPE_SECRET key.'], 500);
+            return response()->json(['error' => 'Failed to connect to Stripe Gateway: '.$e->getMessage()], 500);
         }
     }
 }
