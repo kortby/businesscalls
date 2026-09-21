@@ -19,7 +19,7 @@ class TenantIntegration extends Model
 
     public function getConnectionName()
     {
-        return config('database.master_connection', 'sqlite');
+        return config('database.master_connection', config('database.default', 'mysql'));
     }
 
     /**

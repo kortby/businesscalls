@@ -203,7 +203,7 @@ class AuditTenantLogCompliance extends Command
         $theta = max(0.0, min(1.0, $theta));
 
         // Save compliance index to tenant settings in master database
-        $masterConnection = config('database.master_connection', 'sqlite');
+        $masterConnection = config('database.master_connection', config('database.default', 'mysql'));
 
         // Ensure we save back to master database connection dynamically
         DB::purge($masterConnection);

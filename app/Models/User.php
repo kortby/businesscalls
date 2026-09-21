@@ -49,7 +49,7 @@ class User extends Authenticatable implements PasskeyUser
 
     public function getConnectionName()
     {
-        return config('database.master_connection', 'sqlite');
+        return config('database.master_connection', config('database.default', 'mysql'));
     }
 
     /**
