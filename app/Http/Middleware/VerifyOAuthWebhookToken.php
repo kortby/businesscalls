@@ -19,18 +19,33 @@ class VerifyOAuthWebhookToken
     {
         $token = $request->bearerToken();
         $signature = $request->header('x-vapi-signature') ?? $request->header('x-signature') ?? $request->input('signature');
-        $vapiSecret = $request->header('X-Vapi-Secret') ?? $request->header('x-vapi-secret');
+        $vapiSecret = $request->header('X-Vapi-Secret')
+            ?? $request->header('x-vapi-secret')
+            ?? $request->header('x-custom-secret')
+            ?? $request->query('secret')
+            ?? $request->query('secret_key')
+            ?? $request->input('secret')
+            ?? $request->input('message.secret');
         $retellSecret = $request->header('X-Retell-Secret') ?? $request->header('x-retell-secret');
+        $globalSecret = config('telephony.client_credentials');
 
         // Resolve Tenant first
         $tenantId = $request->input('tenant_id')
+            ?? $request->query('tenant_id')
+            ?? $request->header('X-Tenant-ID')
+            ?? $request->header('x-tenant-id')
             ?? $request->input('tenant_slug')
+            ?? $request->query('tenant_slug')
             ?? $request->input('message.toolCalls.0.function.arguments.tenant_id')
             ?? $request->input('message.toolCalls.0.function.arguments.tenant_slug');
 
         $tenant = null;
         if ($tenantId) {
             $tenant = Tenant::where('id', $tenantId)->orWhere('slug', $tenantId)->first();
+        }
+
+        if (! $tenant && Tenant::count() === 1) {
+            $tenant = Tenant::first();
         }
 
         // If the tenant does not have a secret key or client credentials configured,
@@ -47,6 +62,14 @@ class VerifyOAuthWebhookToken
             // Check if it is the static secret key (legacy compatibility)
             if ($tenant && $tenant->secret_key && hash_equals($tenant->secret_key, $token)) {
                 if ($tenant->id) {
+                    self::swapConnection($tenant->id);
+                }
+
+                return $next($request);
+            }
+
+            if ($globalSecret && hash_equals($globalSecret, $token)) {
+                if ($tenant && $tenant->id) {
                     self::swapConnection($tenant->id);
                 }
 
