@@ -3,8 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Events\DispatchUpdated;
+use App\Mail\AdminNewSubscriberNotificationMail;
+use App\Mail\SubscriptionReceiptMail;
 use App\Models\AuditLog;
 use App\Models\Tenant;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Laravel\Cashier\Http\Controllers\WebhookController as CashierController;
 use Symfony\Component\HttpFoundation\Response;
 
@@ -18,7 +22,8 @@ class StripeWebhookController extends CashierController
         $stripeId = $payload['data']['object']['customer'];
         $tenant = Tenant::where('stripe_id', $stripeId)->first();
         if ($tenant) {
-            $priceId = $payload['data']['object']['lines']['data'][0]['price']['id'] ?? '';
+            $invoiceObj = $payload['data']['object'] ?? [];
+            $priceId = $invoiceObj['lines']['data'][0]['price']['id'] ?? '';
             $proPriceId = config('cashier.pro_price_id') ?: env('STRIPE_PRO_PRICE_ID', 'price_pro');
             $enterprisePriceId = config('cashier.enterprise_price_id') ?: env('STRIPE_ENTERPRISE_PRICE_ID', 'price_enterprise');
 
@@ -44,6 +49,55 @@ class StripeWebhookController extends CashierController
             $tenant->settings = $settings;
             $tenant->save();
 
+            // Extract invoice & customer details
+            $rawAmount = $invoiceObj['amount_paid'] ?? $invoiceObj['total'] ?? null;
+            $currency = strtoupper($invoiceObj['currency'] ?? 'usd');
+            $formattedAmount = $rawAmount ? '$'.number_format($rawAmount / 100, 2).' '.$currency : null;
+            $invoiceUrl = $invoiceObj['hosted_invoice_url'] ?? null;
+            $invoicePdf = $invoiceObj['invoice_pdf'] ?? null;
+            $invoiceNumber = $invoiceObj['number'] ?? null;
+
+            $customerEmail = $invoiceObj['customer_email'] ?? $tenant->users()->first()?->email;
+            $customerPhone = $tenant->getSetting('telephony_phone_number') ?? $tenant->employees()->first()?->phone;
+
+            // 1. Send receipt & invoice confirmation email to Customer
+            if ($customerEmail) {
+                try {
+                    Mail::to($customerEmail)->queue(
+                        new SubscriptionReceiptMail(
+                            tenant: $tenant,
+                            plan: $plan,
+                            amount: $formattedAmount,
+                            invoiceUrl: $invoiceUrl,
+                            invoicePdf: $invoicePdf,
+                            invoiceNumber: $invoiceNumber
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send customer subscription email: '.$e->getMessage());
+                }
+            }
+
+            // 2. Send urgent notification email to Admin team to configure Twilio & Vapi ASAP
+            $adminEmail = config('mail.admin_address', env('ADMIN_NOTIFICATION_EMAIL', 'admin@justmascot.com'));
+            if ($adminEmail) {
+                try {
+                    Mail::to($adminEmail)->queue(
+                        new AdminNewSubscriberNotificationMail(
+                            tenant: $tenant,
+                            plan: $plan,
+                            amount: $formattedAmount,
+                            customerEmail: $customerEmail,
+                            customerPhone: $customerPhone,
+                            stripeCustomerId: $stripeId,
+                            invoiceNumber: $invoiceNumber
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    Log::error('Failed to send admin provisioning alert email: '.$e->getMessage());
+                }
+            }
+
             // Log compliance audit log
             AuditLog::create([
                 'tenant_id' => $tenant->id,
@@ -54,6 +108,8 @@ class StripeWebhookController extends CashierController
                 'payload' => [
                     'plan' => $plan,
                     'price_id' => $priceId,
+                    'invoice_id' => $invoiceObj['id'] ?? null,
+                    'invoice_number' => $invoiceNumber,
                 ],
             ]);
 
