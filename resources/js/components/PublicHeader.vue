@@ -44,7 +44,7 @@ const toggleMobileMenu = () => {
             </Link>
 
             <!-- Desktop Navigation Links -->
-            <nav class="hidden items-center gap-6 md:flex">
+            <nav class="hidden items-center gap-5 lg:gap-6 md:flex">
                 <Link
                     :href="home()"
                     class="relative text-sm font-semibold transition-colors hover:text-foreground"
@@ -52,6 +52,24 @@ const toggleMobileMenu = () => {
                 >
                     Home
                 </Link>
+
+                <!-- Industries Link -->
+                <Link
+                    href="/industries/plumbing-answering-service"
+                    class="relative text-sm font-semibold transition-colors hover:text-foreground text-muted-foreground"
+                >
+                    Industries
+                </Link>
+
+                <!-- Calculator Free Tool -->
+                <Link
+                    href="/tools/missed-call-calculator"
+                    class="relative text-sm font-semibold transition-colors hover:text-foreground text-muted-foreground flex items-center gap-1"
+                >
+                    <span>ROI Calculator</span>
+                    <span class="rounded bg-emerald-500/15 px-1.5 py-0.2 text-[10px] font-bold text-emerald-600 dark:text-emerald-400">FREE</span>
+                </Link>
+
                 <Link
                     :href="about()"
                     class="relative text-sm font-semibold transition-colors hover:text-foreground"
@@ -166,6 +184,27 @@ const toggleMobileMenu = () => {
                             :class="activePage === 'home' ? 'bg-primary/10 text-primary font-bold' : 'text-foreground'"
                         >
                             <span>Home</span>
+                            <ChevronRight class="h-4 w-4 text-muted-foreground" />
+                        </Link>
+
+                        <Link
+                            href="/industries/plumbing-answering-service"
+                            @click="isMobileMenuOpen = false"
+                            class="flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-semibold transition-colors hover:bg-accent text-foreground"
+                        >
+                            <span>Industry Solutions</span>
+                            <ChevronRight class="h-4 w-4 text-muted-foreground" />
+                        </Link>
+
+                        <Link
+                            href="/tools/missed-call-calculator"
+                            @click="isMobileMenuOpen = false"
+                            class="flex items-center justify-between rounded-lg px-3 py-2.5 text-base font-semibold transition-colors hover:bg-accent text-foreground"
+                        >
+                            <span class="flex items-center gap-2">
+                                <span>ROI Calculator</span>
+                                <span class="rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-bold text-emerald-500">FREE</span>
+                            </span>
                             <ChevronRight class="h-4 w-4 text-muted-foreground" />
                         </Link>
 

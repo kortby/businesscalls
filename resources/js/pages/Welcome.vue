@@ -47,6 +47,7 @@ import {
 
 const serviceTypes = [
     {
+        slug: 'plumbing-answering-service',
         title: 'Plumbing & Drain Services',
         icon: Droplets,
         gradient: 'from-blue-500 to-cyan-500',
@@ -57,6 +58,7 @@ const serviceTypes = [
         keywords: ['Drain Cleaning', 'Water Heaters', 'Pipe Leaks', 'Sewer Camera'],
     },
     {
+        slug: 'hvac-ai-receptionist',
         title: 'HVAC & Climate Control',
         icon: Wind,
         gradient: 'from-sky-500 to-indigo-600',
@@ -67,6 +69,7 @@ const serviceTypes = [
         keywords: ['AC Diagnostics', 'Freon Refills', 'Furnace Repair', 'Heat Pumps'],
     },
     {
+        slug: 'electrical-contractor-dispatch',
         title: 'Electrical & Power Systems',
         icon: Zap,
         gradient: 'from-amber-400 to-yellow-500',
@@ -77,6 +80,7 @@ const serviceTypes = [
         keywords: ['Panel Upgrades', 'Short Circuits', 'EV Chargers', 'Sparking Outlets'],
     },
     {
+        slug: 'appliance-repair-scheduling',
         title: 'Appliance Repair',
         icon: WashingMachine,
         gradient: 'from-purple-500 to-violet-600',
@@ -87,6 +91,7 @@ const serviceTypes = [
         keywords: ['Refrigerators', 'Washers & Dryers', 'Ovens & Ranges', 'Dishwashers'],
     },
     {
+        slug: 'roofing-emergency-call-handling',
         title: 'Roofing & Storm Protection',
         icon: Home,
         gradient: 'from-emerald-400 to-teal-600',
@@ -97,6 +102,7 @@ const serviceTypes = [
         keywords: ['Roof Inspections', 'Emergency Tarping', 'Gutter Cleaning', 'Storm Repair'],
     },
     {
+        slug: 'pest-control-answering-service',
         title: 'Pest Control & Extermination',
         icon: Bug,
         gradient: 'from-rose-500 to-pink-600',
@@ -107,6 +113,7 @@ const serviceTypes = [
         keywords: ['Termites', 'Rodent Control', 'Bed Bugs', 'Barrier Sprays'],
     },
     {
+        slug: 'garage-door-emergency-dispatch',
         title: 'Garage Doors & Gates',
         icon: ShieldCheck,
         gradient: 'from-orange-500 to-amber-600',
@@ -117,6 +124,7 @@ const serviceTypes = [
         keywords: ['Torsion Springs', 'Opener Repair', 'Track Alignment', 'Sensor Fixes'],
     },
     {
+        slug: 'locksmith-call-answering',
         title: 'Locksmith & Access Security',
         icon: Lock,
         gradient: 'from-teal-500 to-emerald-600',
@@ -429,9 +437,10 @@ onMounted(() => {
 
                 <!-- Services Grid -->
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-                    <div
+                    <Link
                         v-for="service in serviceTypes"
                         :key="service.title"
+                        :href="`/industries/${service.slug}`"
                         class="group relative flex flex-col justify-between rounded-2xl border bg-card/70 p-6 shadow-sm backdrop-blur-md transition-all duration-300 hover:-translate-y-1.5 hover:shadow-xl dark:border-slate-800/80 dark:bg-slate-900/40"
                         :class="service.borderColor"
                     >
@@ -450,7 +459,7 @@ onMounted(() => {
                                 <span class="flex h-2 w-2 rounded-full bg-emerald-500 opacity-75 group-hover:animate-ping"></span>
                             </div>
 
-                            <h3 class="mb-2 text-xl font-bold tracking-tight text-foreground">
+                            <h3 class="mb-2 text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors">
                                 {{ service.title }}
                             </h3>
 
@@ -469,8 +478,13 @@ onMounted(() => {
                                     {{ kw }}
                                 </span>
                             </div>
+
+                            <div class="flex items-center gap-1 text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity pt-2">
+                                <span>Explore Trade Solution</span>
+                                <ArrowRight class="h-3.5 w-3.5" />
+                            </div>
                         </div>
-                    </div>
+                    </Link>
                 </div>
             </div>
         </section>

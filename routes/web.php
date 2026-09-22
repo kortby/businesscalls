@@ -8,6 +8,7 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\ConversationsController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\EmployeeController;
+use App\Http\Controllers\IndustryController;
 use App\Http\Controllers\ServiceJobController;
 use App\Http\Controllers\SitemapController;
 use App\Http\Controllers\StripeWebhookController;
@@ -29,6 +30,8 @@ Route::inertia('/pricing', 'Pricing')->name('pricing');
 Route::inertia('/contact', 'Contact')->name('contact');
 Route::inertia('/privacy', 'Privacy')->name('privacy');
 Route::inertia('/terms', 'Terms')->name('terms');
+Route::get('/industries/{slug}', [IndustryController::class, 'show'])->name('industries.show');
+Route::get('/tools/missed-call-calculator', [IndustryController::class, 'calculator'])->name('tools.calculator');
 Route::get('/sitemap.xml', SitemapController::class)->name('sitemap');
 
 Route::get('technician/login', [TechnicianController::class, 'login'])->name('technician.login');

@@ -11,44 +11,73 @@ class SitemapController extends Controller
      */
     public function __invoke(): Response
     {
+        $today = now()->toDateString();
+
         $urls = [
             [
                 'loc' => route('home'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'daily',
                 'priority' => '1.0',
             ],
             [
+                'loc' => route('tools.calculator'),
+                'lastmod' => $today,
+                'changefreq' => 'weekly',
+                'priority' => '0.9',
+            ],
+            [
                 'loc' => route('about'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
             ],
             [
                 'loc' => route('pricing'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'weekly',
                 'priority' => '0.8',
             ],
             [
                 'loc' => route('contact'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'monthly',
                 'priority' => '0.6',
             ],
             [
                 'loc' => route('privacy'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'monthly',
                 'priority' => '0.3',
             ],
             [
                 'loc' => route('terms'),
-                'lastmod' => '2026-07-26',
+                'lastmod' => $today,
                 'changefreq' => 'monthly',
                 'priority' => '0.3',
             ],
         ];
+
+        // Add all programmatic industry landing pages
+        $industrySlugs = [
+            'plumbing-answering-service',
+            'hvac-ai-receptionist',
+            'electrical-contractor-dispatch',
+            'roofing-emergency-call-handling',
+            'appliance-repair-scheduling',
+            'pest-control-answering-service',
+            'garage-door-emergency-dispatch',
+            'locksmith-call-answering',
+        ];
+
+        foreach ($industrySlugs as $slug) {
+            $urls[] = [
+                'loc' => route('industries.show', ['slug' => $slug]),
+                'lastmod' => $today,
+                'changefreq' => 'weekly',
+                'priority' => '0.9',
+            ];
+        }
 
         $xml = '<?xml version="1.0" encoding="UTF-8"?>';
         $xml .= '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">';

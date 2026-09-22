@@ -19,6 +19,17 @@ import {
 import SpectralVisualizer from '@/components/SpectralVisualizer.vue';
 import { Badge } from '@/components/ui/badge';
 
+const props = withDefaults(
+    defineProps<{
+        initialScenarioId?: string;
+        customTitle?: string;
+        customSubtitle?: string;
+    }>(),
+    {
+        initialScenarioId: 'emergency',
+    },
+);
+
 // IVR Scenario Options
 const scenarios = [
     {
@@ -65,7 +76,7 @@ const scenarios = [
     },
 ];
 
-const selectedScenarioId = ref<string>('emergency');
+const selectedScenarioId = ref<string>(props.initialScenarioId || 'emergency');
 const selectedScenario = computed(() => scenarios.find((s) => s.id === selectedScenarioId.value) || scenarios[0]);
 
 // Simulation State Engine
