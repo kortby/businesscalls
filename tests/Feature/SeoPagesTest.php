@@ -58,3 +58,9 @@ test('sitemap xml includes all industry urls and calculator', function () {
     expect($content)->toContain(route('industries.show', ['slug' => 'garage-door-emergency-dispatch']));
     expect($content)->toContain(route('industries.show', ['slug' => 'locksmith-call-answering']));
 });
+
+test('google search console verification file is accessible in public directory', function () {
+    $filePath = public_path('googleeacfb803089ab8ba.html');
+    expect(file_exists($filePath))->toBeTrue();
+    expect(trim(file_get_contents($filePath)))->toBe('google-site-verification: googleeacfb803089ab8ba.html');
+});
