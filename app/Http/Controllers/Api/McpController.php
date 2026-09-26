@@ -281,6 +281,31 @@ class McpController extends Controller
                             'required' => ['query'],
                         ],
                     ],
+                    [
+                        'name' => 'search_tools',
+                        'description' => 'Search the tools available through execute_tools. Returns tool names, descriptions, and schemas.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'query' => ['type' => 'string', 'description' => 'Search terms.'],
+                                'limit' => ['type' => 'integer', 'description' => 'Maximum results to return.'],
+                            ],
+                        ],
+                    ],
+                    [
+                        'name' => 'execute_tools',
+                        'description' => 'Invoke one or more tools returned by a tool catalog search.',
+                        'inputSchema' => [
+                            'type' => 'object',
+                            'properties' => [
+                                'calls' => [
+                                    'type' => 'array',
+                                    'description' => 'Array of tool calls with name and arguments.',
+                                ],
+                            ],
+                            'required' => ['calls'],
+                        ],
+                    ],
                 ],
             ],
             'id' => $id,
@@ -292,6 +317,67 @@ class McpController extends Controller
      */
     protected function callTool(string $name, array $arguments, mixed $id, Tenant $tenant): JsonResponse
     {
+        if ($name === 'search_tools') {
+            $query = strtolower(trim((string) ($arguments['query'] ?? '')));
+            $limit = (int) ($arguments['limit'] ?? 10);
+            $toolsData = $this->listTools(null)->getData(true)['result']['tools'] ?? [];
+
+            $matching = array_values(array_filter($toolsData, function ($tool) use ($query) {
+                if ($query === '') {
+                    return true;
+                }
+
+                return str_contains(strtolower($tool['name']), $query)
+                    || str_contains(strtolower($tool['description']), $query);
+            }));
+
+            $result = [
+                'ok' => true,
+                'tools' => array_slice($matching, 0, $limit),
+                'hasMore' => count($matching) > $limit,
+            ];
+
+            return response()->json([
+                'jsonrpc' => '2.0',
+                'result' => [
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => json_encode($result),
+                        ],
+                    ],
+                ],
+                'id' => $id,
+            ]);
+        }
+
+        if ($name === 'execute_tools') {
+            $calls = $arguments['calls'] ?? [];
+            $results = [];
+
+            foreach ($calls as $call) {
+                $toolName = $call['name'] ?? '';
+                $toolArgs = $call['arguments'] ?? [];
+                $subResp = $this->callTool($toolName, $toolArgs, null, $tenant);
+                $subData = $subResp->getData(true);
+                $resultEntry = $subData['result'] ?? ($subData['error'] ?? ['isError' => true]);
+                $results[] = array_merge(['name' => $toolName], $resultEntry);
+            }
+
+            return response()->json([
+                'jsonrpc' => '2.0',
+                'result' => [
+                    'content' => [
+                        [
+                            'type' => 'text',
+                            'text' => json_encode(['ok' => true, 'results' => $results]),
+                        ],
+                    ],
+                ],
+                'id' => $id,
+            ]);
+        }
+
         if ($name === 'check_inventory') {
             $partName = strtolower(trim($arguments['part_name'] ?? ''));
             if (! $partName) {
