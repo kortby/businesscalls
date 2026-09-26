@@ -49,13 +49,29 @@ class GetFirstThreeAvailabilitiesTool
         $employees = Employee::where('tenant_id', $tenant->id)->get();
 
         if ($serviceTypeInput !== '') {
-            $skilledEmployees = $employees->filter(function ($employee) use ($serviceTypeInput) {
+            $inputNorm = strtolower($serviceTypeInput);
+            $inputClean = rtrim($inputNorm, 's');
+
+            $skilledEmployees = $employees->filter(function ($employee) use ($inputNorm, $inputClean) {
                 if (! is_array($employee->skills)) {
                     return false;
                 }
-                $normalized = array_map('strtolower', array_map('trim', $employee->skills));
+                foreach ($employee->skills as $skill) {
+                    $s = strtolower(trim((string) $skill));
+                    if ($s === $inputNorm || $s === $inputClean
+                        || str_contains($s, $inputNorm) || str_contains($inputNorm, $s)
+                        || (str_contains($inputNorm, 'plumb') && str_contains($s, 'plumb'))
+                        || (str_contains($inputNorm, 'electr') && str_contains($s, 'electr'))
+                        || ((str_contains($inputNorm, 'hvac') || str_contains($inputNorm, 'ac') || str_contains($inputNorm, 'heat') || str_contains($inputNorm, 'air') || str_contains($inputNorm, 'cool')) && (str_contains($s, 'hvac') || str_contains($s, 'heat') || str_contains($s, 'ac') || str_contains($s, 'air') || str_contains($s, 'cool')))
+                        || ((str_contains($inputNorm, 'appliance') || str_contains($inputNorm, 'refrigerator') || str_contains($inputNorm, 'washer') || str_contains($inputNorm, 'dryer') || str_contains($inputNorm, 'stove') || str_contains($inputNorm, 'oven')) && (str_contains($s, 'appliance') || str_contains($s, 'refrigerator') || str_contains($s, 'dryer') || str_contains($s, 'stove') || str_contains($s, 'dishwasher')))
+                        || ((str_contains($inputNorm, 'roof') || str_contains($inputNorm, 'gutter')) && (str_contains($s, 'roof') || str_contains($s, 'gutter')))
+                        || ((str_contains($inputNorm, 'lock') || str_contains($inputNorm, 'key')) && (str_contains($s, 'lock') || str_contains($s, 'key')))
+                    ) {
+                        return true;
+                    }
+                }
 
-                return in_array(strtolower($serviceTypeInput), $normalized);
+                return false;
             });
 
             if ($skilledEmployees->isNotEmpty()) {

@@ -16,6 +16,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class DatabaseSeeder extends Seeder
 {
@@ -28,6 +29,19 @@ class DatabaseSeeder extends Seeder
     {
         // 1. Reset tenant scope context for seed process
         TenantScope::setTenantId(null);
+
+        // Clean existing seed tables if re-running
+        Schema::disableForeignKeyConstraints();
+        Booking::truncate();
+        Availability::truncate();
+        Employee::truncate();
+        User::truncate();
+        Customer::truncate();
+        ServiceJob::truncate();
+        Conversation::truncate();
+        Message::truncate();
+        Tenant::truncate();
+        Schema::enableForeignKeyConstraints();
 
         // 2. Create the Tenant
         $tenant = Tenant::create([
@@ -71,13 +85,21 @@ class DatabaseSeeder extends Seeder
             'email_verified_at' => now(),
         ]);
 
-        // 4. Create the Employees (Technicians)
+        // 4. Create the Employees (Technicians across all trades)
         $plumber = Employee::create([
             'tenant_id' => $tenant->id,
             'first_name' => 'John',
             'last_name' => 'Doe',
             'phone' => '+14157025409',
-            'skills' => ['plumbing', 'drain-clearing', 'sewer-repair', 'water-heaters'],
+            'skills' => ['plumbing', 'plumber', 'drain-clearing', 'sewer-repair', 'water-heaters', 'pipe-leak', 'emergency-plumbing'],
+        ]);
+
+        $seniorPlumber = Employee::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'David',
+            'last_name' => 'Miller',
+            'phone' => '+14157025409',
+            'skills' => ['plumbing', 'plumber', 'repiping', 'gas-lines', 'sump-pumps', 'faucets', 'toilet-repair'],
         ]);
 
         $hvac = Employee::create([
@@ -85,7 +107,15 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Jane',
             'last_name' => 'Smith',
             'phone' => '+14157025409',
-            'skills' => ['hvac', 'ac-diagnostics', 'heat-pump-install', 'ductwork', 'ventilation'],
+            'skills' => ['hvac', 'ac', 'heating', 'cooling', 'ac-diagnostics', 'heat-pump-install', 'ductwork', 'ventilation', 'furnace'],
+        ]);
+
+        $hvacTech2 = Employee::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'Alex',
+            'last_name' => 'Rivera',
+            'phone' => '+14157025409',
+            'skills' => ['hvac', 'ac', 'air-conditioning', 'heating', 'furnace-repair', 'thermostat', 'mini-split', 'ductless'],
         ]);
 
         $electrician = Employee::create([
@@ -93,7 +123,15 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Mike',
             'last_name' => 'Miller',
             'phone' => '+14157025409',
-            'skills' => ['electrical', 'high-voltage', 'breaker-boxes', 'generator-wiring', 'ev-charging'],
+            'skills' => ['electrical', 'electrician', 'high-voltage', 'breaker-boxes', 'generator-wiring', 'ev-charging', 'lighting'],
+        ]);
+
+        $electrician2 = Employee::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'Carlos',
+            'last_name' => 'Sanchez',
+            'phone' => '+14157025409',
+            'skills' => ['electrical', 'electrician', 'rewiring', 'panel-upgrades', 'outlets', 'surge-protection', 'circuits'],
         ]);
 
         $appliance = Employee::create([
@@ -101,12 +139,28 @@ class DatabaseSeeder extends Seeder
             'first_name' => 'Sarah',
             'last_name' => 'Connor',
             'phone' => '+14157025409',
-            'skills' => ['refrigerator-repair', 'dryer-maintenance', 'gas-stoves', 'dishwasher-install'],
+            'skills' => ['appliance', 'appliance-repair', 'refrigerator-repair', 'dryer-maintenance', 'gas-stoves', 'dishwasher-install', 'washer-repair', 'oven-repair'],
         ]);
 
-        // 5. Create Availabilities (Work Shifts)
-        // John Doe: Mon, Wed, Fri (08:00 - 16:00)
-        foreach ([1, 3, 5] as $day) {
+        $roofing = Employee::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'Robert',
+            'last_name' => 'Taylor',
+            'phone' => '+14157025409',
+            'skills' => ['roofing', 'roofer', 'gutters', 'siding', 'handyman', 'general-repairs'],
+        ]);
+
+        $locksmith = Employee::create([
+            'tenant_id' => $tenant->id,
+            'first_name' => 'Emily',
+            'last_name' => 'Watson',
+            'phone' => '+14157025409',
+            'skills' => ['locksmith', 'locks', 'rekeying', 'smart-locks', 'security-systems', 'keypad-install'],
+        ]);
+
+        // 5. Create Availabilities (Work Shifts covering all 7 days for every trade)
+        // Plumbers (John Doe: Mon-Fri 08:00-16:00, David Miller: Tue-Sat 09:00-17:00, Sun 10:00-16:00)
+        foreach ([1, 2, 3, 4, 5] as $day) {
             Availability::create([
                 'tenant_id' => $tenant->id,
                 'employee_id' => $plumber->id,
@@ -116,9 +170,19 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+        foreach ([0, 2, 3, 4, 5, 6] as $day) {
+            Availability::create([
+                'tenant_id' => $tenant->id,
+                'employee_id' => $seniorPlumber->id,
+                'day_of_week' => $day,
+                'start_time' => '09:00',
+                'end_time' => '17:00',
+                'is_active' => true,
+            ]);
+        }
 
-        // Jane Smith: Tue, Thu (09:00 - 17:00), Sat (10:00 - 15:00)
-        foreach ([2, 4] as $day) {
+        // HVAC (Jane Smith: Mon-Fri 09:00-17:00, Sat 10:00-15:00, Alex Rivera: Wed-Sun 08:00-16:00)
+        foreach ([1, 2, 3, 4, 5, 6] as $day) {
             Availability::create([
                 'tenant_id' => $tenant->id,
                 'employee_id' => $hvac->id,
@@ -128,17 +192,19 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
-        Availability::create([
-            'tenant_id' => $tenant->id,
-            'employee_id' => $hvac->id,
-            'day_of_week' => 6, // Sat
-            'start_time' => '10:00',
-            'end_time' => '15:00',
-            'is_active' => true,
-        ]);
+        foreach ([0, 3, 4, 5, 6] as $day) {
+            Availability::create([
+                'tenant_id' => $tenant->id,
+                'employee_id' => $hvacTech2->id,
+                'day_of_week' => $day,
+                'start_time' => '08:00',
+                'end_time' => '16:00',
+                'is_active' => true,
+            ]);
+        }
 
-        // Mike Miller: Mon, Tue, Thu, Fri (08:00 - 17:00)
-        foreach ([1, 2, 4, 5] as $day) {
+        // Electricians (Mike Miller: Mon-Fri 08:00-17:00, Carlos Sanchez: Thu-Sun 09:00-18:00)
+        foreach ([1, 2, 3, 4, 5] as $day) {
             Availability::create([
                 'tenant_id' => $tenant->id,
                 'employee_id' => $electrician->id,
@@ -148,15 +214,49 @@ class DatabaseSeeder extends Seeder
                 'is_active' => true,
             ]);
         }
+        foreach ([0, 4, 5, 6] as $day) {
+            Availability::create([
+                'tenant_id' => $tenant->id,
+                'employee_id' => $electrician2->id,
+                'day_of_week' => $day,
+                'start_time' => '09:00',
+                'end_time' => '18:00',
+                'is_active' => true,
+            ]);
+        }
 
-        // Sarah Connor: Wed, Fri (08:00 - 17:00)
-        foreach ([3, 5] as $day) {
+        // Appliance Repair (Sarah Connor: Mon-Sat 08:00-17:00)
+        foreach ([1, 2, 3, 4, 5, 6] as $day) {
             Availability::create([
                 'tenant_id' => $tenant->id,
                 'employee_id' => $appliance->id,
                 'day_of_week' => $day,
                 'start_time' => '08:00',
                 'end_time' => '17:00',
+                'is_active' => true,
+            ]);
+        }
+
+        // Roofing (Robert Taylor: Mon-Sat 08:00-16:00)
+        foreach ([1, 2, 3, 4, 5, 6] as $day) {
+            Availability::create([
+                'tenant_id' => $tenant->id,
+                'employee_id' => $roofing->id,
+                'day_of_week' => $day,
+                'start_time' => '08:00',
+                'end_time' => '16:00',
+                'is_active' => true,
+            ]);
+        }
+
+        // Locksmith (Emily Watson: Daily Mon-Sun 09:00-18:00)
+        foreach ([0, 1, 2, 3, 4, 5, 6] as $day) {
+            Availability::create([
+                'tenant_id' => $tenant->id,
+                'employee_id' => $locksmith->id,
+                'day_of_week' => $day,
+                'start_time' => '09:00',
+                'end_time' => '18:00',
                 'is_active' => true,
             ]);
         }

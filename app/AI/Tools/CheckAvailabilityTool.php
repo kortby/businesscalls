@@ -55,8 +55,29 @@ class CheckAvailabilityTool
         $employees = Employee::where('tenant_id', $tenant->id)->get();
 
         if ($serviceTypeInput !== '') {
-            $skilledEmployees = $employees->filter(function ($employee) use ($serviceTypeInput) {
-                return is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+            $inputNorm = strtolower($serviceTypeInput);
+            $inputClean = rtrim($inputNorm, 's');
+
+            $skilledEmployees = $employees->filter(function ($employee) use ($inputNorm, $inputClean) {
+                if (! is_array($employee->skills)) {
+                    return false;
+                }
+                foreach ($employee->skills as $skill) {
+                    $s = strtolower(trim((string) $skill));
+                    if ($s === $inputNorm || $s === $inputClean
+                        || str_contains($s, $inputNorm) || str_contains($inputNorm, $s)
+                        || (str_contains($inputNorm, 'plumb') && str_contains($s, 'plumb'))
+                        || (str_contains($inputNorm, 'electr') && str_contains($s, 'electr'))
+                        || ((str_contains($inputNorm, 'hvac') || str_contains($inputNorm, 'ac') || str_contains($inputNorm, 'heat') || str_contains($inputNorm, 'air') || str_contains($inputNorm, 'cool')) && (str_contains($s, 'hvac') || str_contains($s, 'heat') || str_contains($s, 'ac') || str_contains($s, 'air') || str_contains($s, 'cool')))
+                        || ((str_contains($inputNorm, 'appliance') || str_contains($inputNorm, 'refrigerator') || str_contains($inputNorm, 'washer') || str_contains($inputNorm, 'dryer') || str_contains($inputNorm, 'stove') || str_contains($inputNorm, 'oven')) && (str_contains($s, 'appliance') || str_contains($s, 'refrigerator') || str_contains($s, 'dryer') || str_contains($s, 'stove') || str_contains($s, 'dishwasher')))
+                        || ((str_contains($inputNorm, 'roof') || str_contains($inputNorm, 'gutter')) && (str_contains($s, 'roof') || str_contains($s, 'gutter')))
+                        || ((str_contains($inputNorm, 'lock') || str_contains($inputNorm, 'key')) && (str_contains($s, 'lock') || str_contains($s, 'key')))
+                    ) {
+                        return true;
+                    }
+                }
+
+                return false;
             });
 
             if ($skilledEmployees->isNotEmpty()) {
