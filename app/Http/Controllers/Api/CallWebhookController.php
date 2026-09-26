@@ -608,9 +608,9 @@ class CallWebhookController extends Controller
         $aiPrompt = '';
 
         if ($detectedLang === 'es') {
-            $aiPrompt = 'Usted es el despachador de voz de IA de la empresa. Por favor, actúe de manera profesional, amable y eficiente. Use terminología HVAC correcta en español.';
+            $aiPrompt = 'Usted es el despachador de voz de IA de la empresa. Hable rápido, directo y conciso en 1 o 2 oraciones cortas. Vaya directo al grano sin rodeos. Use terminología HVAC correcta en español.';
         } elseif ($detectedLang === 'fr') {
-            $aiPrompt = 'Vous êtes le répartiteur vocal IA de l\'entreprise. Veuillez agir de manière professionnelle, amicale et efficace. Utilisez la terminologie CVC correcte en français.';
+            $aiPrompt = 'Vous êtes le répartiteur vocal IA de l\'entreprise. Parlez rapidement et de manière concise en 1 ou 2 phrases courtes pour aller droit au but. Utilisez la terminologie CVC correcte en français.';
         }
 
         $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
@@ -627,6 +627,7 @@ class CallWebhookController extends Controller
                         'voice' => [
                             'provider' => 'elevenlabs',
                             'voiceId' => $voiceId,
+                            'speed' => 1.25,
                             'model' => 'eleven_multilingual_v2',
                         ],
                         'model' => [
@@ -643,6 +644,7 @@ class CallWebhookController extends Controller
                 Http::withToken($apiKey)->patch("https://api.retellai.com/v2/calls/{$callId}", [
                     'assistant_overrides' => [
                         'voice_id' => $voiceId,
+                        'speed' => 1.25,
                         'language' => $detectedLang,
                         'prompt' => $aiPrompt,
                     ],

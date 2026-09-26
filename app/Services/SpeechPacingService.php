@@ -50,6 +50,7 @@ class SpeechPacingService
                     'voice' => [
                         'provider' => $voiceConfig['provider'],
                         'voiceId' => $voiceConfig['vapi_voice_id'],
+                        'speed' => 1.25,
                         'stability' => $voiceConfig['stability'],
                         'similarityBoost' => $voiceConfig['similarity_boost'],
                     ],
@@ -72,6 +73,7 @@ class SpeechPacingService
 
             $payload = [
                 'voice_id' => $voiceConfig['retell_voice_id'],
+                'speed' => 1.25,
             ];
 
             try {

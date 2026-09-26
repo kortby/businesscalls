@@ -15,7 +15,7 @@ class TenantSettingsService
         $variant = request()->attributes->get('active_experiment_variant');
         $customInstructions = $variant
             ? $variant->prompt_instructions
-            : $tenant->getSetting('ai_prompt', 'Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
+            : $tenant->getSetting('ai_prompt', 'Speak briskly, concisely, and directly in 1-2 short sentences. Get straight to the chase without unnecessary pleasantries or filler. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
         $emergencyFee = $tenant->getSetting('emergency_fee', '$150');
 
         $skills = $tenant->employees()->get()->pluck('skills')->flatten()->filter()->unique()->implode(', ');
@@ -23,9 +23,13 @@ class TenantSettingsService
         $startSpeakingVal = (int) $tenant->getSetting('startSpeakingPlan', 600);
         $stopSpeakingVal = (float) $tenant->getSetting('stopSpeakingPlan', 0.2);
         $backchannelEnabled = (bool) $tenant->getSetting('backchanneling_enabled', false);
+        $voiceSpeed = (float) $tenant->getSetting('voice_speed', 1.25);
 
         $payload = [
             'assistantOverrides' => [
+                'voice' => [
+                    'speed' => $voiceSpeed,
+                ],
                 'variableValues' => [
                     'business_name' => $businessName,
                     'custom_instructions' => $customInstructions,
@@ -89,6 +93,6 @@ class TenantSettingsService
      */
     public function getDefaultSystemPrompt(): string
     {
-        return 'You are the AI voice dispatcher for {{business_name}}. Please act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Your custom instructions: {{custom_instructions}}. The emergency fee for after-hours calls is {{emergency_fee}}. We specialize in and support these services: {{service_list}}.';
+        return 'You are the AI voice dispatcher for {{business_name}}. Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, lengthy pleasantries, or repetition. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Your custom instructions: {{custom_instructions}}. The emergency fee for after-hours calls is {{emergency_fee}}. We specialize in and support these services: {{service_list}}.';
     }
 }

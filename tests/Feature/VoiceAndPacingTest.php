@@ -1,5 +1,6 @@
 <?php
 
+use App\Helpers\PromptCompiler;
 use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Booking;
 use App\Models\CallLog;
@@ -230,4 +231,25 @@ test('tenant settings service includes custom speech timing overrides in vapi as
         ->and($payload['assistantOverrides']['stopSpeakingPlan']['voiceSeconds'])->toBe(0.4)
         ->and($payload['assistantOverrides']['stopSpeakingPlan']['numWords'])->toBe(0)
         ->and($payload['assistantOverrides']['stopSpeakingPlan']['backoffSeconds'])->toBe(1.0);
+});
+
+test('tenant settings service defaults speech speed to 1.25 and instructs concise 1-2 short sentences', function () {
+    $tenant = Tenant::factory()->create();
+
+    $service = app(TenantSettingsService::class);
+    $payload = $service->generateAssistantPayload($tenant);
+
+    expect($payload['assistantOverrides']['voice']['speed'])->toBe(1.25);
+
+    $prompt = $service->getDefaultSystemPrompt();
+    expect($prompt)->toContain('1-2 short, direct sentences')
+        ->and($prompt)->toContain('Get straight to the chase');
+});
+
+test('prompt compiler enforces brisk, concise 1-2 short sentences speaking directive', function () {
+    $tenant = Tenant::factory()->create(['name' => 'Swift HVAC']);
+    $compiled = PromptCompiler::compile('Hello {{business_name}}', $tenant);
+
+    expect($compiled)->toContain('Swift HVAC')
+        ->and($compiled)->toContain('[Speaking Style: Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, preamble, or repetition.]');
 });

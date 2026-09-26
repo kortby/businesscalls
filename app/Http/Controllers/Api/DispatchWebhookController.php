@@ -226,7 +226,7 @@ class DispatchWebhookController extends Controller
                 $provider = config('services.telephony.provider', env('TELEPHONY_PROVIDER', 'vapi'));
                 $apiKey = env('TELEPHONY_API_KEY') ?? 'dummy-telephony-api-key';
 
-                $emergencyScript = 'EMERGENCY SCRIPT: Act with absolute urgency. A high-priority emergency or outage has been reported. Prioritize safety instructions immediately and secure the location.';
+                $emergencyScript = 'EMERGENCY SCRIPT: Act with absolute urgency. Speak briskly and concisely in 1-2 short sentences. Prioritize safety instructions immediately and secure the location.';
 
                 try {
                     if ($provider === 'vapi') {
@@ -235,6 +235,7 @@ class DispatchWebhookController extends Controller
                                 'voice' => [
                                     'provider' => 'elevenlabs',
                                     'voiceId' => 'pNInz6obpgfrDuZJe63m', // Authoritative Voice ID
+                                    'speed' => 1.25,
                                 ],
                                 'model' => [
                                     'messages' => [
@@ -252,6 +253,7 @@ class DispatchWebhookController extends Controller
                         Http::withToken($apiKey)->timeout(5)->patch("https://api.retellai.com/v2/calls/{$callId}", [
                             'assistant_overrides' => [
                                 'voice_id' => '11labs-authoritative',
+                                'speed' => 1.25,
                                 'prompt' => $emergencyScript,
                                 'stop_speaking_threshold' => 2.0,
                             ],

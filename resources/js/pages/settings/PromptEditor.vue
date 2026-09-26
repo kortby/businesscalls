@@ -44,7 +44,7 @@ const props = defineProps<{
 const form = useForm({
     ai_prompt:
         props.settings.ai_prompt ||
-        'Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.',
+        'Speak briskly, concisely, and directly in 1-2 short sentences. Get straight to the chase without unnecessary pleasantries or filler. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.',
     emergency_fee: props.settings.emergency_fee || '$150',
     emergency_rules:
         props.settings.emergency_rules ||

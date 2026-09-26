@@ -138,11 +138,11 @@ class NativeVoiceCallController extends Controller
         } else {
             // General AI response via Laravel AI
             try {
-                $systemPrompt = "You are the native voice assistant for {$tenant->name}. Provide friendly, professional service.";
+                $systemPrompt = "You are the native voice assistant for {$tenant->name}. Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler or repetition.";
                 $aiResponse = Text::prompt("System Context: {$systemPrompt}\nUser Message: {$userInput}");
                 $responseMessage = trim($aiResponse);
             } catch (\Exception $e) {
-                $responseMessage = "Thank you for contacting {$tenant->name}. How can I assist you with your booking or service request today?";
+                $responseMessage = "Thank you for contacting {$tenant->name}. How can I assist you today?";
             }
         }
 

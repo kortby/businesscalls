@@ -115,6 +115,11 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                         $payload['assistantOverrides']['voice'] = [
                             'provider' => 'elevenlabs',
                             'voiceId' => $customVoice->provider_voice_id,
+                            'speed' => 1.25,
+                        ];
+                    } else {
+                        $payload['assistantOverrides']['voice'] = [
+                            'speed' => 1.25,
                         ];
                     }
                 } else {
@@ -132,6 +137,11 @@ class SendTechnicianAlertJob implements Interruptible, ShouldQueue
                     if ($customVoice) {
                         $payload['assistant_overrides'] = [
                             'voice_id' => $customVoice->provider_voice_id,
+                            'speed' => 1.25,
+                        ];
+                    } else {
+                        $payload['assistant_overrides'] = [
+                            'speed' => 1.25,
                         ];
                     }
                 }

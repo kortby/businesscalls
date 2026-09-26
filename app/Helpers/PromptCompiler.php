@@ -46,6 +46,11 @@ class PromptCompiler
             $compiled .= "\n[System Instruction: The customer prefers Spanish. Conduct the conversation entirely in Spanish. Traduzca sus respuestas al español.]";
         }
 
+        // Apply fast, concise conversational style
+        if (! str_contains($compiled, 'Speaking Style:')) {
+            $compiled .= "\n[Speaking Style: Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, preamble, or repetition.]";
+        }
+
         return $compiled;
     }
 }

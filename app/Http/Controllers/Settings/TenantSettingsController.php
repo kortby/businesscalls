@@ -46,7 +46,7 @@ class TenantSettingsController extends Controller
         $settings['pricing_list'] = $validated['pricing_list'] ?? [];
 
         // Construct standard prompt with placeholder variables
-        $settings['prompt'] = 'You are the AI voice dispatcher for {{business_name}}. Act professional, friendly, and efficient. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Special Instructions: {{custom_instructions}}. Emergency fee is {{emergency_fee}}. Emergency rules: '.($validated['emergency_rules'] ?? '');
+        $settings['prompt'] = 'You are the AI voice dispatcher for {{business_name}}. Speak briskly and concisely in 1-2 short sentences. Get straight to the chase without filler or preamble. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Special Instructions: {{custom_instructions}}. Emergency fee is {{emergency_fee}}. Emergency rules: '.($validated['emergency_rules'] ?? '');
 
         $tenant->settings = $settings;
         $tenant->save();
