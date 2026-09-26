@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\AI\Tools\GetAvailabilitySlotsTool;
 use App\AI\Tools\GetFirstThreeAvailabilitiesTool;
 use App\Http\Controllers\Controller;
 use App\Models\Scopes\TenantScope;
@@ -88,14 +89,32 @@ class AvailabilityWebhookController extends Controller
 
         $serviceTypeInput = trim($arguments['service_type']
             ?? $arguments['serviceType']
+            ?? $arguments['service']
+            ?? $arguments['trade']
+            ?? $arguments['job_type']
+            ?? $arguments['specialty']
+            ?? $arguments['appointment_type']
             ?? $request->input('service_type')
             ?? $request->input('serviceType')
+            ?? $request->input('service')
+            ?? $request->input('trade')
             ?? '');
 
-        // 3. Delegate to native GetFirstThreeAvailabilitiesTool
+        $targetDate = $arguments['date']
+            ?? $arguments['target_date']
+            ?? $arguments['targetDate']
+            ?? $request->input('date')
+            ?? $request->input('target_date');
+
+        // 3. Delegate to appropriate availability tool
         try {
-            $tool = new GetFirstThreeAvailabilitiesTool;
-            $resultData = $tool->handle($tenant->id, $serviceTypeInput ?: null);
+            if ($targetDate) {
+                $tool = new GetAvailabilitySlotsTool;
+                $resultData = $tool->handle((string) $tenant->id, (string) $targetDate, $serviceTypeInput ?: null);
+            } else {
+                $tool = new GetFirstThreeAvailabilitiesTool;
+                $resultData = $tool->handle($tenant->id, $serviceTypeInput ?: null);
+            }
         } catch (\Throwable $e) {
             Log::error('AvailabilityWebhookController error: '.$e->getMessage(), ['exception' => $e]);
             $resultData = [
