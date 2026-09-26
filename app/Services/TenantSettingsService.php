@@ -15,7 +15,7 @@ class TenantSettingsService
         $variant = request()->attributes->get('active_experiment_variant');
         $customInstructions = $variant
             ? $variant->prompt_instructions
-            : $tenant->getSetting('ai_prompt', 'Speak briskly, concisely, and directly in 1-2 short sentences. Get straight to the chase without unnecessary pleasantries or filler. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
+            : $tenant->getSetting('ai_prompt', 'Speak briskly, concisely, and directly in 1-2 short sentences. Get straight to the chase without unnecessary pleasantries or filler. When a customer wants to book or schedule, offer the first available appointment right away. If the customer does not like that time, ask what day and time they prefer. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings.');
         $emergencyFee = $tenant->getSetting('emergency_fee', '$150');
 
         $skills = $tenant->employees()->get()->pluck('skills')->flatten()->filter()->unique()->implode(', ');
@@ -93,6 +93,6 @@ class TenantSettingsService
      */
     public function getDefaultSystemPrompt(): string
     {
-        return 'You are the AI voice dispatcher for {{business_name}}. Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, lengthy pleasantries, or repetition. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Your custom instructions: {{custom_instructions}}. The emergency fee for after-hours calls is {{emergency_fee}}. We specialize in and support these services: {{service_list}}.';
+        return 'You are the AI voice dispatcher for {{business_name}}. Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, lengthy pleasantries, or repetition. When a customer wants an appointment, offer the first available opening right away. If they decline or prefer a different time, ask what day and time works best for them. Enforce technician active shifts and the mandatory 1.5-hour travel buffer on all bookings. Your custom instructions: {{custom_instructions}}. The emergency fee for after-hours calls is {{emergency_fee}}. We specialize in and support these services: {{service_list}}.';
     }
 }

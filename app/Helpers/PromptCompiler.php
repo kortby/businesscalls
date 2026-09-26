@@ -51,6 +51,11 @@ class PromptCompiler
             $compiled .= "\n[Speaking Style: Speak briskly and concisely in 1-2 short, direct sentences. Get straight to the chase without filler phrases, preamble, or repetition.]";
         }
 
+        // Apply first available appointment rule
+        if (! str_contains($compiled, 'Appointment Rule:')) {
+            $compiled .= "\n[Appointment Rule: Offer the first available appointment right away. If the customer does not like that time, ask what day and time they prefer.]";
+        }
+
         return $compiled;
     }
 }

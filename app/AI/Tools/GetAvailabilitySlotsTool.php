@@ -106,13 +106,20 @@ class GetAvailabilitySlotsTool
             }
         }
 
+        // Sort chronologically by ISO timestamp
+        usort($slots, fn ($a, $b) => strcmp($a['iso'], $b['iso']));
+
+        $firstSlot = $slots[0]['time'] ?? null;
+
         return [
             'status' => 'success',
             'date' => $targetDate->format('Y-m-d'),
             'slots_count' => count($slots),
+            'first_available' => $slots[0] ?? null,
+            'first_available_time' => $firstSlot,
             'slots' => $slots,
             'message' => count($slots) > 0
-                ? 'Found '.count($slots)." open slots for {$targetDate->format('l, M j')}."
+                ? 'Found '.count($slots)." open slots for {$targetDate->format('l, M j')}, starting with {$firstSlot}."
                 : "No open slots available on {$targetDate->format('l, M j')}.",
         ];
     }

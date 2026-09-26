@@ -90,7 +90,7 @@ class NativeVoiceCallController extends Controller
         $lowered = strtolower($userInput);
 
         // Native Intent & Tool Routing Pipeline
-        if (preg_match('/\b(first 3|3 options|earliest|next available|options)\b/i', $lowered)) {
+        if (preg_match('/\b(first|first 3|3 options|earliest|first available|next available|soonest|options|when can you come|earliest opening)\b/i', $lowered)) {
             $tool = new GetFirstThreeAvailabilitiesTool;
             $res = $tool->handle($tenant->id);
             $toolsExecuted[] = 'get_first_three_availabilities';

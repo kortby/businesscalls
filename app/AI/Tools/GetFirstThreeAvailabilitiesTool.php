@@ -65,32 +65,24 @@ class GetFirstThreeAvailabilitiesTool
 
         $now = Carbon::now();
         $startDate = Carbon::today();
-        $options = [];
+        $candidateSlots = [];
 
-        for ($i = 0; $i < 14 && count($options) < 3; $i++) {
+        for ($i = 0; $i < 14; $i++) {
             $currentDay = $startDate->copy()->addDays($i);
             $dayOfWeek = $currentDay->dayOfWeek;
 
             foreach ($employees as $employee) {
-                if (count($options) >= 3) {
-                    break;
-                }
-
                 $shifts = Availability::where('employee_id', $employee->id)
                     ->where('day_of_week', $dayOfWeek)
                     ->where('is_active', true)
                     ->get();
 
                 foreach ($shifts as $shift) {
-                    if (count($options) >= 3) {
-                        break;
-                    }
-
                     $start = Carbon::parse($shift->start_time);
                     $end = Carbon::parse($shift->end_time);
 
                     $currentHour = $start->copy();
-                    while ($currentHour->lt($end) && count($options) < 3) {
+                    while ($currentHour->lt($end)) {
                         $slotTime = $currentDay->copy()->setTime($currentHour->hour, $currentHour->minute, 0);
 
                         if ($slotTime->gt($now->copy()->addMinutes(30))) {
@@ -104,25 +96,13 @@ class GetFirstThreeAvailabilitiesTool
                                 ->exists();
 
                             if (! $hasOverlap) {
-                                $formattedStr = $slotTime->format('l, M j \a\t g:i A');
-                                $isoStr = $slotTime->format('Y-m-d H:i:s');
-
-                                $alreadyAdded = false;
-                                foreach ($options as $opt) {
-                                    if ($opt['iso'] === $isoStr) {
-                                        $alreadyAdded = true;
-                                        break;
-                                    }
-                                }
-
-                                if (! $alreadyAdded) {
-                                    $options[] = [
-                                        'formatted' => $formattedStr,
-                                        'iso' => $isoStr,
-                                        'technician_name' => "{$employee->first_name} {$employee->last_name}",
-                                        'employee_id' => $employee->id,
-                                    ];
-                                }
+                                $candidateSlots[] = [
+                                    'timestamp' => $slotTime->timestamp,
+                                    'formatted' => $slotTime->format('l, M j \a\t g:i A'),
+                                    'iso' => $slotTime->format('Y-m-d H:i:s'),
+                                    'technician_name' => "{$employee->first_name} {$employee->last_name}",
+                                    'employee_id' => $employee->id,
+                                ];
                             }
                         }
 
@@ -132,15 +112,38 @@ class GetFirstThreeAvailabilitiesTool
             }
         }
 
+        // Sort candidates chronologically so the absolute earliest slot is first
+        usort($candidateSlots, fn ($a, $b) => $a['timestamp'] <=> $b['timestamp']);
+
+        $options = [];
+        $seenTimes = [];
+        foreach ($candidateSlots as $slot) {
+            if (! isset($seenTimes[$slot['iso']])) {
+                $seenTimes[$slot['iso']] = true;
+                $options[] = [
+                    'formatted' => $slot['formatted'],
+                    'iso' => $slot['iso'],
+                    'technician_name' => $slot['technician_name'],
+                    'employee_id' => $slot['employee_id'],
+                ];
+                if (count($options) >= 3) {
+                    break;
+                }
+            }
+        }
+
         $formattedList = array_map(fn ($opt) => $opt['formatted'], $options);
+        $firstAvailable = $options[0]['formatted'] ?? null;
 
         return [
             'status' => 'success',
             'count' => count($options),
+            'first_available' => $options[0] ?? null,
+            'first_available_formatted' => $firstAvailable,
             'options' => $options,
             'formatted_options' => $formattedList,
             'message' => count($options) > 0
-                ? 'The first '.count($options).' available technician options are: '.implode(', ', $formattedList)
+                ? "Our first available appointment is {$firstAvailable}. The first ".count($options).' available technician options are: '.implode(', ', $formattedList).". If that doesn't work, what day and time would you prefer?"
                 : 'No available technician slots found over the next 14 days.',
         ];
     }

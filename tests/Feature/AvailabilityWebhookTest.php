@@ -1,5 +1,6 @@
 <?php
 
+use App\AI\Tools\GetFirstThreeAvailabilitiesTool;
 use App\Models\Availability;
 use App\Models\Employee;
 use App\Models\Scopes\TenantScope;
@@ -168,4 +169,43 @@ test('dispatch webhook handles alias tool names like get_next_availabilities and
     $response->assertOk();
     $response->assertJsonPath('results.0.toolCallId', 'vapi-alias-call-456');
     $response->assertJsonPath('results.0.result.status', 'success');
+});
+
+test('first available appointment is always the earliest chronological opening across multiple technicians', function () {
+    $tenant = Tenant::factory()->create();
+
+    // Employee 1: Afternoon shift (2 PM - 6 PM)
+    $techAfternoon = Employee::factory()->create(['tenant_id' => $tenant->id, 'first_name' => 'Afternoon', 'last_name' => 'Tech']);
+    // Employee 2: Morning shift (8 AM - 12 PM)
+    $techMorning = Employee::factory()->create(['tenant_id' => $tenant->id, 'first_name' => 'Morning', 'last_name' => 'Tech']);
+
+    $tomorrow = Carbon::today()->addDay();
+
+    Availability::create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $techAfternoon->id,
+        'day_of_week' => $tomorrow->dayOfWeek,
+        'start_time' => '14:00:00',
+        'end_time' => '18:00:00',
+        'is_active' => true,
+    ]);
+
+    Availability::create([
+        'tenant_id' => $tenant->id,
+        'employee_id' => $techMorning->id,
+        'day_of_week' => $tomorrow->dayOfWeek,
+        'start_time' => '08:00:00',
+        'end_time' => '12:00:00',
+        'is_active' => true,
+    ]);
+
+    $tool = new GetFirstThreeAvailabilitiesTool;
+    $result = $tool->handle($tenant->id);
+
+    expect($result['status'])->toBe('success')
+        ->and($result['first_available'])->not->toBeNull()
+        ->and($result['first_available']['technician_name'])->toBe('Morning Tech')
+        ->and($result['first_available']['formatted'])->toContain('8:00 AM')
+        ->and($result['message'])->toContain('Our first available appointment is')
+        ->and($result['message'])->toContain('what day and time would you prefer');
 });
