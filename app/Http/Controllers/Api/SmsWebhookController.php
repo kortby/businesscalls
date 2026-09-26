@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Events\ChatMessageReceived;
 use App\Helpers\PromptCompiler;
+use App\Helpers\TradeClassifier;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
@@ -99,7 +100,7 @@ You must return a valid JSON object matching this schema exactly. If the custome
 
                 // Match available employee
                 $employees = Employee::get()->filter(function ($employee) use ($serviceType) {
-                    return is_array($employee->skills) && in_array($serviceType, $employee->skills);
+                    return TradeClassifier::employeeMatches($employee, $serviceType);
                 });
 
                 $assignedEmployee = null;

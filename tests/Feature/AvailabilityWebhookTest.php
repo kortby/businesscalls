@@ -209,3 +209,89 @@ test('first available appointment is always the earliest chronological opening a
         ->and($result['message'])->toContain('Our first available appointment is')
         ->and($result['message'])->toContain('what day and time would you prefer');
 });
+
+test('first available correctly identifies specialists across all trade categories without cross-contamination', function (string $inputQuery, string $expectedTrade, string $expectedTechName) {
+    $tenant = Tenant::factory()->create();
+
+    $plumber = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'John',
+        'last_name' => 'Plumber',
+        'skills' => ['plumbing', 'faucets', 'drain-clearing', 'water-heaters'],
+    ]);
+
+    $hvac = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Jane',
+        'last_name' => 'HVAC',
+        'skills' => ['hvac', 'ac', 'heating', 'cooling', 'furnace'],
+    ]);
+
+    $electrician = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Mike',
+        'last_name' => 'Electrician',
+        'skills' => ['electrical', 'breaker-boxes', 'ev-charging', 'wiring'],
+    ]);
+
+    $appliance = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Sarah',
+        'last_name' => 'Appliance',
+        'skills' => ['appliance-repair', 'refrigerator-repair', 'dishwasher-install', 'dryer-maintenance'],
+    ]);
+
+    $roofing = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Robert',
+        'last_name' => 'Roofing',
+        'skills' => ['roofing', 'gutters', 'siding', 'general-repairs'],
+    ]);
+
+    $locksmith = Employee::factory()->create([
+        'tenant_id' => $tenant->id,
+        'first_name' => 'Emily',
+        'last_name' => 'Locksmith',
+        'skills' => ['locksmith', 'rekeying', 'smart-locks'],
+    ]);
+
+    $allTechs = [$plumber, $hvac, $electrician, $appliance, $roofing, $locksmith];
+    $tomorrow = Carbon::today()->addDay();
+
+    foreach ($allTechs as $tech) {
+        Availability::create([
+            'tenant_id' => $tenant->id,
+            'employee_id' => $tech->id,
+            'day_of_week' => $tomorrow->dayOfWeek,
+            'start_time' => '09:00:00',
+            'end_time' => '17:00:00',
+            'is_active' => true,
+        ]);
+    }
+
+    $tool = new GetFirstThreeAvailabilitiesTool;
+    $result = $tool->handle($tenant->id, $inputQuery);
+
+    expect($result['status'])->toBe('success')
+        ->and($result['count'])->toBeGreaterThanOrEqual(1)
+        ->and($result['first_available']['technician_name'])->toBe($expectedTechName);
+})->with([
+    ['plummer', 'plumbing', 'John Plumber'],
+    ['drain cleaning', 'plumbing', 'John Plumber'],
+    ['water heater leak', 'plumbing', 'John Plumber'],
+    ['ac', 'hvac', 'Jane HVAC'],
+    ['a/c', 'hvac', 'Jane HVAC'],
+    ['hvac tech', 'hvac', 'Jane HVAC'],
+    ['furnace repair', 'hvac', 'Jane HVAC'],
+    ['air conditioning', 'hvac', 'Jane HVAC'],
+    ['electrician', 'electrical', 'Mike Electrician'],
+    ['breaker box', 'electrical', 'Mike Electrician'],
+    ['wiring issue', 'electrical', 'Mike Electrician'],
+    ['fridge not cooling', 'appliance', 'Sarah Appliance'],
+    ['dryer broken', 'appliance', 'Sarah Appliance'],
+    ['dishwasher install', 'appliance', 'Sarah Appliance'],
+    ['roof leak', 'roofing', 'Robert Roofing'],
+    ['gutters', 'roofing', 'Robert Roofing'],
+    ['rekey locks', 'locksmith', 'Emily Locksmith'],
+    ['deadbolt', 'locksmith', 'Emily Locksmith'],
+]);

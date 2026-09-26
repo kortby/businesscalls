@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Events\DispatchUpdated;
+use App\Helpers\TradeClassifier;
 use App\Http\Controllers\Controller;
 use App\Jobs\SendTechnicianAlertJob;
 use App\Models\Availability;
@@ -368,7 +369,7 @@ class DispatchWebhookController extends Controller
             $timeOnly = $requestedTimeCarbon->format('H:i:s');
 
             $employees = Employee::get()->filter(function ($employee) use ($serviceTypeInput, $dayOfWeek, $timeOnly) {
-                $hasSkill = is_array($employee->skills) && in_array($serviceTypeInput, $employee->skills);
+                $hasSkill = TradeClassifier::employeeMatches($employee, $serviceTypeInput);
                 if (! $hasSkill) {
                     return false;
                 }
@@ -525,7 +526,7 @@ class DispatchWebhookController extends Controller
 
         // 5. Match Employees by Skill and shift availability
         $employees = Employee::get()->filter(function ($employee) use ($serviceType, $dayOfWeek, $timeOnly, $requiredCert) {
-            $hasSkill = is_array($employee->skills) && in_array($serviceType, $employee->skills);
+            $hasSkill = TradeClassifier::employeeMatches($employee, $serviceType);
             if (! $hasSkill) {
                 return false;
             }
@@ -739,7 +740,7 @@ class DispatchWebhookController extends Controller
     {
         $employees = Employee::where('tenant_id', $tenant->id)->get();
         if ($serviceType !== '') {
-            $skilled = $employees->filter(fn ($e) => is_array($e->skills) && in_array($serviceType, $e->skills));
+            $skilled = $employees->filter(fn ($e) => TradeClassifier::employeeMatches($e, $serviceType));
             if ($skilled->isNotEmpty()) {
                 $employees = $skilled;
             }
